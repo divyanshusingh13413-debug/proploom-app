@@ -1,3 +1,46 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "agent-1",
+      "description": "Avatar for Raj Patel",
+      "imageUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjczOTYzMDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "agent-2",
+      "description": "Avatar for Priya Sharma",
+      "imageUrl": "https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHBvcnRyYWl0fGVufDB8fHx8MTc2NzQ1MDI2MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman portrait"
+    },
+    {
+      "id": "agent-3",
+      "description": "Avatar for Amit Singh",
+      "imageUrl": "https://images.unsplash.com/photo-1594672830234-ba4cfe1202dc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWFuJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzY3NDQ4MzAxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man portrait"
+    },
+    {
+      "id": "agent-4",
+      "description": "Avatar for Sunita Kaur",
+      "imageUrl": "https://images.unsplash.com/photo-1651052662707-f448962903af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwZXJzb24lMjBwcm9mZXNzaW9uYWx8ZW58MHx8fHwxNzY3NDk1MTI0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person professional"
+    },
+    {
+      "id": "property-1-tour",
+      "description": "Virtual tour for 'The Imperial'",
+      "imageUrl": "https://images.unsplash.com/photo-1664372623516-0b1540d6771e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtb2Rlcm4lMjBhcGFydG1lbnR8ZW58MHx8fHwxNzY3NDM1MTc0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "modern apartment"
+    },
+    {
+      "id": "property-2-tour",
+      "description": "Virtual tour for 'Greenwood Heights'",
+      "imageUrl": "https://images.unsplash.com/photo-1717167398817-121e3c283dbb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxsdXh1cnklMjB2aWxsYXxlbnwwfHx8fDE3Njc0NzczMDJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "luxury villa"
+    },
+    {
+      "id": "property-3-tour",
+      "description": "Virtual tour for 'Oceanic View'",
+      "imageUrl": "https://images.unsplash.com/photo-1677553512940-f79af72efd1b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwZW50aG91c2UlMjBpbnRlcmlvcnxlbnwwfHx8fDE3Njc0OTUxMjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "penthouse interior"
+    }
+  ]
 }
