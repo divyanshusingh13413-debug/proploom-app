@@ -17,6 +17,7 @@ import {
   LayoutDashboard,
   Users,
   Video,
+  BarChart2
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -36,6 +37,7 @@ const Nav = () => {
         { href: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { href: '/leads', icon: Users, label: 'Leads' },
         { href: '#', icon: Video, label: 'Virtual Tours' },
+        { href: '#', icon: BarChart2, label: 'Sales' },
     ];
 
     return (

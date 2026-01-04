@@ -1,7 +1,7 @@
 export type Lead = {
   id: string;
   name: string;
-  status: 'New' | 'Contacted' | 'Closed';
+  status: 'New' | 'Contacted' | 'Closed' | 'Follow-up Due' | 'Meeting Today';
   propertyName: string;
   source: string;
   lastContact: string;
@@ -9,6 +9,7 @@ export type Lead = {
   budget: number;
   email: string;
   phone: string;
+  aiScore?: number;
 };
 
 export type Agent = {
