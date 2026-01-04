@@ -1,9 +1,10 @@
+'use client';
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import AppLayout from "@/components/layout/app-layout";
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   title: "PropCall 360",
   description: "Advanced Real Estate Agent Toolkit",
 };

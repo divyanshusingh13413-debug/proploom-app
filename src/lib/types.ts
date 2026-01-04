@@ -1,11 +1,14 @@
 export type Lead = {
   id: string;
   name: string;
-  status: 'Hot' | 'Cold' | 'New';
+  status: 'New' | 'Contacted' | 'Closed';
   propertyName: string;
   source: string;
   lastContact: string;
   agentId: string;
+  budget: number;
+  email: string;
+  phone: string;
 };
 
 export type Agent = {

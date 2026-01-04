@@ -19,6 +19,7 @@ import {
   Video,
 } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 
@@ -28,6 +29,30 @@ const AppLogo = () => (
     <span className="font-headline">PropCall 360</span>
   </div>
 );
+
+const Nav = () => {
+    const pathname = usePathname();
+    const navItems = [
+        { href: '/', icon: LayoutDashboard, label: 'Dashboard' },
+        { href: '/leads', icon: Users, label: 'Leads' },
+        { href: '#', icon: Video, label: 'Virtual Tours' },
+    ];
+
+    return (
+        <SidebarMenu>
+            {navItems.map((item) => (
+                 <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton asChild isActive={pathname === item.href}>
+                        <Link href={item.href}>
+                        <item.icon />
+                        {item.label}
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            ))}
+        </SidebarMenu>
+    );
+}
 
 export default function AppLayout({ children }: PropsWithChildren) {
   return (
@@ -40,32 +65,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
           </div>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive>
-                <Link href="/">
-                  <LayoutDashboard />
-                  Dashboard
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="#">
-                  <Users />
-                  Leads
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="#">
-                  <Video />
-                  Virtual Tours
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+          <Nav />
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
