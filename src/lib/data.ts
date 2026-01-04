@@ -8,7 +8,7 @@ export const agents: Agent[] = [
   { id: 'agent-2', name: 'Priya Sharma', avatarUrl: findImage('agent-2'), calls: 8, callDuration: 60, toursGiven: 7 },
   { id: 'agent-3', name: 'Amit Singh', avatarUrl: findImage('agent-3'), calls: 15, callDuration: 110, toursGiven: 3 },
   { id: 'agent-4', name: 'Sunita Kaur', avatarUrl: findImage('agent-4'), calls: 5, callDuration: 45, toursGiven: 8 },
-  { id: 'agent-5', name: 'Rahul S.', avatarUrl: 'https://picsum.photos/seed/rahul/100/100', calls: 10, callDuration: 70, toursGiven: 4 },
+  { id: 'agent-5', name: 'Ananya Sharma', avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&q=80', calls: 10, callDuration: 70, toursGiven: 4 },
 ];
 
 export const properties: Property[] = [

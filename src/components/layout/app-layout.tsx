@@ -36,7 +36,7 @@ const Nav = () => {
     const navItems = [
         { href: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { href: '/leads', icon: Users, label: 'Leads' },
-        { href: '#', icon: Video, label: 'Virtual Tours' },
+        { href: '/tours', icon: Video, label: 'Virtual Tours' },
         { href: '#', icon: BarChart2, label: 'Sales' },
     ];
 
