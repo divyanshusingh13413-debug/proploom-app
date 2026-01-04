@@ -10,9 +10,9 @@ interface LeadStatusChartProps {
 
 export function LeadStatusChart({ leads }: LeadStatusChartProps) {
   const data = [
-    { name: "New", total: leads.filter((l) => l.status === "New").length, fill: "var(--color-new)" },
-    { name: "Hot", total: leads.filter((l) => l.status === "Hot").length, fill: "var(--color-hot)" },
-    { name: "Cold", total: leads.filter((l) => l.status === "Cold").length, fill: "var(--color-cold)" },
+    { name: "New", total: leads.filter((l) => l.status === "New").length, fill: "hsl(var(--primary))" },
+    { name: "Hot", total: leads.filter((l) => l.status === "Hot").length, fill: "hsl(var(--accent))" },
+    { name: "Cold", total: leads.filter((l) => l.status === "Cold").length, fill: "hsl(var(--secondary))" },
   ];
 
   return (
@@ -22,31 +22,19 @@ export function LeadStatusChart({ leads }: LeadStatusChartProps) {
         <CardDescription>A breakdown of your current leads.</CardDescription>
       </CardHeader>
       <CardContent>
-        <style>
-          {`
-            :root {
-              --color-new: hsl(210 90% 50%);
-              --color-hot: hsl(0 80% 55%);
-              --color-cold: hsl(240 50% 70%);
-            }
-            .dark {
-              --color-new: hsl(210 90% 60%);
-              --color-hot: hsl(0 80% 65%);
-              --color-cold: hsl(240 50% 80%);
-            }
-          `}
-        </style>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-            <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
+            <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
             <Tooltip
               contentStyle={{
                 backgroundColor: 'hsl(var(--card))',
                 borderColor: 'hsl(var(--border))',
                 borderRadius: 'var(--radius)',
+                color: 'hsl(var(--foreground))'
               }}
               labelStyle={{ color: 'hsl(var(--foreground))' }}
+              cursor={{fill: 'hsla(var(--card-foreground), 0.1)'}}
             />
             <Bar dataKey="total" radius={[4, 4, 0, 0]} />
           </BarChart>

@@ -83,7 +83,7 @@ export function ActionsCard({ properties }: ActionsCardProps) {
         <div className="flex gap-2 mt-4 sm:mt-0">
           <Dialog open={whatsappDialogOpen} onOpenChange={(open) => { if(!open) resetWhatsappForm(); setWhatsappDialogOpen(open); }}>
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button>
                 <MessageSquare className="mr-2 h-4 w-4" />
                 WhatsApp Bot
               </Button>
@@ -120,14 +120,14 @@ export function ActionsCard({ properties }: ActionsCardProps) {
               <DialogFooter>
                 {generatedMessage ? (
                     <DialogClose asChild>
-                        <Button className="bg-green-600 hover:bg-green-700">
+                        <Button className="bg-secondary hover:bg-secondary/90">
                             <Send className="mr-2 h-4 w-4"/>
                             Send Message
                         </Button>
                     </DialogClose>
                 ) : (
-                    <Button onClick={handleGenerateMessage} disabled={isGenerating}>
-                      {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                    <Button onClick={handleGenerateMessage} disabled={isGenerating} variant="outline">
+                      {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4 text-accent" />}
                       Generate Message
                     </Button>
                 )}
@@ -137,7 +137,7 @@ export function ActionsCard({ properties }: ActionsCardProps) {
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button>
+              <Button variant="outline">
                 <Video className="mr-2 h-4 w-4" />
                 Virtual Tours
               </Button>
@@ -151,15 +151,17 @@ export function ActionsCard({ properties }: ActionsCardProps) {
               </DialogHeader>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
                 {properties.map(p => (
-                  <Card key={p.id} className="overflow-hidden">
-                    <Image
-                      src={p.tourImageUrl}
-                      alt={`Virtual tour of ${p.name}`}
-                      width={400}
-                      height={300}
-                      className="object-cover aspect-[4/3] w-full"
-                      data-ai-hint="apartment interior"
-                    />
+                  <Card key={p.id} className="overflow-hidden group transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1">
+                    <div className="overflow-hidden">
+                      <Image
+                        src={p.tourImageUrl}
+                        alt={`Virtual tour of ${p.name}`}
+                        width={400}
+                        height={300}
+                        className="object-cover aspect-[4/3] w-full group-hover:scale-105 transition-transform duration-300"
+                        data-ai-hint="apartment interior"
+                      />
+                    </div>
                     <CardHeader>
                         <CardTitle className="text-base">{p.name}</CardTitle>
                     </CardHeader>

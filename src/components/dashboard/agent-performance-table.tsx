@@ -98,7 +98,7 @@ export function AgentPerformanceTable({ agents }: AgentPerformanceTableProps) {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleCall(agent.name)} className="bg-primary hover:bg-primary/90">
+                          <AlertDialogAction onClick={() => handleCall(agent.name)}>
                             Proceed to Call
                           </AlertDialogAction>
                         </AlertDialogFooter>

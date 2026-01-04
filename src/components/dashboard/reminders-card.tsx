@@ -77,7 +77,7 @@ export function RemindersCard({ leads }: RemindersCardProps) {
                       onClick={() => handleGenerateReminder(lead)}
                       disabled={loading[lead.id]}
                     >
-                      <Sparkles className="mr-2 h-4 w-4" />
+                      <Sparkles className="mr-2 h-4 w-4 text-accent" />
                       {loading[lead.id] ? "Generating..." : "Suggest"}
                     </Button>
                   </div>
