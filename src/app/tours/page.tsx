@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import {
   Card,
@@ -26,6 +26,7 @@ import {
   Camera,
   Layers,
   Phone,
+  Plus,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -73,6 +74,19 @@ const VirtualTourHotspot = ({ x, y, name } : {x:string, y:string, name:string}) 
 
 export default function VirtualTourPage() {
   const [tourProgress, setTourProgress] = useState(35);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAddPictureClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      console.log('Selected file:', file.name);
+      // Here you would typically handle the file upload
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -100,6 +114,21 @@ export default function VirtualTourPage() {
                         className="object-cover w-full aspect-[16/9]"
                         data-ai-hint="luxury penthouse interior"
                     />
+                     <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        className="hidden"
+                        accept="image/*"
+                    />
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="absolute top-4 left-4 h-12 w-12 bg-background/30 backdrop-blur-sm border-white/20 hover:bg-background/50"
+                        onClick={handleAddPictureClick}
+                    >
+                        <Plus className="h-6 w-6" />
+                    </Button>
                     {property.tourHotspots.map(spot => (
                          <VirtualTourHotspot key={spot.id} x={spot.x} y={spot.y} name={spot.name} />
                     ))}
