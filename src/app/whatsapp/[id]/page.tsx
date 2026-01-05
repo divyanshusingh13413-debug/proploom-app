@@ -6,10 +6,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { generateWhatsappMessage } from "@/ai/flows/generate-whatsapp-message";
-import { Send, Loader2, Bot, User, ArrowLeft, Video, Phone, MoreVertical } from "lucide-react";
+import { Send, Loader2, ArrowLeft, Video, Phone, MoreVertical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { leads, agents } from "@/lib/data";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useParams, useRouter } from "next/navigation";
 import type { Lead, Agent } from '@/lib/types';
 
