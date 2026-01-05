@@ -113,7 +113,7 @@ export default function WhatsappPage() {
                             <AvatarFallback><Bot className="w-5 h-5"/></AvatarFallback>
                         </Avatar>
                     )}
-                    <div className={`max-w-xs md:max-w-md rounded-xl px-4 py-2 ${message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                    <div className={`max-w-xs md:max-w-md rounded-xl px-4 py-2 ${message.sender === 'user' ? 'bg-secondary text-secondary-foreground' : 'bg-muted text-muted-foreground'}`}>
                         <p className="text-sm">{message.text}</p>
                     </div>
                      {message.sender === 'user' && (
