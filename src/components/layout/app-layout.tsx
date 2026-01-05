@@ -1,3 +1,4 @@
+
 'use client';
 import type { PropsWithChildren } from 'react';
 import {
@@ -20,9 +21,12 @@ import {
   Video,
   BarChart2,
   MessageSquare,
+  LogOut,
+  User,
+  Settings,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import {
   DropdownMenu,
@@ -75,6 +79,7 @@ const Nav = () => {
 
 export default function AppLayout({ children }: PropsWithChildren) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuth();
   const isAuthPage = pathname.startsWith('/auth');
 
@@ -82,6 +87,10 @@ export default function AppLayout({ children }: PropsWithChildren) {
     return <main>{children}</main>;
   }
 
+  const handleLogout = async () => {
+    await auth.signOut();
+    router.push('/auth/login');
+  };
 
   const isWhatsAppPage = pathname.startsWith('/whatsapp');
 
@@ -121,15 +130,16 @@ export default function AppLayout({ children }: PropsWithChildren) {
                   >
                     <Avatar className="h-9 w-9">
                       <AvatarImage
-                        src="https://picsum.photos/seed/user/100/100"
+                        src={user?.photoURL || "https://picsum.photos/seed/user/100/100"}
                         alt="User Avatar"
                         data-ai-hint="person professional"
                       />
                       <AvatarFallback>
-                        {auth.currentUser?.displayName
+                        {user?.displayName
                           ?.split(' ')
                           .map((n) => n[0])
-                          .join('') || 'U'}
+                          .join('')
+                          .toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -138,19 +148,26 @@ export default function AppLayout({ children }: PropsWithChildren) {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">
-                        {auth.currentUser?.displayName || 'User'}
+                        {user?.displayName || 'User'}
                       </p>
                       <p className="text-xs leading-none text-muted-foreground">
-                        {auth.currentUser?.email || ''}
+                        {user?.email || ''}
                       </p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => auth.signOut()}>
-                    Log out
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
