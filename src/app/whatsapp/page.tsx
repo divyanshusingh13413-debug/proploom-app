@@ -1,154 +1,59 @@
+'use client';
 
-"use client";
-
-import { useState, useRef, useEffect } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { generateWhatsappMessage } from "@/ai/flows/generate-whatsapp-message";
-import { Send, Loader2, Bot, User } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { properties } from "@/lib/data";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-
-type Message = {
-  id: string;
-  text: string;
-  sender: "user" | "bot";
-};
+import { leads, agents } from '@/lib/data';
+import type { Lead } from '@/lib/types';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Search, MessageSquarePlus, CircleEllipsis } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function WhatsappPage() {
-  const { toast } = useToast();
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: "Hello! I'm your real estate assistant. Who am I speaking with today?",
-      sender: "bot",
-    },
-  ]);
-  const [inputValue, setInputValue] = useState("");
-  const [leadName, setLeadName] = useState<string | null>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim() || isGenerating) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: inputValue,
-      sender: "user",
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
-    setIsGenerating(true);
-
-    try {
-      let currentLeadName = leadName;
-      if (!currentLeadName) {
-        setLeadName(inputValue);
-        currentLeadName = inputValue;
-      }
-      
-      const result = await generateWhatsappMessage({
-        leadName: currentLeadName,
-        propertyName: "any available property",
-        propertyBrochureUrl: "N/A",
-        leadSource: 'Live Chat',
-      });
-      
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: result.message,
-        sender: "bot",
-      };
-      setMessages((prev) => [...prev, botMessage]);
-
-    } catch (error) {
-      console.error("Failed to generate message", error);
-      toast({
-        variant: "destructive",
-        title: "Generation Failed",
-        description: "Could not get a response from the bot.",
-      });
-       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "Sorry, I'm having trouble connecting. Please try again later.",
-        sender: "bot",
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-  
   return (
-    <div className="container mx-auto max-w-2xl h-[calc(100vh-120px)] flex flex-col">
-        <Card className="flex-1 flex flex-col">
-            <CardHeader className="flex-row items-center gap-4">
-                <Avatar>
-                    <AvatarImage src="https://picsum.photos/seed/bot/100/100" data-ai-hint="bot logo"/>
-                    <AvatarFallback>BOT</AvatarFallback>
-                </Avatar>
-                <div>
-                    <CardTitle>WhatsApp Bot</CardTitle>
-                    <CardDescription>
-                      AI-powered live chat
-                    </CardDescription>
-                </div>
-            </CardHeader>
-            <CardContent ref={scrollAreaRef} className="flex-1 overflow-y-auto p-6 space-y-6">
-               {messages.map(message => (
-                 <div key={message.id} className={`flex items-end gap-2 ${message.sender === 'user' ? 'justify-end' : ''}`}>
-                    {message.sender === 'bot' && (
-                        <Avatar className="h-8 w-8">
-                            <AvatarFallback><Bot className="w-5 h-5"/></AvatarFallback>
-                        </Avatar>
-                    )}
-                    <div className={`max-w-xs md:max-w-md rounded-xl px-4 py-2 ${message.sender === 'user' ? 'bg-secondary text-secondary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                        <p className="text-sm">{message.text}</p>
+    <div className="bg-background h-full">
+      <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
+        <h1 className="text-xl font-bold text-green-500">WhatsApp</h1>
+        <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon"><Search className="h-5 w-5"/></Button>
+            <Button variant="ghost" size="icon"><CircleEllipsis className="h-5 w-5"/></Button>
+        </div>
+      </header>
+      <div className="p-4">
+        <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input placeholder="Search or start a new chat" className="pl-10" />
+        </div>
+      </div>
+      <div className="relative">
+        <div className="overflow-y-auto">
+          {leads.map((lead) => {
+            const agent = agents.find(a => a.id === lead.agentId);
+            return (
+              <Link href={`/whatsapp/${lead.id}`} key={lead.id} legacyBehavior>
+                <a className="flex items-center gap-4 p-4 hover:bg-muted/50 cursor-pointer border-b border-border">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={agent?.avatarUrl} />
+                    <AvatarFallback>{lead.name.substring(0, 2)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex justify-between">
+                      <p className="font-semibold">{lead.name}</p>
+                      <p className="text-xs text-muted-foreground">{lead.lastContact}</p>
                     </div>
-                     {message.sender === 'user' && (
-                        <Avatar className="h-8 w-8">
-                            <AvatarFallback><User className="w-5 h-5"/></AvatarFallback>
-                        </Avatar>
-                    )}
-                 </div>
-               ))}
-               {isGenerating && (
-                 <div className="flex items-end gap-2">
-                    <Avatar className="h-8 w-8">
-                       <AvatarFallback><Bot className="w-5 h-5"/></AvatarFallback>
-                    </Avatar>
-                    <div className="max-w-xs md:max-w-md rounded-xl px-4 py-2 bg-muted flex items-center">
-                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                    </div>
-                 </div>
-               )}
-            </CardContent>
-            <div className="p-4 border-t">
-              <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                <Input 
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Type your message..." 
-                  disabled={isGenerating}
-                />
-                <Button type="submit" disabled={!inputValue.trim() || isGenerating}>
-                    <Send className="w-5 h-5" />
-                    <span className="sr-only">Send</span>
-                </Button>
-              </form>
-            </div>
-        </Card>
+                    <p className="text-sm text-muted-foreground truncate">Hi, I'm interested in {lead.propertyName}.</p>
+                  </div>
+                </a>
+              </Link>
+            );
+          })}
+        </div>
+         <div className="absolute bottom-4 right-4">
+          <Button className="rounded-full h-14 w-14 bg-green-500 hover:bg-green-600 shadow-lg">
+            <MessageSquarePlus className="h-6 w-6" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
