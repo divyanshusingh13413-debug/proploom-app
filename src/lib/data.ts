@@ -32,9 +32,10 @@ export const dashboardLeads: Lead[] = [
     { id: 'lead-1', name: 'Lead 1', status: 'Hot' as any, propertyName: 'The Imperial', source: 'Website', lastContact: '2 days ago', agentId: 'agent-1', budget: 1200000, email: 'lead1@example.com', phone: '9876543210' },
     { id: 'lead-2', name: 'Lead 2', status: 'Cold' as any, propertyName: 'Greenwood Heights', source: 'Referral', lastContact: '5 days ago', agentId: 'agent-2', budget: 2500000, email: 'lead2@example.com', phone: '9876543211' },
     { id: 'lead-3', name: 'Lead 3', status: 'Hot' as any, propertyName: 'The Imperial', source: 'Zillow', lastContact: '1 day ago', agentId: 'agent-1', budget: 1500000, email: 'lead3@example.com', phone: '9876543212' },
-    { id: 'lead-4', name: 'Lead 4', status: 'New' as any, propertyName: 'Oceanic View', source: 'Website', lastContact: '3 hours ago', agentId: 'agent-3', budget: 3200000, email: 'lead4@example.com', phone: '9876543213' },
+    { id: 'lead-4', name: 'Lead 4', status: 'Hot' as any, propertyName: 'Oceanic View', source: 'Website', lastContact: '3 hours ago', agentId: 'agent-3', budget: 3200000, email: 'lead4@example.com', phone: '9876543213' },
     { id: 'lead-5', name: 'Lead 5', status: 'Cold' as any, propertyName: 'Greenwood Heights', source: 'Walk-in', lastContact: '1 week ago', agentId: 'agent-4', budget: 2800000, email: 'lead5@example.com', phone: '9876543214' },
     { id: 'lead-6', name: 'Lead 6', status: 'Hot' as any, propertyName: 'Oceanic View', source: 'MagicBricks', lastContact: 'Yesterday', agentId: 'agent-3', budget: 3500000, email: 'lead6@example.com', phone: '9876543215' },
+    { id: 'lead-7', name: 'Lead 7', status: 'New' as any, propertyName: 'The Imperial', source: 'Website', lastContact: '1 hour ago', agentId: 'agent-1', budget: 1800000, email: 'lead7@example.com', phone: '9876543216' },
 ];
 
 export const salesData = [
