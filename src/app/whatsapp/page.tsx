@@ -112,8 +112,10 @@ export default function WhatsappPage() {
                 {generatedMessage ? (
                   <DialogClose asChild>
                     <Button onClick={handleSend} className="bg-secondary hover:bg-secondary/90">
-                        <Send className="mr-2 h-4 w-4"/>
-                        Send Message
+                        <>
+                            <Send className="mr-2 h-4 w-4"/>
+                            Send Message
+                        </>
                     </Button>
                   </DialogClose>
                 ) : (

@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from 'next/image';
@@ -30,8 +31,10 @@ export function ActionsCard({ properties }: ActionsCardProps) {
         <div className="flex gap-2 mt-4 sm:mt-0">
           <Button asChild>
             <Link href="/whatsapp">
-              <Video className="mr-2 h-4 w-4" />
-              WhatsApp Bot
+              <>
+                <Video className="mr-2 h-4 w-4" />
+                WhatsApp Bot
+              </>
             </Link>
           </Button>
 
