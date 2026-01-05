@@ -27,3 +27,13 @@ export type Property = {
   tourImageUrl: string;
   brochureUrl: string;
 };
+
+export type Deal = {
+  id: string;
+  clientName: string;
+  dealName: string;
+  status: 'New' | 'Negotiation' | 'Closed';
+  dealValue: string;
+  agent: string;
+  lastActivity: string;
+};

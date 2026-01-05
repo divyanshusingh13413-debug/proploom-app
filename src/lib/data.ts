@@ -1,4 +1,4 @@
-import type { Agent, Lead, Property } from '@/lib/types';
+import type { Agent, Lead, Property, Deal } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const findImage = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
@@ -36,3 +36,14 @@ export const dashboardLeads: Lead[] = [
     { id: 'lead-5', name: 'Karan Malhotra', status: 'Cold' as any, propertyName: 'Greenwood Heights', source: 'Walk-in', lastContact: '1 week ago', agentId: 'agent-4', budget: 2800000, email: 'karan.m@example.com', phone: '9876543214' },
     { id: 'lead-6', name: 'Meera Desai', status: 'Hot' as any, propertyName: 'Oceanic View', source: 'MagicBricks', lastContact: 'Yesterday', agentId: 'agent-3', budget: 3500000, email: 'meera.d@example.com', phone: '9876543215' },
 ];
+
+export const salesData = [
+    { name: 'Stage 1', new: 88, negotiation: 8, closed: 4 },
+    { name: 'Stage 2', new: 35, negotiation: 0, closed: 0 },
+  ];
+  
+  export const deals: Deal[] = [
+    { id: 'deal-1', clientName: 'Vikram Gupta', dealName: 'Luxury Penthouse', status: 'New', dealValue: '750K', agent: 'Raj Patel', lastActivity: 'Now' },
+    { id: 'deal-2', clientName: 'Aaratıys Foamsil', dealName: 'Meajstion', status: 'Negotiation', dealValue: '150K', agent: 'Priya Sharma', lastActivity: 'Yesterday' },
+    { id: 'deal-3', clientName: 'Stalleerirs brond', dealName: 'Negrisrattion', status: 'New', dealValue: '1.2M', agent: 'Rahul S.', lastActivity: '3 days ago' },
+  ];

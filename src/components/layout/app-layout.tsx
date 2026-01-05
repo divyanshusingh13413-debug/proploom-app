@@ -39,7 +39,7 @@ const Nav = () => {
         { href: '/leads', icon: Users, label: 'Leads' },
         { href: '/whatsapp', icon: MessageSquare, label: 'WhatsApp' },
         { href: '/tours', icon: Video, label: 'Virtual Tours' },
-        { href: '#', icon: BarChart2, label: 'Sales' },
+        { href: '/sales', icon: BarChart2, label: 'Sales' },
     ];
 
     return (
