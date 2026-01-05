@@ -1,10 +1,9 @@
 import { Users, TrendingUp, PhoneCall, Video } from "lucide-react";
-import { dashboardLeads, agents, properties } from "@/lib/data";
+import { dashboardLeads, agents } from "@/lib/data";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { LeadStatusChart } from "@/components/dashboard/lead-status-chart";
 import { AgentPerformanceTable } from "@/components/dashboard/agent-performance-table";
 import { RemindersCard } from "@/components/dashboard/reminders-card";
-import { ActionsCard } from "@/components/dashboard/actions-card";
 
 export default function DashboardPage() {
   const hotLeads = dashboardLeads.filter(l => l.status === 'Hot').length;

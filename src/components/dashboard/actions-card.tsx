@@ -29,7 +29,7 @@ export function ActionsCard({ properties }: ActionsCardProps) {
             <p className="text-sm text-muted-foreground">Automate tasks and showcase properties.</p>
         </div>
         <div className="flex gap-2 mt-4 sm:mt-0">
-          <Link href="/whatsapp" passHref>
+          <Link href="/whatsapp">
             <Button>
               <Video className="mr-2 h-4 w-4" />
               WhatsApp Bot
