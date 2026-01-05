@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function VirtualTourPage() {
@@ -38,6 +38,10 @@ export default function VirtualTourPage() {
       setNewTourImage(null);
       setDialogOpen(false);
     }
+  };
+
+  const handleRemoveTour = (indexToRemove: number) => {
+    setTours(tours.filter((_, index) => index !== indexToRemove));
   };
 
   return (
@@ -106,7 +110,16 @@ export default function VirtualTourPage() {
         </Dialog>
 
         {tours.map((tour, index) => (
-          <Card key={index} className="overflow-hidden group transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1">
+          <Card key={index} className="overflow-hidden group relative transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1">
+             <Button
+                variant="destructive"
+                size="icon"
+                className="absolute top-2 right-2 z-10 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => handleRemoveTour(index)}
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="sr-only">Remove tour</span>
+              </Button>
              <div className="overflow-hidden aspect-video relative">
                 <Image
                     src={tour.image}
