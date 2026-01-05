@@ -1,8 +1,13 @@
-'use client';
+
+import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import AppLayout from '@/components/layout/app-layout';
-import { FirebaseProvider } from '@/firebase/provider';
+import ClientLayout from '@/components/layout/client-layout';
+
+export const metadata: Metadata = {
+  title: 'PropCall 360',
+  description: 'Manage your real estate business with ease.',
+};
 
 export default function RootLayout({
   children,
@@ -24,9 +29,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <FirebaseProvider>
-          <AppLayout>{children}</AppLayout>
-        </FirebaseProvider>
+        <ClientLayout>{children}</ClientLayout>
         <Toaster />
       </body>
     </html>
