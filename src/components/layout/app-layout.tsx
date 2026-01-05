@@ -17,7 +17,8 @@ import {
   LayoutDashboard,
   Users,
   Video,
-  BarChart2
+  BarChart2,
+  MessageSquare,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -36,6 +37,7 @@ const Nav = () => {
     const navItems = [
         { href: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { href: '/leads', icon: Users, label: 'Leads' },
+        { href: '/whatsapp', icon: MessageSquare, label: 'WhatsApp Bot' },
         { href: '/tours', icon: Video, label: 'Virtual Tours' },
         { href: '#', icon: BarChart2, label: 'Sales' },
     ];
