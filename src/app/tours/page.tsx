@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function VirtualTourPage() {
   const [tours, setTours] = useState<{ name: string, location: string, image: string }[]>([]);
@@ -44,63 +46,82 @@ export default function VirtualTourPage() {
         Virtual Tour
       </h1>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogTrigger asChild>
-          <button className="flex flex-col items-center justify-center w-96 h-64 border-2 border-dashed rounded-lg border-muted-foreground text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-            <Plus className="w-16 h-16 mb-4" />
-            <span className="text-xl">Add New Tour</span>
-          </button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Create New Virtual Tour</DialogTitle>
-            <DialogDescription>
-              Upload a panorama image and provide details for your new tour.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="tour-name" className="text-right">
-                Name
-              </Label>
-              <Input
-                id="tour-name"
-                value={newTourName}
-                onChange={(e) => setNewTourName(e.target.value)}
-                className="col-span-3"
-                placeholder="e.g., 'The Imperial Penthouse'"
-              />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <button className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed rounded-lg border-muted-foreground text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+              <Plus className="w-16 h-16 mb-4" />
+              <span className="text-xl">Add New Tour</span>
+            </button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Create New Virtual Tour</DialogTitle>
+              <DialogDescription>
+                Upload a panorama image and provide details for your new tour.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="tour-name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="tour-name"
+                  value={newTourName}
+                  onChange={(e) => setNewTourName(e.target.value)}
+                  className="col-span-3"
+                  placeholder="e.g., 'The Imperial Penthouse'"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="tour-location" className="text-right">
+                  Location
+                </Label>
+                <Input
+                  id="tour-location"
+                  value={newTourLocation}
+                  onChange={(e) => setNewTourLocation(e.target.value)}
+                  className="col-span-3"
+                  placeholder="e.g., 'Mumbai, India'"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="tour-image" className="text-right">
+                  Image
+                </Label>
+                <Input
+                  id="tour-image"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => e.target.files && setNewTourImage(e.target.files[0])}
+                  className="col-span-3"
+                />
+              </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="tour-location" className="text-right">
-                Location
-              </Label>
-              <Input
-                id="tour-location"
-                value={newTourLocation}
-                onChange={(e) => setNewTourLocation(e.target.value)}
-                className="col-span-3"
-                placeholder="e.g., 'Mumbai, India'"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="tour-image" className="text-right">
-                Image
-              </Label>
-              <Input
-                id="tour-image"
-                type="file"
-                accept="image/*"
-                onChange={(e) => e.target.files && setNewTourImage(e.target.files[0])}
-                className="col-span-3"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleCreateTour}>Create Tour</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button onClick={handleCreateTour}>Create Tour</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {tours.map((tour, index) => (
+          <Card key={index} className="overflow-hidden group transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1">
+             <div className="overflow-hidden aspect-video relative">
+                <Image
+                    src={tour.image}
+                    alt={`Virtual tour of ${tour.name}`}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+             </div>
+             <CardHeader>
+                <CardTitle className="text-base">{tour.name}</CardTitle>
+                <p className="text-sm text-muted-foreground">{tour.location}</p>
+             </CardHeader>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
