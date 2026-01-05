@@ -90,3 +90,97 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Splash Screen Styles */
+.splash-screen {
+  @apply fixed inset-0 z-50 flex flex-col items-center justify-center bg-black;
+  opacity: 1;
+  transition: opacity 0.5s ease-out;
+}
+
+.splash-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.curtain-container {
+  @apply absolute inset-0 flex;
+}
+
+.curtain {
+  @apply w-1/2 h-full bg-black transition-transform duration-700 ease-in-out;
+}
+
+.curtain-left {
+  transform: translateX(0);
+}
+
+.curtain-right {
+  transform: translateX(0);
+}
+
+.splash-screen.hidden .curtain-left {
+  transform: translateX(-100%);
+}
+
+.splash-screen.hidden .curtain-right {
+  transform: translateX(100%);
+}
+
+.splash-content {
+  @apply text-center text-white relative;
+  animation: zoom-in 3s ease-out forwards;
+}
+
+.logo-container {
+  @apply relative;
+  animation: glow 3s infinite ease-in-out;
+}
+
+.logo-text {
+  @apply text-7xl md:text-8xl font-black tracking-wider bg-clip-text text-transparent;
+  background-image: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
+}
+
+@keyframes zoom-in {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    text-shadow: 0 0 10px #BF953F, 0 0 20px #BF953F, 0 0 30px #BF953F;
+  }
+  50% {
+    text-shadow: 0 0 20px #FCF6BA, 0 0 30px #FCF6BA, 0 0 40px #FCF6BA;
+  }
+}
+
+.tagline {
+  @apply text-lg md:text-xl font-thin tracking-[0.2em] text-gray-300 mt-4;
+}
+
+.house-animation {
+  @apply absolute bottom-8 left-1/2 -translate-x-1/2 w-48 h-24;
+}
+
+.house-path {
+  stroke: #BF953F;
+  stroke-width: 2;
+  fill: transparent;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: draw-house 3s ease-out forwards;
+}
+
+@keyframes draw-house {
+  to {
+    stroke-dashoffset: 0;
+  }
+}

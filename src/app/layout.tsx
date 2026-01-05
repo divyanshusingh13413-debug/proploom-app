@@ -5,8 +5,8 @@ import { Toaster } from '@/components/ui/toaster';
 import ClientLayout from '@/components/layout/client-layout';
 
 export const metadata: Metadata = {
-  title: 'PropCall 360',
-  description: 'Manage your real estate business with ease.',
+  title: 'PROPLOOM',
+  description: 'Defining Luxury Living.',
 };
 
 export default function RootLayout({

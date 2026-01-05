@@ -38,7 +38,7 @@ import { auth } from '@/firebase';
 const AppLogo = () => (
   <div className="flex items-center gap-2.5 font-bold text-lg text-primary-foreground tracking-tighter">
     <Building2 className="text-accent" />
-    <span className="font-headline">PropCall 360</span>
+    <span className="font-headline">PROPLOOM</span>
   </div>
 );
 
