@@ -34,11 +34,11 @@ export default function WhatsappPage() {
                 <a className="flex items-center gap-4 p-4 hover:bg-muted/50 cursor-pointer border-b border-border">
                   <Avatar className="h-12 w-12">
                     <AvatarImage src={agent?.avatarUrl} />
-                    <AvatarFallback>{lead.name.substring(0, 2)}</AvatarFallback>
+                    <AvatarFallback>{lead.id.substring(0, 2)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex justify-between">
-                      <p className="font-semibold">{lead.name}</p>
+                      <p className="font-semibold">{`Lead ${lead.id}`}</p>
                       <p className="text-xs text-muted-foreground">{lead.lastContact}</p>
                     </div>
                     <p className="text-sm text-muted-foreground truncate">Hi, I'm interested in {lead.propertyName}.</p>

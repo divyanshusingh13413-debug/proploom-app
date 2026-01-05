@@ -72,10 +72,10 @@ export function AgentPerformanceTable({ agents }: AgentPerformanceTableProps) {
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar>
-                      <AvatarImage src={agent.avatarUrl} alt={agent.name} />
-                      <AvatarFallback>{agent.name.substring(0, 2)}</AvatarFallback>
+                      <AvatarImage src={agent.avatarUrl} alt={`Agent ${agent.id}`} />
+                      <AvatarFallback>{agent.id.substring(0, 2).toUpperCase()}</AvatarFallback>
                     </Avatar>
-                    <span className="font-medium">{agent.name}</span>
+                    <span className="font-medium">{`Agent ${agent.id.split('-')[1]}`}</span>
                   </div>
                 </TableCell>
                 <TableCell className="text-center">{agent.calls}</TableCell>
@@ -98,7 +98,7 @@ export function AgentPerformanceTable({ agents }: AgentPerformanceTableProps) {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleCall(agent.name)}>
+                          <AlertDialogAction onClick={() => handleCall(`Agent ${agent.id.split('-')[1]}`)}>
                             Proceed to Call
                           </AlertDialogAction>
                         </AlertDialogFooter>

@@ -59,10 +59,10 @@ const LeadJourney = ({ lead }: { lead: Lead | null }) => {
                 <div className="flex items-start gap-4">
                     <Avatar className="w-12 h-12">
                         <AvatarImage src={agent?.avatarUrl} />
-                        <AvatarFallback>{lead.name.substring(0,2)}</AvatarFallback>
+                        <AvatarFallback>{lead.id.substring(0,2)}</AvatarFallback>
                     </Avatar>
                     <div>
-                        <p className="font-semibold">{lead.name}</p>
+                        <p className="font-semibold">{`Lead ${lead.id}`}</p>
                         <p className="text-sm text-muted-foreground">{lead.id.toUpperCase()}</p>
                     </div>
                 </div>
@@ -142,14 +142,14 @@ export default function LeadsPage() {
                             const agent = agents.find(a => a.id === lead.agentId);
                             return (
                                 <TableRow key={lead.id} className="transition-colors hover:bg-muted/50 cursor-pointer" onClick={() => setSelectedLead(lead)}>
-                                    <TableCell className="font-medium">{lead.name}</TableCell>
+                                    <TableCell className="font-medium">{`Lead ${lead.id}`}</TableCell>
                                     <TableCell>{lead.source}</TableCell>
                                     <TableCell>
                                         <Badge className={statusStyles[lead.status] || 'bg-gray-500/20 text-gray-400 border-gray-500/30'}>
                                             {lead.status}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell>{agent?.name || 'Unassigned'}</TableCell>
+                                    <TableCell>{`Agent ${agent?.id.split('-')[1]}` || 'Unassigned'}</TableCell>
                                     <TableCell className="text-center font-semibold">{lead.aiScore || '-'}</TableCell>
                                     <TableCell>{lead.lastContact}</TableCell>
                                     <TableCell className="text-right">

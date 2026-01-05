@@ -29,7 +29,7 @@ export function RemindersCard({ leads }: RemindersCardProps) {
     setLoading((prev) => ({ ...prev, [lead.id]: true }));
     try {
       const result = await generateFollowUpReminder({
-        clientName: lead.name,
+        clientName: `Lead ${lead.id}`,
         propertyViewed: lead.propertyName,
         interactionDate: lead.lastContact,
         agentName: "you", // Assuming the logged-in agent
@@ -65,7 +65,7 @@ export function RemindersCard({ leads }: RemindersCardProps) {
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <p className="font-medium">
-                        Follow up with {lead.name}
+                        {`Follow up with Lead ${lead.id}`}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         Viewed {lead.propertyName} {lead.lastContact}.

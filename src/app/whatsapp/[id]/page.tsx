@@ -73,7 +73,7 @@ export default function WhatsappChatPage() {
       if (!lead) throw new Error("Lead not found");
 
       const result = await generateWhatsappMessage({
-        leadName: lead.name,
+        leadName: `Lead ${lead.id}`,
         propertyName: lead.propertyName,
         propertyBrochureUrl: "N/A",
         leadSource: 'Live Chat',
@@ -120,10 +120,10 @@ export default function WhatsappChatPage() {
             </Button>
             <Avatar>
                 <AvatarImage src={agent?.avatarUrl} />
-                <AvatarFallback>{lead.name.substring(0, 2)}</AvatarFallback>
+                <AvatarFallback>{lead.id.substring(0, 2)}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-                <p className="font-semibold">{lead.name}</p>
+                <p className="font-semibold">{`Lead ${lead.id}`}</p>
                 <p className="text-xs text-muted-foreground">online</p>
             </div>
             <div className="flex items-center gap-2">

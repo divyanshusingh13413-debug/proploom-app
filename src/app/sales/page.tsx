@@ -82,7 +82,7 @@ export default function SalesPage() {
                             <TableCell>{deal.dealName}</TableCell>
                             <TableCell><Badge className={statusStyles[deal.status]}>{deal.status}</Badge></TableCell>
                             <TableCell>${deal.dealValue}</TableCell>
-                            <TableCell>{deal.agent}</TableCell>
+                            <TableCell>{`Agent ${deal.agentId.split('-')[1]}`}</TableCell>
                             <TableCell>{deal.lastActivity}</TableCell>
                             <TableCell className="text-right">
                                 <Button variant="ghost" size="icon" className="h-8 w-8">

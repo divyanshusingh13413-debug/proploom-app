@@ -34,6 +34,6 @@ export type Deal = {
   dealName: string;
   status: 'New' | 'Negotiation' | 'Closed';
   dealValue: string;
-  agent: string;
+  agentId: string;
   lastActivity: string;
 };
