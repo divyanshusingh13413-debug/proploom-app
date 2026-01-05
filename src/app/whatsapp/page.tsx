@@ -27,7 +27,12 @@ export default function WhatsappPage() {
       </div>
       <div className="relative">
         <div className="overflow-y-auto">
-          {leads.map((lead) => {
+          {leads.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>No chats yet.</p>
+              <p className="text-sm">Start a new conversation.</p>
+            </div>
+          ) : leads.map((lead) => {
             const agent = agents.find(a => a.id === lead.agentId);
             return (
               <Link href={`/whatsapp/${lead.id}`} key={lead.id} legacyBehavior>

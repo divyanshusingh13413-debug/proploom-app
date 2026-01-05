@@ -28,13 +28,7 @@ export default function WhatsappChatPage() {
   const [agent, setAgent] = useState<Agent | null>(null);
 
   const [isGenerating, setIsGenerating] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: "Hello! How can I help you with your property search today?",
-      sender: "bot",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
