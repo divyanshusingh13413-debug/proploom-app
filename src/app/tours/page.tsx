@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -47,9 +46,9 @@ export default function VirtualTourPage() {
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
-          <button className="flex flex-col items-center justify-center w-48 h-32 border-2 border-dashed rounded-lg border-muted-foreground text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-            <Plus className="w-8 h-8 mb-2" />
-            <span>Add New Tour</span>
+          <button className="flex flex-col items-center justify-center w-96 h-64 border-2 border-dashed rounded-lg border-muted-foreground text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+            <Plus className="w-16 h-16 mb-4" />
+            <span className="text-xl">Add New Tour</span>
           </button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
