@@ -29,14 +29,12 @@ export function ActionsCard({ properties }: ActionsCardProps) {
             <p className="text-sm text-muted-foreground">Automate tasks and showcase properties.</p>
         </div>
         <div className="flex gap-2 mt-4 sm:mt-0">
-          <Button asChild>
-            <Link href="/whatsapp">
-              <>
-                <Video className="mr-2 h-4 w-4" />
-                WhatsApp Bot
-              </>
-            </Link>
-          </Button>
+          <Link href="/whatsapp" passHref>
+            <Button>
+              <Video className="mr-2 h-4 w-4" />
+              WhatsApp Bot
+            </Button>
+          </Link>
 
           <Dialog>
             <DialogTrigger asChild>
