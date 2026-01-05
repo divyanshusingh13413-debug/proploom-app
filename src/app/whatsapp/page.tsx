@@ -1,131 +1,153 @@
 
 "use client";
 
-import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogClose
-} from "@/components/ui/dialog";
+import { useState, useRef, useEffect } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateWhatsappMessage } from "@/ai/flows/generate-whatsapp-message";
-import { Sparkles, Send, Loader2 } from "lucide-react";
+import { Send, Loader2, Bot, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { properties } from "@/lib/data";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
+type Message = {
+  id: string;
+  text: string;
+  sender: "user" | "bot";
+};
+
 export default function WhatsappPage() {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedMessage, setGeneratedMessage] = useState("");
-  const [leadName, setLeadName] = useState("");
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string | undefined>();
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      text: "Hello! I'm your real estate assistant. Who am I speaking with today?",
+      sender: "bot",
+    },
+  ]);
+  const [inputValue, setInputValue] = useState("");
+  const [leadName, setLeadName] = useState<string | null>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const handleGenerateMessage = async () => {
-    if (!leadName || !selectedPropertyId) {
-      toast({
-        variant: "destructive",
-        title: "Missing Information",
-        description: "Please provide a lead name and select a property.",
-      });
-      return;
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
-    const property = properties.find(p => p.id === selectedPropertyId);
-    if (!property) return;
+  }, [messages]);
 
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim() || isGenerating) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: inputValue,
+      sender: "user",
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
     setIsGenerating(true);
-    setGeneratedMessage("");
+
     try {
+      let currentLeadName = leadName;
+      if (!currentLeadName) {
+        setLeadName(inputValue);
+        currentLeadName = inputValue;
+      }
+      
       const result = await generateWhatsappMessage({
-        leadName: leadName,
-        propertyName: property.name,
-        propertyBrochureUrl: property.brochureUrl,
-        leadSource: 'New Inquiry',
+        leadName: currentLeadName,
+        propertyName: "any available property",
+        propertyBrochureUrl: "N/A",
+        leadSource: 'Live Chat',
       });
-      setGeneratedMessage(result.message);
+      
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: result.message,
+        sender: "bot",
+      };
+      setMessages((prev) => [...prev, botMessage]);
+
     } catch (error) {
       console.error("Failed to generate message", error);
       toast({
         variant: "destructive",
         title: "Generation Failed",
-        description: "Could not generate WhatsApp message.",
+        description: "Could not get a response from the bot.",
       });
+       const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "Sorry, I'm having trouble connecting. Please try again later.",
+        sender: "bot",
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsGenerating(false);
     }
   };
   
-  const resetWhatsappForm = () => {
-    setLeadName("");
-    setSelectedPropertyId(undefined);
-    setGeneratedMessage("");
-  }
-
-  const handleSend = () => {
-    toast({
-      title: "Message Sent!",
-      description: "Your message has been queued for sending.",
-    });
-    resetWhatsappForm();
-  }
-
   return (
-    <div className="container mx-auto max-w-2xl">
-        <Card>
-            <CardHeader>
-                <CardTitle>WhatsApp Automation Bot</CardTitle>
-                <CardDescription>
-                  Generate a personalized welcome message and brochure link for a new lead.
-                </CardDescription>
+    <div className="container mx-auto max-w-2xl h-[calc(100vh-120px)] flex flex-col">
+        <Card className="flex-1 flex flex-col">
+            <CardHeader className="flex-row items-center gap-4">
+                <Avatar>
+                    <AvatarImage src="https://picsum.photos/seed/bot/100/100" data-ai-hint="bot logo"/>
+                    <AvatarFallback>BOT</AvatarFallback>
+                </Avatar>
+                <div>
+                    <CardTitle>WhatsApp Bot</CardTitle>
+                    <CardDescription>
+                      AI-powered live chat
+                    </CardDescription>
+                </div>
             </CardHeader>
-            <CardContent>
-                <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">Lead Name</Label>
-                    <Input id="name" value={leadName} onChange={(e) => setLeadName(e.target.value)} className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="property" className="text-right">Property</Label>
-                    <Select value={selectedPropertyId} onValueChange={setSelectedPropertyId}>
-                    <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Select a property" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {properties.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                    </SelectContent>
-                    </Select>
-                </div>
-                {generatedMessage && (
-                    <div className="col-span-4 rounded-md border bg-muted/50 p-3 text-sm">
-                        {generatedMessage}
+            <CardContent ref={scrollAreaRef} className="flex-1 overflow-y-auto p-6 space-y-6">
+               {messages.map(message => (
+                 <div key={message.id} className={`flex items-end gap-2 ${message.sender === 'user' ? 'justify-end' : ''}`}>
+                    {message.sender === 'bot' && (
+                        <Avatar className="h-8 w-8">
+                            <AvatarFallback><Bot className="w-5 h-5"/></AvatarFallback>
+                        </Avatar>
+                    )}
+                    <div className={`max-w-xs md:max-w-md rounded-xl px-4 py-2 ${message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                        <p className="text-sm">{message.text}</p>
                     </div>
-                )}
-                </div>
-                <div className="flex justify-end gap-2">
-                {generatedMessage ? (
-                  <DialogClose asChild>
-                    <Button onClick={handleSend} className="bg-secondary hover:bg-secondary/90">
-                        <>
-                            <Send className="mr-2 h-4 w-4"/>
-                            Send Message
-                        </>
-                    </Button>
-                  </DialogClose>
-                ) : (
-                    <Button onClick={handleGenerateMessage} disabled={isGenerating}>
-                        {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4 text-accent" />}
-                        Generate Message
-                    </Button>
-                )}
-                </div>
+                     {message.sender === 'user' && (
+                        <Avatar className="h-8 w-8">
+                            <AvatarFallback><User className="w-5 h-5"/></AvatarFallback>
+                        </Avatar>
+                    )}
+                 </div>
+               ))}
+               {isGenerating && (
+                 <div className="flex items-end gap-2">
+                    <Avatar className="h-8 w-8">
+                       <AvatarFallback><Bot className="w-5 h-5"/></AvatarFallback>
+                    </Avatar>
+                    <div className="max-w-xs md:max-w-md rounded-xl px-4 py-2 bg-muted flex items-center">
+                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    </div>
+                 </div>
+               )}
             </CardContent>
+            <div className="p-4 border-t">
+              <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                <Input 
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Type your message..." 
+                  disabled={isGenerating}
+                />
+                <Button type="submit" disabled={!inputValue.trim() || isGenerating}>
+                    <Send className="w-5 h-5" />
+                    <span className="sr-only">Send</span>
+                </Button>
+              </form>
+            </div>
         </Card>
     </div>
   );
