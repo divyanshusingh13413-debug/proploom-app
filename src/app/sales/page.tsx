@@ -50,9 +50,9 @@ export default function SalesPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <StatsCard title="TOTAL REVENUE" value="$5.2M" color="from-green-500 to-green-700" icon={DollarSign} />
-        <StatsCard title="DEALS CLOSED THIS MONTH" value="18" color="from-orange-500 to-orange-700" icon={Target} />
-        <StatsCard title="AVERAGE DEAL SIZE" value="$289K" color="from-purple-500 to-purple-700" icon={Hash} />
+        <StatsCard title="TOTAL REVENUE" value="$0" color="from-green-500 to-green-700" icon={DollarSign} />
+        <StatsCard title="DEALS CLOSED THIS MONTH" value="0" color="from-orange-500 to-orange-700" icon={Target} />
+        <StatsCard title="AVERAGE DEAL SIZE" value="$0" color="from-purple-500 to-purple-700" icon={Hash} />
       </div>
 
       <Card>
