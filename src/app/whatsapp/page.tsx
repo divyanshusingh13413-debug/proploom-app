@@ -1,7 +1,9 @@
+
 'use client';
 
 import { useState } from 'react';
-import { leads, agents } from '@/lib/data';
+import { leads as initialLeads, agents } from '@/lib/data';
+import type { Lead } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Search, CircleEllipsis } from 'lucide-react';
@@ -12,6 +14,23 @@ import { NewChatDialog } from '@/components/whatsapp/new-chat-dialog';
 
 export default function WhatsappPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [leads, setLeads] = useState<Lead[]>(initialLeads);
+
+  const handleAddNewChat = (name: string, number: string) => {
+    const newLead: Lead = {
+      id: `lead-${leads.length + 1}`,
+      name: name,
+      status: 'New',
+      propertyName: 'Unknown',
+      source: 'WhatsApp Direct',
+      lastContact: 'Just now',
+      agentId: 'agent-1', // Assign to a default agent
+      budget: 0,
+      email: `${name.replace(/\s+/g, '.').toLowerCase()}@example.com`,
+      phone: number,
+    };
+    setLeads(prevLeads => [newLead, ...prevLeads]);
+  };
 
   return (
     <div className="bg-background h-full flex flex-col">
@@ -37,16 +56,17 @@ export default function WhatsappPage() {
             </div>
           ) : leads.map((lead) => {
             const agent = agents.find(a => a.id === lead.agentId);
+            const leadName = lead.name.startsWith('Lead') ? `Lead ${lead.id}` : lead.name;
             return (
               <Link href={`/whatsapp/${lead.id}`} key={lead.id} legacyBehavior>
                 <a className="flex items-center gap-4 p-4 hover:bg-muted/50 cursor-pointer border-b border-border">
                   <Avatar className="h-12 w-12">
                     <AvatarImage src={agent?.avatarUrl} />
-                    <AvatarFallback>{lead.id.substring(0, 2)}</AvatarFallback>
+                    <AvatarFallback>{leadName.substring(0, 2)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex justify-between">
-                      <p className="font-semibold">{`Lead ${lead.id}`}</p>
+                      <p className="font-semibold">{leadName}</p>
                       <p className="text-xs text-muted-foreground">{lead.lastContact}</p>
                     </div>
                     <p className="text-sm text-muted-foreground truncate">Hi, I'm interested in {lead.propertyName}.</p>
@@ -58,7 +78,7 @@ export default function WhatsappPage() {
         </div>
       </div>
        <div className="p-4 flex justify-center">
-          <NewChatDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <NewChatDialog open={dialogOpen} onOpenChange={setDialogOpen} onAddContact={handleAddNewChat}>
             <Button className="bg-green-500 hover:bg-green-600 shadow-lg" onClick={() => setDialogOpen(true)}>
               Start New Chat
             </Button>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -18,19 +19,19 @@ import { useToast } from '@/hooks/use-toast';
 interface NewChatDialogProps extends PropsWithChildren {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    onAddContact: (name: string, number: string) => void;
 }
 
-export function NewChatDialog({ children, open, onOpenChange }: NewChatDialogProps) {
+export function NewChatDialog({ children, open, onOpenChange, onAddContact }: NewChatDialogProps) {
   const { toast } = useToast();
   const [contactName, setContactName] = useState('');
   const [contactNumber, setContactNumber] = useState('');
 
   const handleAddContact = () => {
     if (contactName && contactNumber) {
-      console.log('Adding contact:', { name: contactName, number: contactNumber });
-      // Here you would typically add the logic to create a new chat
+      onAddContact(contactName, contactNumber);
       toast({
-        title: "Contact Added",
+        title: "Chat Added",
         description: `New chat started with ${contactName}.`,
       });
       onOpenChange(false);
