@@ -10,7 +10,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
-  SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,23 +20,9 @@ import {
   Video,
   BarChart2,
   MessageSquare,
-  LogOut,
-  User,
-  Settings,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
-import { useAuth } from '@/firebase/provider';
-import { auth } from '@/firebase';
+import { usePathname } from 'next/navigation';
 
 const AppLogo = () => (
   <div className="flex items-center gap-2.5 font-bold text-lg text-primary-foreground tracking-tighter">
@@ -79,19 +64,6 @@ const Nav = () => {
 
 export default function AppLayout({ children }: PropsWithChildren) {
   const pathname = usePathname();
-  const router = useRouter();
-  const { user } = useAuth();
-  const isAuthPage = pathname.startsWith('/auth');
-
-  if (isAuthPage) {
-    return <main>{children}</main>;
-  }
-
-  const handleLogout = async () => {
-    await auth.signOut();
-    router.push('/auth/login');
-  };
-
   const isWhatsAppPage = pathname.startsWith('/whatsapp');
 
   return (
@@ -107,58 +79,6 @@ export default function AppLayout({ children }: PropsWithChildren) {
           <SidebarContent>
             <Nav />
           </SidebarContent>
-          <SidebarFooter>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start gap-2 p-2 h-auto">
-                   <Avatar className="h-9 w-9">
-                      <AvatarImage
-                        src={user?.photoURL || "https://picsum.photos/seed/user/100/100"}
-                        alt="User Avatar"
-                        data-ai-hint="person professional"
-                      />
-                      <AvatarFallback>
-                        {user?.displayName
-                          ?.split(' ')
-                          .map((n) => n[0])
-                          .join('')
-                          .toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col items-start truncate group-data-[collapsible=icon]:hidden">
-                        <span className="font-medium text-sm text-sidebar-foreground truncate">{user?.displayName || 'User'}</span>
-                        <span className="text-xs text-sidebar-foreground/70 truncate">{user?.email || ''}</span>
-                    </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 mb-2" side="top" align="start" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {user?.displayName || 'User'}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email || ''}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarFooter>
         </Sidebar>
       )}
       <SidebarInset>
