@@ -36,21 +36,21 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatsCard
           title="Total Revenue"
-          value="$1,250,000"
+          value="$0"
           icon={DollarSign}
-          description="+20.1% from last month"
+          description="0% from last month"
         />
         <StatsCard
           title="Active Leads"
-          value="+230"
+          value="0"
           icon={Users}
-          description="+180.1% from last month"
+          description="0% from last month"
         />
         <StatsCard
           title="Follow-ups"
-          value="+12"
+          value="0"
           icon={Activity}
-          description="+19% from last month"
+          description="0% from last month"
         />
       </div>
 
@@ -70,4 +70,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
