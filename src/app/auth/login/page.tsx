@@ -82,7 +82,7 @@ const LoginPage = () => {
 
 
   return (
-    <div className="relative min-h-screen w-full bg-gradient-to-br from-background to-[#101c32] flex items-center justify-center p-4 overflow-hidden">
+    <div className="relative min-h-screen w-full bg-background flex items-center justify-center p-4 overflow-hidden">
       <motion.div
         variants={cardVariants}
         initial="hidden"
@@ -92,11 +92,11 @@ const LoginPage = () => {
         <motion.div 
           variants={shakeAnimation}
           animate={animation}
-          className="bg-black/30 backdrop-blur-lg rounded-2xl border border-white/10 shadow-2xl shadow-black/50"
+          className="bg-card/80 backdrop-blur-lg rounded-2xl border border-border shadow-2xl"
         >
           <div className="p-8 md:p-12">
             <div className="flex justify-center mb-6">
-                 <div className="flex items-center gap-2.5 font-bold text-2xl text-white tracking-tighter">
+                 <div className="flex items-center gap-2.5 font-bold text-2xl text-foreground tracking-tighter">
                     <Building2 className="text-accent" />
                     <span className="font-headline">PROPLOOM</span>
                 </div>
@@ -110,7 +110,7 @@ const LoginPage = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-white/5 border-white/10 text-white placeholder:text-gray-400 focus:ring-accent focus:border-accent transition-all duration-300"
+                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-accent focus:border-accent transition-all duration-300"
                 />
               </div>
 
@@ -121,12 +121,12 @@ const LoginPage = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="bg-white/5 border-white/10 text-white placeholder:text-gray-400 focus:ring-accent focus:border-accent transition-all duration-300 pr-10"
+                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-accent focus:border-accent transition-all duration-300 pr-10"
                 />
                  <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
@@ -138,7 +138,7 @@ const LoginPage = () => {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="text-center text-sm font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded-md py-2"
+                    className="text-center text-sm font-medium text-destructive-foreground bg-destructive/20 border border-destructive/30 rounded-md py-2"
                   >
                     {error}
                   </motion.p>
@@ -149,7 +149,7 @@ const LoginPage = () => {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-accent text-black font-bold text-base h-12 hover:bg-yellow-400 transition-all duration-300 shadow-[0_0_20px_hsl(var(--accent)/20%)]"
+                  className="w-full bg-accent text-accent-foreground font-bold text-base h-12 hover:bg-accent/90 transition-all duration-300 shadow-[0_0_20px_hsl(var(--accent)/20%)]"
                 >
                   {isLoading ? 'Signing In...' : 'Sign In'}
                 </Button>
@@ -157,23 +157,23 @@ const LoginPage = () => {
 
               <div className="relative flex items-center justify-center my-6">
                   <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t border-white/10"></span>
+                      <span className="w-full border-t border-border"></span>
                   </div>
-                  <div className="relative bg-background/50 px-2 text-xs uppercase text-gray-400 backdrop-blur-sm">Or continue with</div>
+                  <div className="relative bg-background px-2 text-xs uppercase text-muted-foreground">Or continue with</div>
               </div>
 
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button
                     onClick={handleGoogleSignIn}
                     variant="outline"
-                    className="w-full h-12 bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white transition-all duration-300"
+                    className="w-full h-12 bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:text-secondary-foreground transition-all duration-300"
                 >
                     <FcGoogle className="mr-3 text-2xl" />
                     Sign In with Google
                 </Button>
               </motion.div>
 
-              <div className="text-center text-sm text-gray-400">
+              <div className="text-center text-sm text-muted-foreground">
                 Don't have an account?{' '}
                 <Link href="/auth/signup" className="font-medium text-accent hover:underline">
                   Sign up

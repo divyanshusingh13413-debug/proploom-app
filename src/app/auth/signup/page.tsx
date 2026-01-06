@@ -85,7 +85,7 @@ const SignupPage = () => {
 
 
   return (
-    <div className="relative min-h-screen w-full bg-gradient-to-br from-background to-[#101c32] flex items-center justify-center p-4 overflow-hidden">
+    <div className="relative min-h-screen w-full bg-background flex items-center justify-center p-4 overflow-hidden">
       <motion.div
         variants={cardVariants}
         initial="hidden"
@@ -95,11 +95,11 @@ const SignupPage = () => {
         <motion.div 
           variants={shakeAnimation}
           animate={animation}
-          className="bg-black/30 backdrop-blur-lg rounded-2xl border border-white/10 shadow-2xl shadow-black/50"
+          className="bg-card/80 backdrop-blur-lg rounded-2xl border border-border shadow-2xl"
         >
           <div className="p-8 md:p-12">
             <div className="flex justify-center mb-6">
-                 <div className="flex items-center gap-2.5 font-bold text-2xl text-white tracking-tighter">
+                 <div className="flex items-center gap-2.5 font-bold text-2xl text-foreground tracking-tighter">
                     <Building2 className="text-accent" />
                     <span className="font-headline">PROPLOOM</span>
                 </div>
@@ -113,7 +113,7 @@ const SignupPage = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="bg-white/5 border-white/10 text-white placeholder:text-gray-400 focus:ring-accent focus:border-accent transition-all duration-300"
+                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-accent focus:border-accent transition-all duration-300"
                 />
               </motion.div>
               <motion.div variants={inputVariants} initial="hidden" animate="visible" custom={2} className="relative">
@@ -123,7 +123,7 @@ const SignupPage = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-white/5 border-white/10 text-white placeholder:text-gray-400 focus:ring-accent focus:border-accent transition-all duration-300"
+                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-accent focus:border-accent transition-all duration-300"
                 />
               </motion.div>
 
@@ -134,12 +134,12 @@ const SignupPage = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="bg-white/5 border-white/10 text-white placeholder:text-gray-400 focus:ring-accent focus:border-accent transition-all duration-300 pr-10"
+                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-accent focus:border-accent transition-all duration-300 pr-10"
                 />
                  <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
@@ -151,7 +151,7 @@ const SignupPage = () => {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="text-center text-sm font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded-md py-2"
+                    className="text-center text-sm font-medium text-destructive-foreground bg-destructive/20 border border-destructive/30 rounded-md py-2"
                   >
                     {error}
                   </motion.p>
@@ -162,13 +162,13 @@ const SignupPage = () => {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-accent text-black font-bold text-base h-12 hover:bg-yellow-400 transition-all duration-300 shadow-[0_0_20px_hsl(var(--accent)/20%)]"
+                  className="w-full bg-accent text-accent-foreground font-bold text-base h-12 hover:bg-accent/90 transition-all duration-300 shadow-[0_0_20px_hsl(var(--accent)/20%)]"
                 >
                   {isLoading ? 'Creating Account...' : 'Sign Up'}
                 </Button>
               </motion.div>
 
-              <div className="text-center text-sm text-gray-400">
+              <div className="text-center text-sm text-muted-foreground">
                 Already have an account?{' '}
                 <Link href="/auth/login" className="font-medium text-accent hover:underline">
                   Sign In
