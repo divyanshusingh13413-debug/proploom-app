@@ -1,9 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function SplashScreen() {
   const [isHidden, setIsHidden] = useState(false);
+  const houseImage = PlaceHolderImages.find(img => img.id === 'splash-house');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -24,12 +27,19 @@ export default function SplashScreen() {
                 <h1 className="logo-text">PROPLOOM</h1>
             </div>
             <p className="tagline">Defining Luxury Living</p>
-            <svg className="house-animation" viewBox="0 0 200 100">
-                <path
-                    className="house-path"
-                    d="M 10 100 L 10 40 L 100 10 L 190 40 L 190 100 L 10 100 Z M 70 100 L 70 60 L 130 60 L 130 100"
+            {houseImage && (
+              <div className="house-animation-container">
+                <Image
+                  src={houseImage.imageUrl}
+                  alt={houseImage.description}
+                  width={300}
+                  height={200}
+                  className="object-contain rounded-lg shadow-2xl shadow-yellow-500/20"
+                  data-ai-hint={houseImage.imageHint}
+                  priority
                 />
-            </svg>
+              </div>
+            )}
         </div>
     </div>
   );
