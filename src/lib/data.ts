@@ -4,13 +4,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const findImage = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
 
-export const agents: Agent[] = [
-  { id: 'agent-1', name: 'Agent 1', avatarUrl: findImage('agent-1'), deals: 12, successRate: 85 },
-  { id: 'agent-2', name: 'Agent 2', avatarUrl: findImage('agent-2'), deals: 8, successRate: 60 },
-  { id: 'agent-3', name: 'Agent 3', avatarUrl: findImage('agent-3'), deals: 15, successRate: 90 },
-  { id: 'agent-4', name: 'Agent 4', avatarUrl: findImage('agent-4'), deals: 5, successRate: 45 },
-  { id: 'agent-5', name: 'Agent 5', avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&q=80', deals: 10, successRate: 70 },
-];
+export const agents: Agent[] = [];
 
 export const properties: Property[] = [
   { id: 'prop-1', name: 'The Imperial', tourImageUrl: findImage('property-1-tour'), brochureUrl: 'https://example.com/brochure1.pdf' },
