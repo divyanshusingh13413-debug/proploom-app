@@ -181,3 +181,20 @@ body {
     transform: translateY(0);
   }
 }
+
+/* For WhatsApp Page Scrollbar */
+.gold-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+.gold-scrollbar::-webkit-scrollbar-track {
+  background: hsl(var(--border) / 0.1);
+}
+.gold-scrollbar::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--secondary) / 0.5);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.gold-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--secondary) / 0.8);
+}

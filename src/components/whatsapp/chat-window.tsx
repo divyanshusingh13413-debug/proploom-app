@@ -1,19 +1,28 @@
 
-"use client";
+'use client';
 
-import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { generateWhatsappMessage } from "@/ai/flows/generate-whatsapp-message";
-import { Loader2, CheckCheck } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import type { Lead } from '@/lib/types';
+import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { db, auth } from '@/firebase';
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { useAuth } from '@/firebase/provider';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Loader2, CheckCheck, Send } from 'lucide-react';
+import type { Lead, Message } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
-type Message = {
-  id: string;
-  text: string;
-  sender: "user" | "bot";
-  read: boolean;
+// Helper component for "blue ticks"
+const MessageStatus = ({ status }: { status: Message['status'] }) => {
+  if (status === 'sent') return null; // Or a single grey tick
+  return (
+    <CheckCheck
+      className={cn('h-5 w-5', {
+        'text-gray-500': status === 'delivered',
+        'text-sky-400': status === 'read',
+      })}
+    />
+  );
 };
 
 interface ChatWindowProps {
@@ -21,148 +30,163 @@ interface ChatWindowProps {
 }
 
 export function ChatWindow({ lead }: ChatWindowProps) {
-  const { toast } = useToast();
-  
-  const [isGenerating, setIsGenerating] = useState(false);
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState("");
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  
+  const chatRoomId = lead ? [user?.uid, lead.id].sort().join('_') : null;
 
+  // Auto-scroll to bottom
   useEffect(() => {
-    // Reset chat when lead changes
-    setMessages([]);
-    setInputValue("");
-    if (lead?.id === 'bot-assistant') {
-        setMessages([{id: 'initial-bot', text: "Hello! How can I help?", sender: 'bot', read: true}]);
-    }
-  }, [lead]);
-
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
+  // Real-time listener for messages
+  useEffect(() => {
+    if (!chatRoomId) return;
+
+    setIsLoading(true);
+    const q = query(collection(db, 'chats', chatRoomId, 'messages'), orderBy('timestamp', 'asc'));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
+      setMessages(msgs);
+      setIsLoading(false);
+
+      // Mark messages as read
+      querySnapshot.docs.forEach(async (document) => {
+        if (document.data().senderId !== user?.uid && document.data().status !== 'read') {
+          await updateDoc(doc(db, 'chats', chatRoomId, 'messages', document.id), { status: 'read' });
+        }
+      });
+    });
+
+    return () => unsubscribe();
+  }, [chatRoomId, user?.uid]);
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim() || isGenerating) return;
+    if (!inputValue.trim() || !chatRoomId || !user) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: inputValue,
-      sender: "user",
-      read: false,
-    };
+    const text = inputValue;
+    setInputValue('');
 
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
-    
-    // Simulate read receipt
-    setTimeout(() => {
-        setMessages(prev => prev.map(m => m.id === userMessage.id ? {...m, read: true} : m));
-    }, 1000);
+    await addDoc(collection(db, 'chats', chatRoomId, 'messages'), {
+      text,
+      senderId: user.uid,
+      status: 'sent', // Initial status
+      timestamp: serverTimestamp(),
+    });
 
-    setIsGenerating(true);
-
-    try {
-      if (!lead) throw new Error("Lead not found");
-
-      const result = await generateWhatsappMessage({
-        leadName: lead.name,
-        propertyName: lead.propertyName,
-        propertyBrochureUrl: "N/A",
-        leadSource: 'Live Chat',
-      });
-      
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: result.message,
-        sender: "bot",
-        read: true,
-      };
-      setMessages((prev) => [...prev, botMessage]);
-
-    } catch (error) {
-      console.error("Failed to generate message", error);
-      toast({
-        variant: "destructive",
-        title: "Generation Failed",
-        description: "Could not get a response from the bot.",
-      });
-       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "Sorry, I'm having trouble connecting. Please try again later.",
-        sender: "bot",
-        read: true,
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsGenerating(false);
-    }
+    // Simulate bot response and status updates
+    setTimeout(async () => {
+        const botResponse: Partial<Message> = {
+            text: `Received: "${text}". How can I assist further?`,
+            senderId: lead?.id,
+            status: 'sent',
+            timestamp: serverTimestamp()
+        };
+        await addDoc(collection(db, 'chats', chatRoomId, 'messages'), botResponse);
+    }, 1500);
   };
-  
+
   if (!lead) {
     return (
-        <div className="flex items-center justify-center h-full text-muted-foreground bg-card">
-            <p>Select a chat to start messaging</p>
-        </div>
-    )
+      <div className="flex-1 flex items-center justify-center text-zinc-500 bg-zinc-900/50">
+        <p>Select a chat to start messaging</p>
+      </div>
+    );
   }
 
-  const leadName = lead.id === 'bot-assistant' ? 'Bot Assistant' : `Client ${lead.id.split('-')[1]}`
+  const leadName = lead.id === 'bot-assistant' ? 'PROPLOOM AI' : `Client ${lead.id.split('-')[1]}`;
 
   return (
-    <div className="h-full flex flex-col bg-card rounded-r-lg border border-border">
-        <header className="relative flex h-24 items-center justify-center gap-4 border-b border-border/50 px-4 sm:px-6">
-            <h2 className="font-headline text-3xl font-bold text-secondary tracking-widest">
-                PROPLOOM CHATS
+    <div className="h-full flex flex-col bg-black relative">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/gold-leaf.png')] opacity-[0.02] pointer-events-none"></div>
+
+        {/* Header */}
+        <header className="relative flex h-20 items-center justify-center border-b border-zinc-800 bg-black/50 backdrop-blur-sm z-10">
+            <h2 className="font-headline text-2xl font-bold text-amber-400 tracking-wider">
+                {leadName}
             </h2>
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/clean-gray-paper.png')] opacity-5"></div>
         </header>
 
-        <div ref={scrollAreaRef} className="flex-1 overflow-y-auto p-6 space-y-6">
-           {messages.map(message => (
-             <div key={message.id} className={`flex flex-col gap-2 ${message.sender === 'user' ? 'items-end' : 'items-start'}`}>
-                <p className="text-sm text-muted-foreground">{message.sender === 'user' ? 'Me' : leadName}</p>
-                <div className={`relative max-w-xs md:max-w-md rounded-xl px-4 py-3 shadow-md ${message.sender === 'user' ? 'bg-background text-foreground rounded-br-none' : 'bg-secondary text-secondary-foreground rounded-bl-none'}`}>
-                    <p className="text-base">{message.text}</p>
+        {/* Messages Area */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4 gold-scrollbar">
+            {isLoading ? (
+                <div className="flex justify-center items-center h-full">
+                    <Loader2 className="w-8 h-8 animate-spin text-amber-500"/>
                 </div>
-                 {message.sender === 'user' && (
-                    <div className="flex items-center gap-1">
-                        <CheckCheck className={`h-5 w-5 ${message.read ? 'text-blue-400' : 'text-muted-foreground'}`} />
-                    </div>
-                )}
-             </div>
-           ))}
-           {isGenerating && (
-             <div className="flex items-start gap-2">
-                <p className="text-sm text-muted-foreground">{leadName}</p>
-                <div className="max-w-xs md:max-w-md rounded-xl px-4 py-3 bg-secondary text-secondary-foreground flex items-center shadow-md rounded-bl-none">
-                    <Loader2 className="h-5 w-5 animate-spin text-secondary-foreground" />
-                </div>
-             </div>
-           )}
+            ) : (
+                <AnimatePresence initial={false}>
+                    {messages.map((message) => {
+                        const isSender = message.senderId === user?.uid;
+                        return (
+                            <motion.div
+                                key={message.id}
+                                layout
+                                initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.8, y: -50 }}
+                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                className={cn('flex flex-col gap-1', isSender ? 'items-end' : 'items-start')}
+                            >
+                                <div className={cn(
+                                    'relative max-w-md lg:max-w-lg rounded-2xl px-4 py-3 shadow-md',
+                                    isSender
+                                    ? 'bg-gradient-to-r from-yellow-600 to-yellow-400 text-black rounded-br-none'
+                                    : 'bg-zinc-800 text-amber-100 rounded-bl-none'
+                                )}>
+                                    <p className="text-base break-words">{message.text}</p>
+                                </div>
+                                {isSender && (
+                                    <div className="flex items-center gap-1 pr-1">
+                                        <MessageStatus status={message.status} />
+                                    </div>
+                                )}
+                            </motion.div>
+                        );
+                    })}
+                </AnimatePresence>
+            )}
         </div>
 
-        <div className="p-4 border-t border-border/50 bg-card rounded-br-lg">
+        {/* Input Area */}
+        <div className="p-4 border-t border-zinc-800 bg-black/30 backdrop-blur-xl">
           <form onSubmit={handleSendMessage} className="flex items-center gap-4">
-            <Input 
+            <Input
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Yes, please share the brochure." 
-              disabled={isGenerating}
-              className="bg-input border-border h-12 text-base placeholder:text-muted-foreground rounded-lg"
+              placeholder="Type a message..."
+              className="bg-zinc-800/50 border-zinc-700 h-12 text-base text-white placeholder:text-zinc-500 rounded-full focus:ring-amber-500 focus:border-amber-500"
             />
-            <Button 
-                type="submit" 
-                disabled={!inputValue.trim() || isGenerating} 
-                size="icon"
-                className="w-12 h-12 rounded-full bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg"
-            >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500"></div>
-            </Button>
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button
+                    type="submit"
+                    disabled={!inputValue.trim()}
+                    size="icon"
+                    className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 text-black shadow-lg transition-all duration-300 enabled:hover:shadow-amber-500/50 enabled:hover:scale-110"
+                    style={{
+                        animation: inputValue.trim() ? 'pulse-gold 2s infinite' : 'none'
+                    }}
+                >
+                    <Send className="w-6 h-6"/>
+                </Button>
+            </motion.div>
           </form>
         </div>
+        <style jsx>{`
+            @keyframes pulse-gold {
+                0% { box-shadow: 0 0 0 0 hsl(var(--secondary) / 0.7); }
+                70% { box-shadow: 0 0 0 10px hsl(var(--secondary) / 0); }
+                100% { box-shadow: 0 0 0 0 hsl(var(--secondary) / 0); }
+            }
+        `}</style>
     </div>
   );
 }

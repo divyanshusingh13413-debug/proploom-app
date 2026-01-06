@@ -36,3 +36,11 @@ export type Deal = {
   agentId: string;
   lastActivity: string;
 };
+
+export type Message = {
+  id: string;
+  text: string;
+  senderId: string;
+  status: 'sent' | 'delivered' | 'read';
+  timestamp: any; // Firestore Timestamp
+};
