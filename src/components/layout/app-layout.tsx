@@ -1,4 +1,3 @@
-
 'use client';
 import type { PropsWithChildren } from 'react';
 import {
@@ -11,6 +10,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
+  SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import {
@@ -107,28 +107,11 @@ export default function AppLayout({ children }: PropsWithChildren) {
           <SidebarContent>
             <Nav />
           </SidebarContent>
-        </Sidebar>
-      )}
-      <SidebarInset>
-        {!isWhatsAppPage && (
-          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
-            <SidebarTrigger className="md:hidden" />
-            <div className="flex-1">
-              {' '}
-              {/* This is a spacer */}
-            </div>
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon">
-                <Bell className="h-5 w-5" />
-                <span className="sr-only">Notifications</span>
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="relative h-9 w-9 rounded-full"
-                  >
-                    <Avatar className="h-9 w-9">
+          <SidebarFooter>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="w-full justify-start gap-2 p-2 h-auto">
+                   <Avatar className="h-9 w-9">
                       <AvatarImage
                         src={user?.photoURL || "https://picsum.photos/seed/user/100/100"}
                         alt="User Avatar"
@@ -142,35 +125,51 @@ export default function AppLayout({ children }: PropsWithChildren) {
                           .toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {user?.displayName || 'User'}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user?.email || ''}
-                      </p>
+                    <div className="flex flex-col items-start truncate group-data-[collapsible=icon]:hidden">
+                        <span className="font-medium text-sm text-sidebar-foreground truncate">{user?.displayName || 'User'}</span>
+                        <span className="text-xs text-sidebar-foreground/70 truncate">{user?.email || ''}</span>
                     </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 mb-2" side="top" align="start" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {user?.displayName || 'User'}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.email || ''}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarFooter>
+        </Sidebar>
+      )}
+      <SidebarInset>
+        {!isWhatsAppPage && (
+          <header className="sticky top-0 z-10 flex h-16 items-center justify-end border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
+            <SidebarTrigger className="md:hidden" />
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon">
+                <Bell className="h-5 w-5" />
+                <span className="sr-only">Notifications</span>
+              </Button>
             </div>
           </header>
         )}
