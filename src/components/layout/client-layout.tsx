@@ -30,7 +30,7 @@ function AuthWrapper({ children }: PropsWithChildren) {
     if (!user && !isAuthPage) {
         return (
             <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background">
-                <Loader2 className="w-12 h-12 animate-spin text-accent" />
+                <Loader2 className="w-12 h-12 animate-spin text-secondary" />
             </div>
         );
     }

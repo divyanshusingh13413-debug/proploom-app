@@ -25,8 +25,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const AppLogo = () => (
-  <div className="flex items-center gap-2.5 font-bold text-lg text-primary-foreground tracking-tighter">
-    <Building2 className="text-accent" />
+  <div className="flex items-center gap-2.5 font-bold text-lg text-sidebar-foreground tracking-tighter">
+    <Building2 className="text-secondary" />
     <span className="font-headline">PROPLOOM</span>
   </div>
 );
@@ -66,23 +66,24 @@ export default function AppLayout({ children }: PropsWithChildren) {
   const pathname = usePathname();
   const isWhatsAppPage = pathname.startsWith('/whatsapp');
 
+  if (isWhatsAppPage) {
+    return <main className="flex-1">{children}</main>;
+  }
+
   return (
     <SidebarProvider>
-      {!isWhatsAppPage && (
         <Sidebar>
           <SidebarHeader>
             <div className="flex items-center justify-between">
               <AppLogo />
-              <SidebarTrigger className="text-primary-foreground hover:text-accent" />
+              <SidebarTrigger className="text-sidebar-foreground hover:text-secondary" />
             </div>
           </SidebarHeader>
           <SidebarContent>
             <Nav />
           </SidebarContent>
         </Sidebar>
-      )}
       <SidebarInset>
-        {!isWhatsAppPage && (
           <header className="sticky top-0 z-10 flex h-16 items-center justify-end border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
             <SidebarTrigger className="md:hidden" />
             <div className="flex items-center gap-4">
@@ -92,9 +93,8 @@ export default function AppLayout({ children }: PropsWithChildren) {
               </Button>
             </div>
           </header>
-        )}
         <main
-          className={`flex-1 ${!isWhatsAppPage ? 'p-4 sm:p-6' : ''}`}
+          className="flex-1 p-4 sm:p-6"
         >
           {children}
         </main>
