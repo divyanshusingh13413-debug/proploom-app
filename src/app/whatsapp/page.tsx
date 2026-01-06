@@ -1,17 +1,20 @@
 'use client';
 
+import { useState } from 'react';
 import { leads, agents } from '@/lib/data';
-import type { Lead } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Search, MessageSquarePlus, CircleEllipsis } from 'lucide-react';
+import { Search, CircleEllipsis } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { NewChatDialog } from '@/components/whatsapp/new-chat-dialog';
 
 export default function WhatsappPage() {
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   return (
-    <div className="bg-background h-full">
+    <div className="bg-background h-full flex flex-col">
       <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
         <h1 className="text-xl font-bold text-green-500">WhatsApp</h1>
         <div className="flex items-center gap-2">
@@ -25,8 +28,8 @@ export default function WhatsappPage() {
             <Input placeholder="Search or start a new chat" className="pl-10" />
         </div>
       </div>
-      <div className="relative">
-        <div className="overflow-y-auto">
+      <div className="flex-1 relative overflow-hidden">
+        <div className="overflow-y-auto h-full">
           {leads.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <p>No chats yet.</p>
@@ -53,12 +56,14 @@ export default function WhatsappPage() {
             );
           })}
         </div>
-         <div className="absolute bottom-4 right-4">
-          <Button className="rounded-full h-14 w-14 bg-green-500 hover:bg-green-600 shadow-lg">
-            <MessageSquarePlus className="h-6 w-6" />
-          </Button>
-        </div>
       </div>
+       <div className="p-4 flex justify-center">
+          <NewChatDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <Button className="bg-green-500 hover:bg-green-600 shadow-lg" onClick={() => setDialogOpen(true)}>
+              Start New Chat
+            </Button>
+          </NewChatDialog>
+        </div>
     </div>
   );
 }
