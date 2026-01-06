@@ -104,9 +104,9 @@ export default function LeadsPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <StatsCard title="NEW LEADS TODAY" value="18" subtitle="from all channels" color="from-primary to-blue-700" icon={UserPlus} />
-        <StatsCard title="ASSIGNED TO ME" value="5" subtitle="Follow-ups pending" color="from-accent to-yellow-600" icon={UserPlus} />
-        <StatsCard title="PRIORITY HOT LEADS" value="3" subtitle="Immediate action needed" color="from-secondary to-green-700" icon={UserPlus} />
+        <StatsCard title="NEW LEADS TODAY" value="0" subtitle="from all channels" color="from-primary to-blue-700" icon={UserPlus} />
+        <StatsCard title="ASSIGNED TO ME" value="0" subtitle="Follow-ups pending" color="from-accent to-yellow-600" icon={UserPlus} />
+        <StatsCard title="PRIORITY HOT LEADS" value="0" subtitle="Immediate action needed" color="from-secondary to-green-700" icon={UserPlus} />
       </div>
       
       <Tabs defaultValue="all">
