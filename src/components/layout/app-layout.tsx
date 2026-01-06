@@ -87,10 +87,6 @@ export default function AppLayout({ children }: PropsWithChildren) {
           <header className="sticky top-0 z-10 flex h-16 items-center justify-end border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
             <SidebarTrigger className="md:hidden" />
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon">
-                <Bell className="h-5 w-5" />
-                <span className="sr-only">Notifications</span>
-              </Button>
             </div>
           </header>
         <main
