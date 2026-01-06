@@ -13,9 +13,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Building2, Loader2 } from 'lucide-react';
 import { FaGoogle } from 'react-icons/fa';
+import { useToast } from '@/components/ui/use-toast';
+
 
 const AnimatedParticles = () => {
   const particles = Array.from({ length: 50 });
@@ -57,6 +59,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,10 +68,25 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      toast({
+        title: 'Login Successful',
+        description: 'Welcome to PropCall 360!',
+      });
       router.push('/');
     } catch (err: any) {
-      setError(err.message);
-      setIsLoading(false);
+        let errorMessage = 'An unknown error occurred.';
+        if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+            errorMessage = 'Invalid credentials. Please check your email and password.';
+        } else if (err.message) {
+            errorMessage = err.message;
+        }
+        setError(errorMessage); // Trigger shake
+        toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: errorMessage,
+        });
+        setIsLoading(false);
     }
   };
 
@@ -79,16 +97,28 @@ export default function LoginPage() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
+      toast({
+        title: 'Login Successful',
+        description: 'Welcome to PropCall 360!',
+      });
       router.push('/');
     } catch (err: any) {
-      setError(err.message);
+       toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: err.message || 'Could not sign in with Google.',
+        });
       setIsLoading(false);
     }
   };
 
   const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+    hidden: { opacity: 0, y: 50 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+    shake: {
+        x: [0, -10, 10, -10, 10, 0],
+        transition: { duration: 0.5 }
+    }
   };
 
   const itemVariants = {
@@ -103,7 +133,8 @@ export default function LoginPage() {
         className="relative z-10 w-full max-w-md p-8 space-y-6 bg-black/30 backdrop-blur-lg rounded-2xl border border-white/10 shadow-2xl"
         variants={cardVariants}
         initial="hidden"
-        animate="visible"
+        animate={error ? "shake" : "visible"}
+        onAnimationComplete={() => setError(null)}
       >
         <motion.div
           className="flex flex-col items-center"
@@ -113,13 +144,13 @@ export default function LoginPage() {
         >
           <div className="flex items-center gap-2.5 font-bold text-2xl text-white tracking-tighter mb-2">
             <Building2 className="text-yellow-400" />
-            <span className="font-headline">PROPLOOM</span>
+            <span className="font-headline">PropCall 360</span>
           </div>
           <p className="text-zinc-400">Welcome back to the future of real estate</p>
         </motion.div>
 
         <form onSubmit={handleLogin} className="space-y-6">
-          <motion.div variants={itemVariants} transition={{ delay: 0.3 }}>
+          <motion.div variants={itemVariants} transition={{ delay: 0.3 }} initial="hidden" animate="visible">
             <Label htmlFor="email" className="text-zinc-300">Email</Label>
             <Input
               id="email"
@@ -131,7 +162,7 @@ export default function LoginPage() {
               className="bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-yellow-400 focus:ring-yellow-400"
             />
           </motion.div>
-          <motion.div variants={itemVariants} transition={{ delay: 0.4 }}>
+          <motion.div variants={itemVariants} transition={{ delay: 0.4 }} initial="hidden" animate="visible">
             <Label htmlFor="password" className="text-zinc-300">Password</Label>
             <Input
               id="password"
@@ -143,9 +174,18 @@ export default function LoginPage() {
             />
           </motion.div>
 
-          {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+          <AnimatePresence>
+            {error && <motion.p 
+                initial={{opacity: 0, height: 0}}
+                animate={{opacity: 1, height: 'auto'}}
+                exit={{opacity: 0, height: 0}}
+                className="text-red-400 text-sm text-center -mb-2">
+                    {error}
+            </motion.p>}
+          </AnimatePresence>
 
-          <motion.div variants={itemVariants} transition={{ delay: 0.5 }}>
+
+          <motion.div variants={itemVariants} transition={{ delay: 0.5 }} initial="hidden" animate="visible">
             <Button
               type="submit"
               className="w-full bg-yellow-500 text-slate-900 font-bold hover:bg-yellow-400 transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(234,179,8,0.5)] hover:shadow-[0_0_30px_rgba(234,179,8,0.7)]"
@@ -156,7 +196,7 @@ export default function LoginPage() {
           </motion.div>
         </form>
 
-        <motion.div className="relative" variants={itemVariants} transition={{ delay: 0.6 }}>
+        <motion.div className="relative" variants={itemVariants} transition={{ delay: 0.6 }} initial="hidden" animate="visible">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-white/10" />
           </div>
@@ -167,7 +207,13 @@ export default function LoginPage() {
           </div>
         </motion.div>
 
-        <motion.div variants={itemVariants} transition={{ delay: 0.7 }}>
+        <motion.div 
+            variants={itemVariants} 
+            transition={{ delay: 0.7 }}
+            initial="hidden" 
+            animate="visible"
+            whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 300 } }}
+        >
           <Button
             variant="outline"
             className="w-full bg-transparent border-white/20 text-white hover:bg-white/5 hover:text-white"
@@ -179,7 +225,7 @@ export default function LoginPage() {
           </Button>
         </motion.div>
 
-        <motion.p className="text-center text-sm text-zinc-400" variants={itemVariants} transition={{ delay: 0.8 }}>
+        <motion.p className="text-center text-sm text-zinc-400" variants={itemVariants} transition={{ delay: 0.8 }} initial="hidden" animate="visible">
           Don't have an account?{' '}
           <Link href="/auth/signup" className="font-semibold text-yellow-400 hover:text-yellow-300">
             Sign up
