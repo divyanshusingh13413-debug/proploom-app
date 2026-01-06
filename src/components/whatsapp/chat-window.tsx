@@ -36,7 +36,7 @@ export function ChatWindow({ lead }: ChatWindowProps) {
   const [isLoading, setIsLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   
-  const chatRoomId = lead ? [user?.uid, lead.id].sort().join('_') : null;
+  const chatRoomId = lead && user ? [user.uid, lead.id].sort().join('_') : null;
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -75,23 +75,36 @@ export function ChatWindow({ lead }: ChatWindowProps) {
     const text = inputValue;
     setInputValue('');
 
-    await addDoc(collection(db, 'chats', chatRoomId, 'messages'), {
+    const sentMessageRef = await addDoc(collection(db, 'chats', chatRoomId, 'messages'), {
       text,
       senderId: user.uid,
-      status: 'sent', // Initial status
+      status: 'sent',
       timestamp: serverTimestamp(),
     });
 
-    // Simulate bot response and status updates
+    // Simulate delivery and read status updates
     setTimeout(async () => {
+        await updateDoc(doc(db, 'chats', chatRoomId, 'messages', sentMessageRef.id), { status: 'delivered' });
+    }, 1000);
+
+    // Simulate bot response and reading the message
+    setTimeout(async () => {
+        await updateDoc(doc(db, 'chats', chatRoomId, 'messages', sentMessageRef.id), { status: 'read' });
+        
         const botResponse: Partial<Message> = {
-            text: `Received: "${text}". How can I assist further?`,
+            text: `Received: "${text}". How can I assist you further regarding ${lead?.propertyName}?`,
             senderId: lead?.id,
             status: 'sent',
             timestamp: serverTimestamp()
         };
-        await addDoc(collection(db, 'chats', chatRoomId, 'messages'), botResponse);
-    }, 1500);
+        const botMessageRef = await addDoc(collection(db, 'chats', chatRoomId, 'messages'), botResponse);
+        
+        // Simulate bot message delivery
+        setTimeout(async () => {
+             await updateDoc(doc(db, 'chats', chatRoomId, 'messages', botMessageRef.id), { status: 'delivered' });
+        }, 500);
+
+    }, 2500);
   };
 
   if (!lead) {
