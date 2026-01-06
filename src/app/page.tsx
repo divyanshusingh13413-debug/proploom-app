@@ -1,57 +1,50 @@
 
-import { Users, TrendingUp, PhoneCall, Video } from "lucide-react";
+'use client';
+
+import { useRouter } from 'next/navigation';
+import Hero from "@/components/ui/animated-shader-hero";
 import { dashboardLeads, agents } from "@/lib/data";
-import { StatsCard } from "@/components/dashboard/stats-card";
 import { LeadStatusChart } from "@/components/dashboard/lead-status-chart";
 import { AgentPerformanceTable } from "@/components/dashboard/agent-performance-table";
 import { RemindersCard } from "@/components/dashboard/reminders-card";
 
 export default function DashboardPage() {
-  const hotLeads = dashboardLeads.filter(l => l.status === 'Hot').length;
-  const coldLeads = dashboardLeads.filter(l => l.status === 'Cold').length;
-  const totalCalls = agents.reduce((acc, agent) => acc + agent.calls, 0);
+  const router = useRouter();
+
+  const handlePrimaryClick = () => {
+    router.push('/leads');
+  };
+
+  const handleSecondaryClick = () => {
+    router.push('/tours');
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight font-headline">
-            Dashboard
-          </h1>
-          <p className="text-muted-foreground">
-            Welcome back! Here's a real-time overview of your agency.
-          </p>
-        </div>
-      </div>
-      
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          title="Total Leads"
-          value={dashboardLeads.length.toString()}
-          icon={Users}
-          description={`${hotLeads} hot, ${coldLeads} cold`}
-        />
-        <StatsCard
-          title="Hot Leads"
-          value={hotLeads.toString()}
-          icon={TrendingUp}
-          description="High-priority prospects"
-        />
-        <StatsCard
-          title="Total Calls"
-          value={totalCalls.toString()}
-          icon={PhoneCall}
-          description="Across all agents today"
-        />
-        <StatsCard
-          title="Tours Presented"
-          value={agents.reduce((acc, agent) => acc + agent.toursGiven, 0).toString()}
-          icon={Video}
-          description="Virtual tours shown"
-        />
-      </div>
+      <Hero
+        trustBadge={{
+          text: "Welcome to PropCall 360",
+          icons: ["✨"]
+        }}
+        headline={{
+          line1: "Intelligent Real Estate,",
+          line2: "Seamlessly Connected."
+        }}
+        subtitle="Harness the power of AI with anti-leakage cloud calling, WhatsApp automation, and offline 360° virtual tours. Everything you need, all in one place."
+        buttons={{
+          primary: {
+            text: "View Leads",
+            onClick: handlePrimaryClick
+          },
+          secondary: {
+            text: "Explore Virtual Tours",
+            onClick: handleSecondaryClick
+          }
+        }}
+        className="-m-4 sm:-m-6"
+      />
 
-      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-5 pt-[calc(100vh-120px)] sm:pt-0">
         <div className="xl:col-span-3">
           <LeadStatusChart leads={dashboardLeads} />
         </div>
