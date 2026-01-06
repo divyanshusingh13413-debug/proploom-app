@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/firebase';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { FcGoogle } from 'react-icons/fc';
 import { Building2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,11 +36,14 @@ const LoginPage = () => {
         description: 'Welcome back to PROPLOOM!',
       });
       router.push('/');
-    } catch (err: any) { {
-        setError('Invalid email or password. Please try again.');
+    } catch (err: any) { 
+        if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+            setError('Invalid email or password. Please try again.');
+        } else {
+            setError('An unexpected error occurred. Please try again.');
+        }
         setAnimation('shake');
         setTimeout(() => setAnimation('initial'), 500);
-      }
     } finally {
       setIsLoading(false);
     }

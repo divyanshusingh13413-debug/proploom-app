@@ -11,9 +11,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Video } from "lucide-react";
+import { MessageSquare, Video } from "lucide-react";
 import type { Property } from "@/lib/types";
-import { Card, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import Link from 'next/link';
 
 interface ActionsCardProps {
@@ -23,15 +23,15 @@ interface ActionsCardProps {
 export function ActionsCard({ properties }: ActionsCardProps) {
   
   return (
-    <Card className="flex flex-col sm:flex-row items-center justify-between p-6">
-        <div>
-            <h3 className="text-lg font-semibold">Quick Actions</h3>
-            <p className="text-sm text-muted-foreground">Automate tasks and showcase properties.</p>
-        </div>
-        <div className="flex gap-2 mt-4 sm:mt-0">
+    <Card>
+      <CardHeader>
+        <CardTitle>Quick Actions</CardTitle>
+        <p className="text-sm text-muted-foreground">Automate tasks and showcase properties.</p>
+      </CardHeader>
+      <CardContent className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/whatsapp">
             <Button>
-              <Video className="mr-2 h-4 w-4" />
+              <MessageSquare className="mr-2 h-4 w-4" />
               WhatsApp Bot
             </Button>
           </Link>
@@ -71,7 +71,8 @@ export function ActionsCard({ properties }: ActionsCardProps) {
               </div>
             </DialogContent>
           </Dialog>
-        </div>
+      </CardContent>
     </Card>
   );
 }
+
