@@ -16,7 +16,7 @@ export default function WhatsappPage() {
 
   const botAssistant: Lead = {
     id: 'bot-assistant',
-    name: 'PROPLOOM AI',
+    name: 'PropCall 360 AI',
     propertyName: 'Various',
     source: 'Bot',
     status: 'New',
@@ -36,7 +36,7 @@ export default function WhatsappPage() {
       {/* Left Panel: Chat List */}
       <div className="w-full max-w-xs xl:max-w-sm border-r border-zinc-800 flex flex-col bg-black">
         <div className="p-6 border-b border-zinc-800">
-          <h2 className="text-2xl font-bold tracking-tight font-headline text-amber-400">PROPLOOM Chats</h2>
+          <h2 className="text-2xl font-bold tracking-tight font-headline text-amber-400">PropCall Chats</h2>
         </div>
         <div className="flex-1 overflow-y-auto gold-scrollbar">
           {/* Bot Assistant */}

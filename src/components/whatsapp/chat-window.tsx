@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { db, auth } from '@/firebase';
+import { db } from '@/firebase';
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '@/firebase/provider';
 import { Button } from '@/components/ui/button';
@@ -11,10 +11,12 @@ import { Input } from '@/components/ui/input';
 import { Loader2, CheckCheck, Send } from 'lucide-react';
 import type { Lead, Message } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 // Helper component for "blue ticks"
 const MessageStatus = ({ status }: { status: Message['status'] }) => {
-  if (status === 'sent') return null; // Or a single grey tick
+  if (status === 'sent') return <CheckCheck className="h-5 w-5 text-gray-500" />;
+  if (status === 'delivered') return <CheckCheck className="h-5 w-5 text-gray-500" />;
   return (
     <CheckCheck
       className={cn('h-5 w-5', {
@@ -91,8 +93,12 @@ export function ChatWindow({ lead }: ChatWindowProps) {
     setTimeout(async () => {
         await updateDoc(doc(db, 'chats', chatRoomId, 'messages', sentMessageRef.id), { status: 'read' });
         
+        const botResponseText = lead?.id === 'bot-assistant' 
+            ? `Thanks for your message: "${text}". I am the PropCall AI. How can I help you today?`
+            : `Received: "${text}". How can I assist you further regarding ${lead?.propertyName}?`;
+
         const botResponse: Partial<Message> = {
-            text: `Received: "${text}". How can I assist you further regarding ${lead?.propertyName}?`,
+            text: botResponseText,
             senderId: lead?.id,
             status: 'sent',
             timestamp: serverTimestamp()
@@ -115,7 +121,8 @@ export function ChatWindow({ lead }: ChatWindowProps) {
     );
   }
 
-  const leadName = lead.id === 'bot-assistant' ? 'PROPLOOM AI' : `Client ${lead.id.split('-')[1]}`;
+  const leadName = lead.id === 'bot-assistant' ? 'PropCall 360 AI' : `Client ${lead.id.split('-')[1]}`;
+  const leadStatus = lead.lastContact;
 
   return (
     <div className="h-full flex flex-col bg-black relative">
@@ -123,10 +130,21 @@ export function ChatWindow({ lead }: ChatWindowProps) {
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/gold-leaf.png')] opacity-[0.02] pointer-events-none"></div>
 
         {/* Header */}
-        <header className="relative flex h-20 items-center justify-center border-b border-zinc-800 bg-black/50 backdrop-blur-sm z-10">
-            <h2 className="font-headline text-2xl font-bold text-amber-400 tracking-wider">
-                {leadName}
-            </h2>
+        <header className="relative flex items-center justify-between p-4 border-b border-zinc-800 bg-black/50 backdrop-blur-sm z-10">
+          <div className="flex items-center gap-4">
+            <Avatar className="h-12 w-12 border-2 border-amber-400">
+              <AvatarImage src={lead.id === 'bot-assistant' ? undefined : ''} />
+              <AvatarFallback className="bg-zinc-800 text-amber-400 text-lg">
+                {leadName.substring(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h2 className="font-headline text-xl font-bold text-amber-400 tracking-wider">
+                  {leadName}
+              </h2>
+              <p className="text-sm text-green-400">{leadStatus}</p>
+            </div>
+          </div>
         </header>
 
         {/* Messages Area */}
