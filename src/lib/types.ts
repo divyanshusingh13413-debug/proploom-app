@@ -16,9 +16,8 @@ export type Agent = {
   id: string;
   name: string;
   avatarUrl: string;
-  calls: number;
-  callDuration: number; // in minutes
-  toursGiven: number;
+  deals: number;
+  successRate: number; // as a percentage
 };
 
 export type Property = {

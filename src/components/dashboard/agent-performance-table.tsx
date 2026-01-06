@@ -16,43 +16,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Phone } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import type { Agent } from "@/lib/types";
-import { useToast } from "@/hooks/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-
 
 interface AgentPerformanceTableProps {
   agents: Agent[];
 }
 
 export function AgentPerformanceTable({ agents }: AgentPerformanceTableProps) {
-  const { toast } = useToast();
-
-  const handleCall = (agentName: string) => {
-    toast({
-      title: "Initiating Cloud Call",
-      description: `Connecting ${agentName} to client... The client's number is masked.`,
-    });
-  };
-
   return (
     <Card>
       <CardHeader>
         <CardTitle>Agent Performance</CardTitle>
         <CardDescription>
-          Track agent activities and initiate secure calls.
+          Track agent activities and performance.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -60,10 +37,8 @@ export function AgentPerformanceTable({ agents }: AgentPerformanceTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Agent</TableHead>
-              <TableHead className="text-center">Calls Made</TableHead>
-              <TableHead className="text-center">Call Duration</TableHead>
-              <TableHead className="text-center">Virtual Tours</TableHead>
-              <TableHead className="text-right">Action</TableHead>
+              <TableHead className="text-center">Deals</TableHead>
+              <TableHead className="text-center">Success Rate</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -78,32 +53,12 @@ export function AgentPerformanceTable({ agents }: AgentPerformanceTableProps) {
                     <span className="font-medium">{`Agent ${agent.id.split('-')[1]}`}</span>
                   </div>
                 </TableCell>
-                <TableCell className="text-center">{agent.calls}</TableCell>
-                <TableCell className="text-center">{agent.callDuration} min</TableCell>
-                <TableCell className="text-center">{agent.toursGiven}</TableCell>
-                <TableCell className="text-right">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <Phone className="mr-2 h-4 w-4" />
-                          Call Client
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Anti-Leakage Cloud Call</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            You are about to call a client. Their real number will be masked to protect data privacy. The call will be recorded for quality assurance.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleCall(`Agent ${agent.id.split('-')[1]}`)}>
-                            Proceed to Call
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                <TableCell className="text-center">{agent.deals}</TableCell>
+                <TableCell className="text-center">
+                    <div className="flex items-center gap-2">
+                        <Progress value={agent.successRate} className="h-2" />
+                        <span className="text-xs text-muted-foreground">{agent.successRate}%</span>
+                    </div>
                 </TableCell>
               </TableRow>
             ))}
