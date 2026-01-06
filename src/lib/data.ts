@@ -1,14 +1,15 @@
+
 import type { Agent, Lead, Property, Deal } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const findImage = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
 
 export const agents: Agent[] = [
-  { id: 'agent-1', name: 'Agent 1', avatarUrl: findImage('agent-1'), calls: 12, callDuration: 85, toursGiven: 5 },
-  { id: 'agent-2', name: 'Agent 2', avatarUrl: findImage('agent-2'), calls: 8, callDuration: 60, toursGiven: 7 },
-  { id: 'agent-3', name: 'Agent 3', avatarUrl: findImage('agent-3'), calls: 15, callDuration: 110, toursGiven: 3 },
-  { id: 'agent-4', name: 'Agent 4', avatarUrl: findImage('agent-4'), calls: 5, callDuration: 45, toursGiven: 8 },
-  { id: 'agent-5', name: 'Agent 5', avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&q=80', calls: 10, callDuration: 70, toursGiven: 4 },
+  { id: 'agent-1', name: 'Agent 1', avatarUrl: findImage('agent-1'), calls: 0, callDuration: 0, toursGiven: 0 },
+  { id: 'agent-2', name: 'Agent 2', avatarUrl: findImage('agent-2'), calls: 0, callDuration: 0, toursGiven: 0 },
+  { id: 'agent-3', name: 'Agent 3', avatarUrl: findImage('agent-3'), calls: 0, callDuration: 0, toursGiven: 0 },
+  { id: 'agent-4', name: 'Agent 4', avatarUrl: findImage('agent-4'), calls: 0, callDuration: 0, toursGiven: 0 },
+  { id: 'agent-5', name: 'Agent 5', avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&q=80', calls: 0, callDuration: 0, toursGiven: 0 },
 ];
 
 export const properties: Property[] = [
