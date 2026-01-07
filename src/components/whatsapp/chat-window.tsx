@@ -5,13 +5,12 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '@/firebase/config';
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
-import { useAuth } from '@/firebase/provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, CheckCheck, Send, Bot } from 'lucide-react';
 import type { Lead, Message } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 // Helper component for "blue ticks"
 const MessageStatus = ({ status }: { status: Message['status'] }) => {
@@ -27,13 +26,13 @@ interface ChatWindowProps {
 }
 
 export function ChatWindow({ lead }: ChatWindowProps) {
-  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   
-  const chatRoomId = lead && user ? [user.uid, lead.id].sort().join('_') : null;
+  const AGENT_ID = 'agent-1'; // Hardcoded agent ID
+  const chatRoomId = lead ? [AGENT_ID, lead.id].sort().join('_') : null;
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -56,21 +55,21 @@ export function ChatWindow({ lead }: ChatWindowProps) {
 
       // Mark incoming messages as read
       querySnapshot.docs.forEach(async (document) => {
-        if (document.data().senderId !== user?.uid && document.data().status !== 'read') {
+        if (document.data().senderId !== AGENT_ID && document.data().status !== 'read') {
           await updateDoc(doc(db, 'chats', chatRoomId, 'messages', document.id), { status: 'read' });
         }
       });
     });
 
     return () => unsubscribe();
-  }, [chatRoomId, user?.uid]);
+  }, [chatRoomId, lead?.id]);
 
   const simulateResponse = async (text: string) => {
      if (!chatRoomId || !lead) return;
 
       const botResponseText = lead.id === 'bot-assistant' 
           ? `Thanks for your message: "${text}". I am the PropCall AI. How can I help you today?`
-          : `Received: "${text}". How can I assist you further regarding ${lead.propertyName}?`;
+          : `Received: "${text}". This is an automated response from the client's side.`;
       
       const botResponse: Omit<Message, 'id'> = {
           text: botResponseText,
@@ -83,24 +82,26 @@ export function ChatWindow({ lead }: ChatWindowProps) {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim() || !chatRoomId || !user) return;
+    if (!inputValue.trim() || !chatRoomId) return;
 
     const text = inputValue;
     setInputValue('');
 
     const sentMessageRef = await addDoc(collection(db, 'chats', chatRoomId, 'messages'), {
       text,
-      senderId: user.uid,
+      senderId: AGENT_ID,
       status: 'sent',
       timestamp: serverTimestamp(),
     });
 
-    // Simulate delivery and read status updates
+    // Simulate delivery and read status updates from client
     setTimeout(async () => {
-        await updateDoc(doc(db, 'chats', chatRoomId, 'messages', sentMessageRef.id), { status: 'delivered' });
+        if(lead?.id !== 'bot-assistant'){
+            await updateDoc(doc(db, 'chats', chatRoomId, 'messages', sentMessageRef.id), { status: 'delivered' });
+        }
     }, 1000);
 
-    // Simulate bot response and reading the message
+    // Simulate bot/client response and them reading the message
     setTimeout(async () => {
         await updateDoc(doc(db, 'chats', chatRoomId, 'messages', sentMessageRef.id), { status: 'read' });
         await simulateResponse(text);
@@ -118,7 +119,7 @@ export function ChatWindow({ lead }: ChatWindowProps) {
     );
   }
 
-  const leadName = lead.id === 'bot-assistant' ? lead.name : `Client ${lead.id}`;
+  const leadName = lead.id === 'bot-assistant' ? lead.name : `Client ${lead.id.split('-')[1]}`;
   const leadStatus = lead.id === 'bot-assistant' ? 'Online' : 'Active';
 
   return (
@@ -158,7 +159,7 @@ export function ChatWindow({ lead }: ChatWindowProps) {
             ) : (
                 <AnimatePresence initial={false}>
                     {messages.map((message) => {
-                        const isSender = message.senderId === user?.uid;
+                        const isSender = message.senderId === AGENT_ID;
                         return (
                             <motion.div
                                 key={message.id}
@@ -204,22 +205,12 @@ export function ChatWindow({ lead }: ChatWindowProps) {
                     disabled={!inputValue.trim()}
                     size="icon"
                     className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 text-black shadow-lg transition-all duration-300 enabled:hover:shadow-amber-500/50 enabled:hover:scale-110"
-                    style={{
-                        animation: inputValue.trim() ? 'pulse-gold 2s infinite' : 'none'
-                    }}
                 >
                     <Send className="w-6 h-6"/>
                 </Button>
             </motion.div>
           </form>
         </div>
-        <style jsx>{`
-            @keyframes pulse-gold {
-                0% { box-shadow: 0 0 0 0 hsl(var(--secondary) / 0.7); }
-                70% { box-shadow: 0 0 0 10px hsl(var(--secondary) / 0); }
-                100% { box-shadow: 0 0 0 0 hsl(var(--secondary) / 0); }
-            }
-        `}</style>
     </div>
   );
 }
