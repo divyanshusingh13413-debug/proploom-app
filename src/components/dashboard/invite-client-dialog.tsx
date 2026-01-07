@@ -45,13 +45,18 @@ export function InviteClientDialog({ children, leads }: InviteClientDialogProps)
     });
   };
 
-  const handleSendInvite = () => {
-    // This is where you would integrate with a service like Twilio to send a WhatsApp message.
-    // For now, we will just copy the link and show a notification.
-    handleCopy();
+  const handleWhatsAppRedirect = () => {
+    if (!selectedLeadId) return;
+    const selectedLead = leads.find(l => l.id === selectedLeadId);
+    const phone = selectedLead?.phone || '';
+    const message = `Hello! Please join our luxury portal here: ${chatUrl}`;
+    
+    // Open WhatsApp with the message
+    window.open(`https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+
     toast({
-      title: "Invite Link Ready",
-      description: "The chat link has been copied. Please send it to the client via WhatsApp.",
+      title: "WhatsApp Invite Sent!",
+      description: `An invitation has been prepared for ${selectedLead?.name}.`,
     });
     setOpen(false);
   };
@@ -99,7 +104,7 @@ export function InviteClientDialog({ children, leads }: InviteClientDialogProps)
         </div>
         <DialogFooter>
           <Button 
-            onClick={handleSendInvite} 
+            onClick={handleWhatsAppRedirect} 
             disabled={!selectedLeadId}
             className="bg-green-600 hover:bg-green-700 text-white"
           >
