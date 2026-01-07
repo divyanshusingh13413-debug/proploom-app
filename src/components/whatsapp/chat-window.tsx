@@ -64,22 +64,6 @@ export function ChatWindow({ lead }: ChatWindowProps) {
     return () => unsubscribe();
   }, [chatRoomId, lead?.id]);
 
-  const simulateResponse = async (text: string) => {
-     if (!chatRoomId || !lead) return;
-
-      const botResponseText = lead.id === 'bot-assistant' 
-          ? `Thanks for your message: "${text}". I am the PropCall AI. How can I help you today?`
-          : `Received: "${text}". This is an automated response from the client's side.`;
-      
-      const botResponse: Omit<Message, 'id'> = {
-          text: botResponseText,
-          senderId: lead.id,
-          status: 'sent',
-          timestamp: serverTimestamp()
-      };
-      await addDoc(collection(db, 'chats', chatRoomId, 'messages'), botResponse);
-  }
-
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim() || !chatRoomId) return;
@@ -87,25 +71,12 @@ export function ChatWindow({ lead }: ChatWindowProps) {
     const text = inputValue;
     setInputValue('');
 
-    const sentMessageRef = await addDoc(collection(db, 'chats', chatRoomId, 'messages'), {
+    await addDoc(collection(db, 'chats', chatRoomId, 'messages'), {
       text,
       senderId: AGENT_ID,
       status: 'sent',
       timestamp: serverTimestamp(),
     });
-
-    // Simulate delivery and read status updates from client
-    setTimeout(async () => {
-        if(lead?.id !== 'bot-assistant'){
-            await updateDoc(doc(db, 'chats', chatRoomId, 'messages', sentMessageRef.id), { status: 'delivered' });
-        }
-    }, 1000);
-
-    // Simulate bot/client response and them reading the message
-    setTimeout(async () => {
-        await updateDoc(doc(db, 'chats', chatRoomId, 'messages', sentMessageRef.id), { status: 'read' });
-        await simulateResponse(text);
-    }, 2000);
   };
 
   if (!lead) {
