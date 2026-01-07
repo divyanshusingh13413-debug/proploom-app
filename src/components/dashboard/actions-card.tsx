@@ -11,10 +11,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Video } from "lucide-react";
+import { MessageSquare, Video, UserPlus } from "lucide-react";
 import type { Property } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import Link from 'next/link';
+import { InviteClientDialog } from './invite-client-dialog';
+import { leads } from '@/lib/data';
 
 interface ActionsCardProps {
   properties: Property[];
@@ -71,8 +73,14 @@ export function ActionsCard({ properties }: ActionsCardProps) {
               </div>
             </DialogContent>
           </Dialog>
+
+          <InviteClientDialog leads={leads}>
+             <Button variant="secondary">
+                <UserPlus className="mr-2 h-4 w-4" />
+                Invite Client
+              </Button>
+          </InviteClientDialog>
       </CardContent>
     </Card>
   );
 }
-
