@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import ClientLayout from '@/components/layout/client-layout';
+import BackgroundImage from '@/components/layout/background-image';
 
 export const metadata: Metadata = {
   title: 'PROPLOOM',
@@ -29,6 +30,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
+        <BackgroundImage />
         <ClientLayout>{children}</ClientLayout>
         <Toaster />
       </body>

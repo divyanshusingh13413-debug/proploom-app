@@ -1,12 +1,12 @@
 
 'use client';
-import { useState, useEffect, type PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/app-layout';
 import { FirebaseProvider, useAuth } from '@/firebase/provider';
-import SplashScreen from '@/components/layout/splash-screen';
-import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 function AuthWrapper({ children }: PropsWithChildren) {
   const { user, loading } = useAuth();
@@ -56,28 +56,12 @@ function AuthWrapper({ children }: PropsWithChildren) {
 
 
 export default function ClientLayout({ children }: PropsWithChildren) {
-  const [showSplash, setShowSplash] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 3000); // Same duration as the splash screen animations
-
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <FirebaseProvider>
-      <AnimatePresence mode="wait">
-        {showSplash ? (
-            <motion.div key="splash">
-                <SplashScreen />
-            </motion.div>
-        ) : (
+       <AnimatePresence mode="wait">
             <motion.div key="main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
                  <AuthWrapper>{children}</AuthWrapper>
             </motion.div>
-        )}
       </AnimatePresence>
     </FirebaseProvider>
   );
