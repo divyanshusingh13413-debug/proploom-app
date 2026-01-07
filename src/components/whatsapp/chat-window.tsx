@@ -54,15 +54,16 @@ export function ChatWindow({ lead }: ChatWindowProps) {
       setIsLoading(false);
 
       // Mark incoming messages as read
-      querySnapshot.docs.forEach(async (document) => {
-        if (document.data().senderId !== AGENT_ID && document.data().status !== 'read') {
-          await updateDoc(doc(db, 'chats', chatRoomId, 'messages', document.id), { status: 'read' });
+      querySnapshot.docs.forEach((document) => {
+        const data = document.data();
+        if (data.senderId !== AGENT_ID && data.status !== 'read') {
+          updateDoc(document.ref, { status: 'read' });
         }
       });
     });
 
     return () => unsubscribe();
-  }, [chatRoomId, lead?.id]);
+  }, [chatRoomId]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,7 +91,7 @@ export function ChatWindow({ lead }: ChatWindowProps) {
     );
   }
 
-  const leadName = lead.id === 'bot-assistant' ? lead.name : `Client ${lead.id.split('-')[1]}`;
+  const leadName = lead.id === 'bot-assistant' ? lead.name : `Lead ${lead.id.split('-')[1]}`;
   const leadStatus = lead.id === 'bot-assistant' ? 'Online' : 'Active';
 
   return (
