@@ -8,23 +8,18 @@ import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, u
 import { useAuth } from '@/firebase/provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, CheckCheck, Send } from 'lucide-react';
+import { Loader2, CheckCheck, Send, Bot } from 'lucide-react';
 import type { Lead, Message } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 // Helper component for "blue ticks"
 const MessageStatus = ({ status }: { status: Message['status'] }) => {
-  if (status === 'sent') return <CheckCheck className="h-5 w-5 text-gray-500" />;
-  if (status === 'delivered') return <CheckCheck className="h-5 w-5 text-gray-500" />;
-  return (
-    <CheckCheck
-      className={cn('h-5 w-5', {
-        'text-gray-500': status === 'delivered',
-        'text-sky-400': status === 'read',
-      })}
-    />
-  );
+  const iconProps = { className: "h-5 w-5" };
+  if (status === 'sent') return <CheckCheck {...iconProps} color="gray" />;
+  if (status === 'delivered') return <CheckCheck {...iconProps} color="gray" />;
+  if (status === 'read') return <CheckCheck {...iconProps} color="#34B7F1" />; // Sky Blue
+  return <CheckCheck {...iconProps} color="gray" />;
 };
 
 interface ChatWindowProps {
@@ -59,7 +54,7 @@ export function ChatWindow({ lead }: ChatWindowProps) {
       setMessages(msgs);
       setIsLoading(false);
 
-      // Mark messages as read
+      // Mark incoming messages as read
       querySnapshot.docs.forEach(async (document) => {
         if (document.data().senderId !== user?.uid && document.data().status !== 'read') {
           await updateDoc(doc(db, 'chats', chatRoomId, 'messages', document.id), { status: 'read' });
@@ -69,6 +64,22 @@ export function ChatWindow({ lead }: ChatWindowProps) {
 
     return () => unsubscribe();
   }, [chatRoomId, user?.uid]);
+
+  const simulateResponse = async (text: string) => {
+     if (!chatRoomId || !lead) return;
+
+      const botResponseText = lead.id === 'bot-assistant' 
+          ? `Thanks for your message: "${text}". I am the PropCall AI. How can I help you today?`
+          : `Received: "${text}". How can I assist you further regarding ${lead.propertyName}?`;
+      
+      const botResponse: Omit<Message, 'id'> = {
+          text: botResponseText,
+          senderId: lead.id,
+          status: 'sent',
+          timestamp: serverTimestamp()
+      };
+      await addDoc(collection(db, 'chats', chatRoomId, 'messages'), botResponse);
+  }
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,37 +103,23 @@ export function ChatWindow({ lead }: ChatWindowProps) {
     // Simulate bot response and reading the message
     setTimeout(async () => {
         await updateDoc(doc(db, 'chats', chatRoomId, 'messages', sentMessageRef.id), { status: 'read' });
-        
-        const botResponseText = lead?.id === 'bot-assistant' 
-            ? `Thanks for your message: "${text}". I am the PropCall AI. How can I help you today?`
-            : `Received: "${text}". How can I assist you further regarding ${lead?.propertyName}?`;
-
-        const botResponse: Partial<Message> = {
-            text: botResponseText,
-            senderId: lead?.id,
-            status: 'sent',
-            timestamp: serverTimestamp()
-        };
-        const botMessageRef = await addDoc(collection(db, 'chats', chatRoomId, 'messages'), botResponse);
-        
-        // Simulate bot message delivery
-        setTimeout(async () => {
-             await updateDoc(doc(db, 'chats', chatRoomId, 'messages', botMessageRef.id), { status: 'delivered' });
-        }, 500);
-
-    }, 2500);
+        await simulateResponse(text);
+    }, 2000);
   };
 
   if (!lead) {
     return (
-      <div className="flex-1 flex items-center justify-center text-zinc-500 bg-zinc-900/50">
-        <p>Select a chat to start messaging</p>
+      <div className="flex-1 flex flex-col items-center justify-center text-zinc-600 space-y-4">
+        <div className="p-6 rounded-full bg-zinc-900/50">
+            <Bot className="h-12 w-12 text-zinc-700" />
+        </div>
+        <p className="font-light tracking-widest uppercase text-xs">Select a luxury conversation to begin</p>
       </div>
     );
   }
 
-  const leadName = lead.id === 'bot-assistant' ? 'PropCall 360 AI' : `Client ${lead.id.split('-')[1]}`;
-  const leadStatus = lead.lastContact;
+  const leadName = lead.id === 'bot-assistant' ? lead.name : `Client ${lead.id}`;
+  const leadStatus = lead.id === 'bot-assistant' ? 'Online' : 'Active';
 
   return (
     <div className="h-full flex flex-col bg-black relative">
@@ -132,11 +129,16 @@ export function ChatWindow({ lead }: ChatWindowProps) {
         {/* Header */}
         <header className="relative flex items-center justify-between p-4 border-b border-zinc-800 bg-black/50 backdrop-blur-sm z-10">
           <div className="flex items-center gap-4">
-            <Avatar className="h-12 w-12 border-2 border-amber-400">
-              <AvatarImage src={lead.id === 'bot-assistant' ? undefined : ''} />
-              <AvatarFallback className="bg-zinc-800 text-amber-400 text-lg">
-                {leadName.substring(0, 2)}
-              </AvatarFallback>
+             <Avatar className="h-12 w-12 border-2 border-amber-400">
+                {lead.id === 'bot-assistant' ? (
+                     <div className='w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-800 to-black'>
+                        <Bot className="text-amber-500 h-6 w-6" />
+                     </div>
+                ) : (
+                    <AvatarFallback className="bg-zinc-800 text-amber-400 text-lg">
+                        {lead.name.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                )}
             </Avatar>
             <div>
               <h2 className="font-headline text-xl font-bold text-amber-400 tracking-wider">
