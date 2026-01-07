@@ -40,7 +40,7 @@ export type Deal = {
 export type Message = {
   id: string;
   text: string;
-  senderId: string;
+  senderId: string | undefined;
   status: 'sent' | 'delivered' | 'read';
   timestamp: any; // Firestore Timestamp
 };
