@@ -17,6 +17,3 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-
-// Rename this file to config.ts
-// Then update all imports from '@/firebase' to '@/firebase/config'

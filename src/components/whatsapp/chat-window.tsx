@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { db } from '@/firebase';
+import { db } from '@/firebase/config';
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '@/firebase/provider';
 import { Button } from '@/components/ui/button';

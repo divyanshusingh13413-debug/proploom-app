@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { db } from '@/firebase'; // Firebase config import
+import { db } from '@/firebase/config'; // Firebase config import
 import { collection, onSnapshot, query, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
 import { agents } from '@/lib/data';
 import type { Lead } from '@/lib/types';

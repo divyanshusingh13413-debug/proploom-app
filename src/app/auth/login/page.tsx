@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { auth } from '@/firebase';
+import { auth } from '@/firebase/config';
 import { useToast } from '@/components/ui/use-toast';
 import { FcGoogle } from 'react-icons/fc';
 import { Building2, Eye, EyeOff } from 'lucide-react';
