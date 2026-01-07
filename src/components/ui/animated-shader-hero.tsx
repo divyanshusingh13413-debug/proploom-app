@@ -259,32 +259,32 @@ void main(){gl_Position=position;}`;
     }
   }
 
-  const resize = () => {
-    if (!canvasRef.current) return;
-    
-    const canvas = canvasRef.current;
-    const dpr = Math.max(1, 0.5 * window.devicePixelRatio);
-    
-    canvas.width = window.innerWidth * dpr;
-    canvas.height = window.innerHeight * dpr;
-    
-    if (rendererRef.current) {
-      rendererRef.current.updateScale(dpr);
-    }
-  };
-
-  const loop = (now: number) => {
-    if (!rendererRef.current || !pointersRef.current) return;
-    
-    rendererRef.current.updateMouse(pointersRef.current.first);
-    rendererRef.current.updatePointerCount(pointersRef.current.count);
-    rendererRef.current.updatePointerCoords(pointersRef.current.coords);
-    rendererRef.current.updateMove(pointersRef.current.move);
-    rendererRef.current.render(now);
-    animationFrameRef.current = requestAnimationFrame(loop);
-  };
-
   useEffect(() => {
+    const resize = () => {
+      if (!canvasRef.current) return;
+      
+      const canvas = canvasRef.current;
+      const dpr = Math.max(1, 0.5 * window.devicePixelRatio);
+      
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      
+      if (rendererRef.current) {
+        rendererRef.current.updateScale(dpr);
+      }
+    };
+  
+    const loop = (now: number) => {
+      if (!rendererRef.current || !pointersRef.current) return;
+      
+      rendererRef.current.updateMouse(pointersRef.current.first);
+      rendererRef.current.updatePointerCount(pointersRef.current.count);
+      rendererRef.current.updatePointerCoords(pointersRef.current.coords);
+      rendererRef.current.updateMove(pointersRef.current.move);
+      rendererRef.current.render(now);
+      animationFrameRef.current = requestAnimationFrame(loop);
+    };
+
     if (!canvasRef.current) return;
 
     const canvas = canvasRef.current;
@@ -329,6 +329,12 @@ const Hero: React.FC<HeroProps> = ({
   className = ""
 }) => {
   const canvasRef = useShaderBackground();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
 
   return (
     <div className={`relative w-full h-screen overflow-hidden bg-black ${className}`}>
@@ -392,11 +398,11 @@ const Hero: React.FC<HeroProps> = ({
         }
       `}</style>
       
-      <canvas
+      {isClient && <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full object-contain touch-none"
         style={{ background: 'black' }}
-      />
+      />}
       
       {/* Hero Content Overlay */}
       <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-white">
