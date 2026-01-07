@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -32,8 +33,8 @@ export default function SplashScreen() {
                 <Image
                   src={houseImage.imageUrl}
                   alt={houseImage.description}
-                  width={300}
-                  height={200}
+                  width={400}
+                  height={267}
                   className="object-contain rounded-lg shadow-2xl shadow-yellow-500/20"
                   data-ai-hint={houseImage.imageHint}
                   priority
