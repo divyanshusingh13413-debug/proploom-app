@@ -1,21 +1,26 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { db } from '@/firebase'; // Firebase config import
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { leads as initialLeads, agents } from '@/lib/data';
+import { collection, onSnapshot, query, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
+import { agents } from '@/lib/data';
 import type { Lead } from '@/lib/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Bot, CheckCheck, CircleUserRound, Search } from 'lucide-react';
+import { Bot, CheckCheck, Plus, Search } from 'lucide-react';
 import { ChatWindow } from '@/components/whatsapp/chat-window';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { NewChatDialog } from '@/components/whatsapp/new-chat-dialog';
+import { useToast } from '@/hooks/use-toast';
+
 
 export default function WhatsappPage() {
-  // Real-time leads state
-  const [leads, setLeads] = useState<Lead[]>(initialLeads);
+  const { toast } = useToast();
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Bot Assistant Constant
   const botAssistant: Lead = {
@@ -31,10 +36,56 @@ export default function WhatsappPage() {
     phone: 'AI-BOT'
   };
 
+  // Real-time listener for leads
+  useEffect(() => {
+    const q = query(collection(db, 'leads'), orderBy('lastContact', 'desc'));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const leadsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Lead));
+      setLeads(leadsData);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   // Default selection
   useEffect(() => {
     if (!selectedLead) setSelectedLead(botAssistant);
   }, []);
+
+  const handleCreateLead = async (name: string, phone: string, property: string) => {
+    try {
+        const newLead: Omit<Lead, 'id'> = {
+            name,
+            phone,
+            propertyName: property,
+            source: 'Manual Entry',
+            status: 'New',
+            lastContact: new Date().toLocaleDateString(), // simplified
+            agentId: 'agent-1', // Default or assign dynamically
+            budget: 0,
+            email: `${name.replace(/\s+/g, '.').toLowerCase()}@example.com`,
+        };
+      const docRef = await addDoc(collection(db, 'leads'), {
+        ...newLead,
+        timestamp: serverTimestamp() 
+      });
+
+      // Immediately set the new lead as selected
+      setSelectedLead({ id: docRef.id, ...newLead });
+      toast({
+        title: "Chat Created",
+        description: `Conversation with ${name} has been started.`,
+      });
+    } catch (error) {
+        console.error("Error creating new lead: ", error);
+        toast({
+            variant: "destructive",
+            title: "Creation Failed",
+            description: "Could not create the new chat. Please try again.",
+        });
+    }
+  };
+
 
   const filteredLeads = leads.filter(lead => 
     lead.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -44,7 +95,7 @@ export default function WhatsappPage() {
     <div className="h-screen w-screen flex bg-[#0a0a0a] text-white font-sans overflow-hidden">
       
       {/* LEFT PANEL: CHAT LIST */}
-      <div className="w-full max-w-xs xl:max-w-md border-r border-zinc-800/50 flex flex-col bg-black/40 backdrop-blur-xl">
+      <div className="w-full max-w-xs xl:max-w-md border-r border-zinc-800/50 flex flex-col bg-black/40 backdrop-blur-xl relative">
         
         {/* Header */}
         <div className="p-6 space-y-4">
@@ -138,11 +189,24 @@ export default function WhatsappPage() {
             })}
           </AnimatePresence>
         </div>
+
+        {/* Floating Action Button */}
+        <div className="absolute bottom-6 right-6">
+            <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setIsModalOpen(true)}
+                className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 text-black flex items-center justify-center shadow-lg transition-all duration-300 hover:shadow-amber-500/50"
+                style={{ animation: 'pulse-gold 2s infinite' }}
+                aria-label="Start new chat"
+            >
+                <Plus className="w-8 h-8" />
+            </motion.button>
+        </div>
       </div>
 
       {/* RIGHT PANEL: CHAT WINDOW */}
       <div className="flex-1 flex flex-col bg-[#050505] relative">
-        {/* Chat Wallpaper Pattern Overlay */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
         
         {selectedLead ? (
@@ -157,13 +221,26 @@ export default function WhatsappPage() {
         )}
       </div>
 
-      {/* Style for scrollbar */}
+      {/* New Chat Modal */}
+      <NewChatDialog 
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        onAddContact={handleCreateLead}
+      />
+
+
+      {/* Style for scrollbar and pulse animation */}
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #fbbf24; }
         .shadow-glow { box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 hsl(var(--secondary) / 0.7); }
+            70% { box-shadow: 0 0 0 10px hsl(var(--secondary) / 0); }
+            100% { box-shadow: 0 0 0 0 hsl(var(--secondary) / 0); }
+        }
       `}</style>
 
     </div>
