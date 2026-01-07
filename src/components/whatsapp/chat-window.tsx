@@ -1,16 +1,17 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '@/firebase/config';
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, CheckCheck, Send, Bot } from 'lucide-react';
+import { Loader2, CheckCheck, Send, Bot, Building } from 'lucide-react';
 import type { Lead, Message } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useToast } from '@/components/ui/use-toast';
 
 // Helper component for "blue ticks"
 const MessageStatus = ({ status }: { status: Message['status'] }) => {
@@ -25,32 +26,57 @@ interface ChatWindowProps {
   lead: Lead | null;
 }
 
+// Debounce function
+function debounce<F extends (...args: any[]) => any>(func: F, waitFor: number) {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    return (...args: Parameters<F>): void => {
+        if (timeout) {
+            clearTimeout(timeout);
+        }
+        timeout = setTimeout(() => func(...args), waitFor);
+    };
+}
+
+
 export function ChatWindow({ lead }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isClientTyping, setIsClientTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const { toast } = useToast();
   
   const AGENT_ID = 'agent-1'; // Hardcoded agent ID
   const chatRoomId = lead ? [AGENT_ID, lead.id].sort().join('_') : null;
+  const chatRoomRef = chatRoomId ? doc(db, 'chats', chatRoomId) : null;
 
   // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, isClientTyping]);
 
-  // Real-time listener for messages
+  // Real-time listener for messages and typing status
   useEffect(() => {
-    if (!chatRoomId) return;
+    if (!chatRoomId || !chatRoomRef || !lead) return;
 
     setIsLoading(true);
-    const q = query(collection(db, 'chats', chatRoomId, 'messages'), orderBy('timestamp', 'asc'));
+    const messagesQuery = query(collection(db, 'chats', chatRoomId, 'messages'), orderBy('timestamp', 'asc'));
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
-      setMessages(msgs);
+    const unsubscribeMessages = onSnapshot(messagesQuery, (querySnapshot) => {
+      const isFirstLoad = messages.length === 0;
+      const newMessages: Message[] = [];
+      querySnapshot.forEach(doc => {
+        newMessages.push({ id: doc.id, ...doc.data() } as Message);
+      });
+      setMessages(newMessages);
+
+      if (!isFirstLoad && document.hidden) {
+          audioRef.current?.play().catch(e => console.log("Audio play failed", e));
+      }
+
       setIsLoading(false);
 
       // Mark incoming messages as read
@@ -62,8 +88,42 @@ export function ChatWindow({ lead }: ChatWindowProps) {
       });
     });
 
-    return () => unsubscribe();
-  }, [chatRoomId]);
+    const unsubscribeTyping = onSnapshot(chatRoomRef, (doc) => {
+        const data = doc.data();
+        if (data?.typing && data.typing[lead.id]) {
+            setIsClientTyping(true);
+        } else {
+            setIsClientTyping(false);
+        }
+    });
+
+    return () => {
+        unsubscribeMessages();
+        unsubscribeTyping();
+    };
+  }, [chatRoomId, lead?.id]);
+
+  const updateTypingStatus = useCallback(
+    debounce(async (isTyping: boolean) => {
+        if (chatRoomRef) {
+            try {
+                await setDoc(chatRoomRef, { typing: { [AGENT_ID]: isTyping } }, { merge: true });
+            } catch (error) {
+                console.error("Error updating typing status:", error);
+            }
+        }
+    }, 500),
+    [chatRoomRef]
+  );
+
+  useEffect(() => {
+      if (inputValue) {
+          updateTypingStatus(true);
+      } else {
+          updateTypingStatus(false);
+      }
+  }, [inputValue, updateTypingStatus]);
+
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,7 +138,20 @@ export function ChatWindow({ lead }: ChatWindowProps) {
       status: 'sent',
       timestamp: serverTimestamp(),
     });
+
+    if (chatRoomRef) {
+        await setDoc(chatRoomRef, { typing: { [AGENT_ID]: false } }, { merge: true });
+    }
   };
+
+  const handleViewProperty = () => {
+    if (lead?.propertyName) {
+      toast({
+        title: "Property of Interest",
+        description: `${lead.name} is interested in ${lead.propertyName}.`,
+      });
+    }
+  }
 
   if (!lead) {
     return (
@@ -91,15 +164,14 @@ export function ChatWindow({ lead }: ChatWindowProps) {
     );
   }
 
-  const leadName = lead.id === 'bot-assistant' ? lead.name : `Lead ${lead.id.split('-')[1]}`;
+  const leadName = lead.id === 'bot-assistant' ? lead.name : `Lead ${lead.id}`;
   const leadStatus = lead.id === 'bot-assistant' ? 'Online' : 'Active';
 
   return (
     <div className="h-full flex flex-col bg-black relative">
-        {/* Background Pattern */}
+        <audio ref={audioRef} src="/ping.mp3" preload="auto"></audio>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/gold-leaf.png')] opacity-[0.02] pointer-events-none"></div>
 
-        {/* Header */}
         <header className="relative flex items-center justify-between p-4 border-b border-zinc-800 bg-black/50 backdrop-blur-sm z-10">
           <div className="flex items-center gap-4">
              <Avatar className="h-12 w-12 border-2 border-amber-400">
@@ -120,9 +192,14 @@ export function ChatWindow({ lead }: ChatWindowProps) {
               <p className="text-sm text-green-400">{leadStatus}</p>
             </div>
           </div>
+          {lead.id !== 'bot-assistant' && (
+              <Button variant="outline" size="sm" onClick={handleViewProperty} className="bg-black/20 border-amber-500/30 text-amber-300 hover:bg-amber-500/10 hover:text-amber-200">
+                  <Building className="mr-2 h-4 w-4" />
+                  View Property
+              </Button>
+          )}
         </header>
 
-        {/* Messages Area */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4 gold-scrollbar">
             {isLoading ? (
                 <div className="flex justify-center items-center h-full">
@@ -160,9 +237,21 @@ export function ChatWindow({ lead }: ChatWindowProps) {
                     })}
                 </AnimatePresence>
             )}
+             {isClientTyping && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-start"
+                >
+                    <div className="bg-zinc-800 text-amber-100 rounded-2xl rounded-bl-none px-4 py-3 shadow-md flex items-center gap-2">
+                        <span className="typing-dot"></span>
+                        <span className="typing-dot" style={{ animationDelay: '0.2s' }}></span>
+                        <span className="typing-dot" style={{ animationDelay: '0.4s' }}></span>
+                    </div>
+                </motion.div>
+            )}
         </div>
 
-        {/* Input Area */}
         <div className="p-4 border-t border-zinc-800 bg-black/30 backdrop-blur-xl">
           <form onSubmit={handleSendMessage} className="flex items-center gap-4">
             <Input
@@ -183,6 +272,19 @@ export function ChatWindow({ lead }: ChatWindowProps) {
             </motion.div>
           </form>
         </div>
+        <style jsx>{`
+            @keyframes bounce {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-4px); }
+            }
+            .typing-dot {
+                width: 6px;
+                height: 6px;
+                background-color: #fcd34d; /* amber-300 */
+                border-radius: 50%;
+                animation: bounce 1.2s infinite ease-in-out;
+            }
+        `}</style>
     </div>
   );
 }
