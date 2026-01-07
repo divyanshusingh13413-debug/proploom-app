@@ -19,6 +19,17 @@ export default function SplashScreen() {
 
   return (
     <div className={`splash-screen ${isHidden ? 'hidden' : ''}`}>
+        {houseImage && (
+            <Image
+                src={houseImage.imageUrl}
+                alt={houseImage.description}
+                fill
+                className="object-cover"
+                data-ai-hint={houseImage.imageHint}
+                priority
+            />
+        )}
+        <div className="splash-overlay"></div>
         <div className="curtain-container">
             <div className="curtain curtain-left"></div>
             <div className="curtain curtain-right"></div>
@@ -28,19 +39,6 @@ export default function SplashScreen() {
                 <h1 className="logo-text">PROPLOOM</h1>
             </div>
             <p className="tagline">Defining Luxury Living</p>
-            {houseImage && (
-              <div className="house-animation-container">
-                <Image
-                  src={houseImage.imageUrl}
-                  alt={houseImage.description}
-                  width={400}
-                  height={267}
-                  className="object-contain rounded-lg shadow-2xl shadow-yellow-500/20"
-                  data-ai-hint={houseImage.imageHint}
-                  priority
-                />
-              </div>
-            )}
         </div>
     </div>
   );

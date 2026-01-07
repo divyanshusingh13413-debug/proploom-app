@@ -103,6 +103,10 @@ body {
   pointer-events: none;
 }
 
+.splash-overlay {
+    @apply absolute inset-0 bg-black/50;
+}
+
 .curtain-container {
   @apply absolute inset-0 flex;
 }
