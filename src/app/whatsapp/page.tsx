@@ -1,115 +1,171 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { db } from '@/firebase'; // Firebase config import
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { leads as initialLeads, agents } from '@/lib/data';
 import type { Lead } from '@/lib/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Bot, CheckCheck, CircleUserRound } from 'lucide-react';
+import { Bot, CheckCheck, CircleUserRound, Search } from 'lucide-react';
 import { ChatWindow } from '@/components/whatsapp/chat-window';
 import { cn } from '@/lib/utils';
-
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function WhatsappPage() {
-  const [leads, setLeads] = useState<Lead[]>(initialLeads.slice(0, 1));
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(leads[0] || null);
+  // Real-time leads state
+  const [leads, setLeads] = useState<Lead[]>(initialLeads);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
+  // Bot Assistant Constant
   const botAssistant: Lead = {
     id: 'bot-assistant',
     name: 'PropCall 360 AI',
-    propertyName: 'Various',
-    source: 'Bot',
-    status: 'New',
-    lastContact: 'Online',
-    agentId: 'agent-1',
+    propertyName: 'Assistant',
+    source: 'System',
+    status: 'New', // Changed from 'Online' to a valid status
+    lastContact: 'Now',
+    agentId: 'bot',
     budget: 0,
-    email: '',
-    phone: ''
+    email: 'ai@proploom.com',
+    phone: 'AI-BOT'
   };
 
-  const handleSelectLead = (lead: Lead) => {
-    setSelectedLead(lead);
-  };
+  // Default selection
+  useEffect(() => {
+    if (!selectedLead) setSelectedLead(botAssistant);
+  }, []);
+
+  const filteredLeads = leads.filter(lead => 
+    lead.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="h-screen w-screen flex bg-black text-white font-body overflow-hidden">
-      {/* Left Panel: Chat List */}
-      <div className="w-full max-w-xs xl:max-w-sm border-r border-zinc-800 flex flex-col bg-black">
-        <div className="p-6 border-b border-zinc-800">
-          <h2 className="text-2xl font-bold tracking-tight font-headline text-amber-400">PropCall Chats</h2>
-        </div>
-        <div className="flex-1 overflow-y-auto gold-scrollbar">
-          {/* Bot Assistant */}
-          <div
-            className={cn(
-              'flex items-center gap-4 p-4 cursor-pointer border-b border-zinc-900 transition-colors',
-              selectedLead?.id === botAssistant.id ? 'bg-zinc-900' : 'hover:bg-zinc-800/50'
-            )}
-            onClick={() => handleSelectLead(botAssistant)}
-          >
-            <Avatar className="h-12 w-12 border-2 border-amber-500">
-              <div className='w-full h-full flex items-center justify-center bg-zinc-900'>
-                <Bot className="text-amber-500" />
-              </div>
-            </Avatar>
-            <div className="flex-1 overflow-hidden">
-              <div className="flex justify-between items-center">
-                <p className="font-semibold text-base text-white">{botAssistant.name}</p>
-                <p className="text-xs text-amber-400/70">{botAssistant.lastContact}</p>
-              </div>
-              <p className="text-sm text-zinc-400 truncate">I'm here to help you.</p>
-            </div>
+    <div className="h-screen w-screen flex bg-[#0a0a0a] text-white font-sans overflow-hidden">
+      
+      {/* LEFT PANEL: CHAT LIST */}
+      <div className="w-full max-w-xs xl:max-w-md border-r border-zinc-800/50 flex flex-col bg-black/40 backdrop-blur-xl">
+        
+        {/* Header */}
+        <div className="p-6 space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-amber-200 to-yellow-500 bg-clip-text text-transparent">
+              PropCall Chats
+            </h2>
           </div>
+          
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+            <input 
+              type="text" 
+              placeholder="Search clients..."
+              className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-amber-500/50 transition-all"
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
 
-          {/* Leads */}
-          {leads.map((lead) => {
-            const agent = agents.find(a => a.id === lead.agentId);
-            const leadName = lead.name.startsWith('Lead') ? `Client ${lead.id.split('-')[1]}` : lead.name;
-            return (
-              <div
-                key={lead.id}
-                className={cn(
-                    'flex items-center gap-4 p-4 cursor-pointer border-b border-zinc-900 transition-colors',
-                    selectedLead?.id === lead.id ? 'bg-zinc-900' : 'hover:bg-zinc-800/50'
-                  )}
-                onClick={() => handleSelectLead(lead)}
-              >
-                <Avatar className="h-12 w-12 border-2 border-zinc-700">
-                  {agent?.avatarUrl ? (
-                    <AvatarImage src={agent?.avatarUrl} />
-                  ) : (
-                    <div className='w-full h-full flex items-center justify-center bg-zinc-800'>
-                      <CircleUserRound className="text-zinc-500" />
-                    </div>
-                  )}
-                  <AvatarFallback className="bg-zinc-800 text-amber-400">{leadName.substring(0, 2)}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 overflow-hidden">
-                  <div className="flex justify-between items-center">
-                    <p className="font-semibold text-base text-white">{leadName}</p>
-                    <p className="text-xs text-zinc-500">{lead.lastContact}</p>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <p className="text-sm text-zinc-400 truncate">Okay, send the details.</p>
-                    <CheckCheck className="h-5 w-5 text-sky-400" />
-                  </div>
+        {/* Chat List Items */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          
+          {/* 1. Bot AI Item */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className={cn(
+              'flex items-center gap-4 p-4 cursor-pointer transition-all border-l-4',
+              selectedLead?.id === botAssistant.id 
+                ? 'bg-zinc-900/80 border-amber-500' 
+                : 'hover:bg-zinc-900/40 border-transparent'
+            )}
+            onClick={() => setSelectedLead(botAssistant)}
+          >
+            <div className="relative">
+              <Avatar className="h-12 w-12 border border-amber-500/30">
+                <div className='w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-800 to-black'>
+                  <Bot className="text-amber-500 h-6 w-6" />
                 </div>
+              </Avatar>
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-black rounded-full shadow-glow"></span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex justify-between items-center">
+                <p className="font-semibold text-zinc-100">PropCall 360 AI</p>
+                <p className="text-[10px] text-amber-500 font-medium">ONLINE</p>
               </div>
-            );
-          })}
+              <p className="text-sm text-zinc-500 truncate italic">How can I assist your property search?</p>
+            </div>
+          </motion.div>
+
+          {/* 2. Real Leads List */}
+          <AnimatePresence>
+            {filteredLeads.map((lead, index) => {
+              const agent = agents.find(a => a.id === lead.agentId);
+              const isSelected = selectedLead?.id === lead.id;
+
+              return (
+                <motion.div
+                  key={lead.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className={cn(
+                    'flex items-center gap-4 p-4 cursor-pointer transition-all border-l-4',
+                    isSelected ? 'bg-zinc-900/80 border-amber-500' : 'hover:bg-zinc-900/40 border-transparent'
+                  )}
+                  onClick={() => setSelectedLead(lead)}
+                >
+                  <Avatar className="h-12 w-12 border border-zinc-800">
+                    <AvatarImage src={agent?.avatarUrl} />
+                    <AvatarFallback className="bg-zinc-800 text-amber-500 font-bold">
+                      {lead.name.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center">
+                      <p className="font-medium text-zinc-200 truncate">{`Lead ${lead.id}`}</p>
+                      <p className="text-[10px] text-zinc-500">{lead.lastContact}</p>
+                    </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <p className="text-sm text-zinc-500 truncate">Property: {lead.propertyName}</p>
+                      <CheckCheck className={cn("h-4 w-4", isSelected ? "text-sky-400" : "text-zinc-600")} />
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       </div>
 
-      {/* Right Panel: Chat Window */}
-      <div className="flex-1 flex flex-col">
+      {/* RIGHT PANEL: CHAT WINDOW */}
+      <div className="flex-1 flex flex-col bg-[#050505] relative">
+        {/* Chat Wallpaper Pattern Overlay */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+        
         {selectedLead ? (
           <ChatWindow key={selectedLead.id} lead={selectedLead} />
         ) : (
-          <div className="flex-1 flex items-center justify-center text-zinc-500 bg-zinc-900/50">
-            <p>Select a chat to start messaging</p>
+          <div className="flex-1 flex flex-col items-center justify-center text-zinc-600 space-y-4">
+            <div className="p-6 rounded-full bg-zinc-900/50">
+              <Bot className="h-12 w-12 text-zinc-700" />
+            </div>
+            <p className="font-light tracking-widest uppercase text-xs">Select a luxury conversation to begin</p>
           </div>
         )}
       </div>
+
+      {/* Style for scrollbar */}
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #fbbf24; }
+        .shadow-glow { box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
+      `}</style>
+
     </div>
   );
 }
