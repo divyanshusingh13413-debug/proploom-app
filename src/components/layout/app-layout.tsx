@@ -1,3 +1,4 @@
+
 'use client';
 import type { PropsWithChildren } from 'react';
 import {
@@ -20,9 +21,15 @@ import {
   Video,
   BarChart2,
   MessageSquare,
+  LogOut,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '@/firebase/provider';
+import { auth } from '@/firebase/config';
+import { signOut } from 'firebase/auth';
+import { Avatar, AvatarFallback } from '../ui/avatar';
+import { useToast } from '../ui/use-toast';
 
 const AppLogo = () => (
   <div className="flex items-center gap-2.5 font-bold text-lg text-sidebar-foreground tracking-tighter">
@@ -48,7 +55,7 @@ const Nav = () => {
           <SidebarMenuButton
             asChild
             isActive={
-              pathname.startsWith(item.href) && (item.href !== '/' || pathname === '/')
+              (item.href === '/' && pathname === '/') || (item.href !== '/' && pathname.startsWith(item.href))
             }
           >
             <Link href={item.href}>
@@ -64,9 +71,27 @@ const Nav = () => {
 
 export default function AppLayout({ children }: PropsWithChildren) {
   const pathname = usePathname();
-  const isWhatsAppPage = pathname.startsWith('/whatsapp');
+  const { user } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
 
-  if (isWhatsAppPage) {
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast({ title: 'Logged out successfully.' });
+      router.push('/auth/login');
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Logout failed. Please try again.' });
+    }
+  };
+
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  }
+
+
+  if (pathname.startsWith('/chat/')) {
     return <main className="flex-1">{children}</main>;
   }
 
@@ -82,11 +107,30 @@ export default function AppLayout({ children }: PropsWithChildren) {
           <SidebarContent>
             <Nav />
           </SidebarContent>
+          <SidebarContent className="!flex-1 justify-end">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleLogout}>
+                  <LogOut />
+                  Logout
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarContent>
         </Sidebar>
       <SidebarInset>
-          <header className="sticky top-0 z-10 flex h-16 items-center justify-end border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
+          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
             <SidebarTrigger className="md:hidden" />
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 ml-auto">
+               <Button variant="ghost" size="icon">
+                  <Bell className="h-5 w-5" />
+                  <span className="sr-only">Notifications</span>
+                </Button>
+                <Avatar className="h-9 w-9">
+                  <AvatarFallback className='bg-secondary text-secondary-foreground'>
+                    {getInitials(user?.displayName)}
+                  </AvatarFallback>
+                </Avatar>
             </div>
           </header>
         <main

@@ -87,7 +87,7 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-transparent text-foreground;
+    @apply bg-background text-foreground;
   }
 }
 
@@ -110,6 +110,13 @@ body {
 
 
 /* New Splash Screen Animations */
+.pattern-bg {
+    background-image:
+      linear-gradient(rgba(212, 175, 55, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(212, 175, 55, 0.05) 1px, transparent 1px);
+    background-size: 2rem 2rem;
+}
+
 .shimmer-text {
     background: linear-gradient(
       90deg,

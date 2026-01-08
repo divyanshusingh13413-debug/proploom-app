@@ -7,16 +7,15 @@ import { useAuth } from '@/firebase/provider';
 import { Loader2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import SplashScreen from './splash-screen';
+import AppLayout from './app-layout';
 
 function AuthWrapper({ children }: PropsWithChildren) {
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [initialLoad, setInitialLoad] = useState(true);
 
   useEffect(() => {
     if (!loading) {
-      setInitialLoad(false);
       const isAuthPage = pathname.startsWith('/auth');
       if (!user && !isAuthPage) {
         router.push('/auth/login');
@@ -26,25 +25,26 @@ function AuthWrapper({ children }: PropsWithChildren) {
     }
   }, [user, loading, router, pathname]);
 
-  if (loading || initialLoad) {
-    const isAuthPage = pathname.startsWith('/auth');
-    if (!user && !isAuthPage) {
-        return (
-            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background">
-                <Loader2 className="w-12 h-12 animate-spin text-secondary" />
-            </div>
-        );
-    }
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background">
+        <Loader2 className="w-12 h-12 animate-spin text-secondary" />
+      </div>
+    );
   }
   
   const isAuthPage = pathname.startsWith('/auth');
 
   if (!user && !isAuthPage) {
-    return null;
+    return null; // Show nothing while redirecting
   }
   
   if (user && isAuthPage) {
-    return null;
+    return null; // Show nothing while redirecting
+  }
+
+  if (user) {
+    return <AppLayout>{children}</AppLayout>
   }
 
   return <>{children}</>;
@@ -55,11 +55,14 @@ export default function ClientLayout({ children }: PropsWithChildren) {
   const [showSplash, setShowSplash] = useState(true);
   const pathname = usePathname();
 
-  useEffect(() => {
-    if (pathname === '/' || pathname.startsWith('/auth')) {
-        setShowSplash(true);
+   // Only show splash screen on the very first load of the root or auth pages
+   useEffect(() => {
+    const isFirstLoad = !sessionStorage.getItem('hasLoaded');
+    if (isFirstLoad && (pathname === '/' || pathname.startsWith('/auth'))) {
+      setShowSplash(true);
+      sessionStorage.setItem('hasLoaded', 'true');
     } else {
-        setShowSplash(false);
+      setShowSplash(false);
     }
   }, [pathname]);
 

@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseProvider } from '@/firebase/provider';
+import ClientLayout from '@/components/layout/client-layout';
 
 export const metadata: Metadata = {
   title: 'PROPLOOM',
@@ -30,7 +31,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <FirebaseProvider>
-          {children}
+          <ClientLayout>{children}</ClientLayout>
         </FirebaseProvider>
         <Toaster />
       </body>
