@@ -91,101 +91,6 @@ body {
   }
 }
 
-/* Splash Screen Styles */
-.splash-screen {
-  @apply fixed inset-0 z-50 flex flex-col items-center justify-center bg-black;
-  opacity: 1;
-  transition: opacity 0.5s ease-out;
-}
-
-.splash-screen.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.splash-overlay {
-    @apply absolute inset-0 bg-black/50;
-}
-
-.curtain-container {
-  @apply absolute inset-0 flex;
-}
-
-.curtain {
-  @apply w-1/2 h-full bg-black transition-transform duration-700 ease-in-out;
-}
-
-.curtain-left {
-  transform: translateX(0);
-}
-
-.curtain-right {
-  transform: translateX(0);
-}
-
-.splash-screen.hidden .curtain-left {
-  transform: translateX(-100%);
-}
-
-.splash-screen.hidden .curtain-right {
-  transform: translateX(100%);
-}
-
-.splash-content {
-  @apply text-center text-white relative;
-  animation: zoom-in 3s ease-out forwards;
-}
-
-.logo-container {
-  @apply relative;
-  animation: glow 3s infinite ease-in-out;
-}
-
-.logo-text {
-  @apply text-7xl md:text-8xl font-black tracking-wider bg-clip-text text-transparent;
-  background-image: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
-}
-
-@keyframes zoom-in {
-  from {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes glow {
-  0%, 100% {
-    text-shadow: 0 0 10px #BF953F, 0 0 20px #BF953F, 0 0 30px #BF953F;
-  }
-  50% {
-    text-shadow: 0 0 20px #FCF6BA, 0 0 30px #FCF6BA, 0 0 40px #FCF6BA;
-  }
-}
-
-.tagline {
-  @apply text-lg md:text-xl font-thin tracking-[0.2em] text-gray-300 mt-4;
-}
-
-.house-animation-container {
-  @apply relative mt-8 opacity-0;
-  animation: fade-in-house 3s ease-out forwards;
-}
-
-@keyframes fade-in-house {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* For WhatsApp Page Scrollbar */
 .gold-scrollbar::-webkit-scrollbar {
   width: 8px;
@@ -202,3 +107,34 @@ body {
 .gold-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: hsl(var(--secondary) / 0.8);
 }
+
+
+/* New Splash Screen Animations */
+.shimmer-text {
+    background: linear-gradient(
+      90deg,
+      #bf953f 0%,
+      #fcf6ba 20%,
+      #b38728 40%,
+      #fbf5b7 60%,
+      #aa771c 80%,
+      #bf953f 100%
+    );
+    background-size: 200% auto;
+    color: #000;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 3s linear infinite;
+  }
+
+  @keyframes shimmer {
+    to {
+      background-position: 200% center;
+    }
+  }
+
+  .text-glow {
+    text-shadow: 0 0 8px hsl(var(--secondary) / 0.5), 0 0 20px hsl(var(--secondary) / 0.3);
+  }
+

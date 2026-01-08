@@ -7,6 +7,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { FirebaseProvider, useAuth } from '@/firebase/provider';
 import { Loader2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import SplashScreen from './splash-screen';
 
 function AuthWrapper({ children }: PropsWithChildren) {
   const { user, loading } = useAuth();
@@ -56,12 +57,36 @@ function AuthWrapper({ children }: PropsWithChildren) {
 
 
 export default function ClientLayout({ children }: PropsWithChildren) {
+  const [showSplash, setShowSplash] = useState(true);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // Only show splash screen on the initial load of the root path
+    if (pathname === '/' || pathname.startsWith('/auth')) {
+        const timer = setTimeout(() => setShowSplash(false), 3000); // Duration of the splash animation
+        return () => clearTimeout(timer);
+    } else {
+        setShowSplash(false);
+    }
+  }, [pathname]);
+
   return (
     <FirebaseProvider>
-       <AnimatePresence mode="wait">
-            <motion.div key="main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-                 <AuthWrapper>{children}</AuthWrapper>
-            </motion.div>
+      <AnimatePresence mode="wait">
+        {showSplash ? (
+          <motion.div key="splash">
+            <SplashScreen onAnimationComplete={() => setShowSplash(false)} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="main"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <AuthWrapper>{children}</AuthWrapper>
+          </motion.div>
+        )}
       </AnimatePresence>
     </FirebaseProvider>
   );
