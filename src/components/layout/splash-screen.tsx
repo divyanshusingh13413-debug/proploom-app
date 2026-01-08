@@ -21,14 +21,6 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
     return () => clearTimeout(timer);
   }, [onFinish]);
 
-  const containerVariants = {
-    initial: { opacity: 1, backgroundColor: '#000000' },
-    exit: { 
-      opacity: 0, 
-      transition: { duration: 0.5, ease: 'easeInOut' } 
-    },
-  };
-
   const shapeVariants = {
     hidden: { scale: 0, rotate: -45, opacity: 0 },
     visible: { 
@@ -60,12 +52,8 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
   };
 
   return (
-    <motion.div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden"
-      variants={containerVariants}
-      initial="initial"
-      animate="initial"
-      exit="exit"
+    <div
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-black"
     >
       <div className="absolute inset-0 bg-black opacity-80 z-0"></div>
       <div className="absolute inset-0 pattern-bg opacity-10"></div>
@@ -98,7 +86,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
         </p>
       </motion.div>
 
-    </motion.div>
+    </div>
   );
 };
 
