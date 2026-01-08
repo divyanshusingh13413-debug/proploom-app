@@ -56,10 +56,8 @@ export default function ClientLayout({ children }: PropsWithChildren) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Only show splash screen on the initial load of the root path
     if (pathname === '/' || pathname.startsWith('/auth')) {
-        const timer = setTimeout(() => setShowSplash(false), 3000); // Duration of the splash animation
-        return () => clearTimeout(timer);
+        setShowSplash(true);
     } else {
         setShowSplash(false);
     }
@@ -69,7 +67,7 @@ export default function ClientLayout({ children }: PropsWithChildren) {
       <AnimatePresence mode="wait">
         {showSplash ? (
           <motion.div key="splash">
-            <SplashScreen onAnimationComplete={() => setShowSplash(false)} />
+            <SplashScreen onFinish={() => setShowSplash(false)} />
           </motion.div>
         ) : (
           <motion.div
