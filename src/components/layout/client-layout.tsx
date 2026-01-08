@@ -3,8 +3,7 @@
 import type { PropsWithChildren } from 'react';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import AppLayout from '@/components/layout/app-layout';
-import { FirebaseProvider, useAuth } from '@/firebase/provider';
+import { useAuth } from '@/firebase/provider';
 import { Loader2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import SplashScreen from './splash-screen';
@@ -48,11 +47,7 @@ function AuthWrapper({ children }: PropsWithChildren) {
     return null;
   }
 
-  if (isAuthPage) {
-    return <>{children}</>;
-  }
-
-  return <AppLayout>{children}</AppLayout>;
+  return <>{children}</>;
 }
 
 
@@ -71,7 +66,6 @@ export default function ClientLayout({ children }: PropsWithChildren) {
   }, [pathname]);
 
   return (
-    <FirebaseProvider>
       <AnimatePresence mode="wait">
         {showSplash ? (
           <motion.div key="splash">
@@ -88,6 +82,5 @@ export default function ClientLayout({ children }: PropsWithChildren) {
           </motion.div>
         )}
       </AnimatePresence>
-    </FirebaseProvider>
   );
 }

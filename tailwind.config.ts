@@ -65,6 +65,9 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        gold: {
+          '500': '#D4AF37', // Example gold color
+        }
       },
       borderRadius: {
         lg: 'var(--radius)',

@@ -2,7 +2,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import ClientLayout from '@/components/layout/client-layout';
+import { FirebaseProvider } from '@/firebase/provider';
 
 export const metadata: Metadata = {
   title: 'PROPLOOM',
@@ -29,8 +29,9 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <div className="fixed inset-0 bg-background -z-10"></div>
-        <ClientLayout>{children}</ClientLayout>
+        <FirebaseProvider>
+          {children}
+        </FirebaseProvider>
         <Toaster />
       </body>
     </html>
