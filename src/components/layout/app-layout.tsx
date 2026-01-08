@@ -33,8 +33,8 @@ import { useToast } from '../ui/use-toast';
 
 const AppLogo = () => (
   <div className="flex items-center gap-2.5 font-bold text-lg text-sidebar-foreground tracking-tighter">
-    <Building2 className="text-secondary" />
-    <span className="font-headline">PROPLOOM</span>
+    <Building2 className="text-primary" />
+    <span className="font-headline bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">PROPLOOM</span>
   </div>
 );
 
@@ -101,7 +101,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
           <SidebarHeader>
             <div className="flex items-center justify-between">
               <AppLogo />
-              <SidebarTrigger className="text-sidebar-foreground hover:text-secondary" />
+              <SidebarTrigger className="text-sidebar-foreground hover:text-primary" />
             </div>
           </SidebarHeader>
           <SidebarContent>
@@ -119,15 +119,15 @@ export default function AppLayout({ children }: PropsWithChildren) {
           </SidebarContent>
         </Sidebar>
       <SidebarInset>
-          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
+          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border/50 bg-background/50 px-4 backdrop-blur-md sm:px-6">
             <SidebarTrigger className="md:hidden" />
             <div className="flex items-center gap-4 ml-auto">
                <Button variant="ghost" size="icon">
-                  <Bell className="h-5 w-5" />
+                  <Bell className="h-5 w-5 text-muted-foreground hover:text-primary" />
                   <span className="sr-only">Notifications</span>
                 </Button>
                 <Avatar className="h-9 w-9">
-                  <AvatarFallback className='bg-secondary text-secondary-foreground'>
+                  <AvatarFallback className='bg-gradient-to-br from-primary to-secondary text-primary-foreground font-bold'>
                     {getInitials(user?.displayName)}
                   </AvatarFallback>
                 </Avatar>

@@ -95,13 +95,13 @@ const SignupPage = () => {
         <motion.div 
           variants={shakeAnimation}
           animate={animation}
-          className="bg-card/80 backdrop-blur-lg rounded-2xl border border-border shadow-2xl"
+          className="bg-card/80 backdrop-blur-lg rounded-2xl border border-border/50 shadow-2xl"
         >
           <div className="p-8 md:p-12">
             <div className="flex justify-center mb-6">
                  <div className="flex items-center gap-2.5 font-bold text-2xl text-foreground tracking-tighter">
-                    <Building2 className="text-accent" />
-                    <span className="font-headline">PROPLOOM</span>
+                    <Building2 className="text-primary" />
+                    <span className="font-headline bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">PROPLOOM</span>
                 </div>
             </div>
             
@@ -113,7 +113,7 @@ const SignupPage = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-accent focus:border-accent transition-all duration-300"
+                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary transition-all duration-300"
                 />
               </motion.div>
               <motion.div variants={inputVariants} initial="hidden" animate="visible" custom={2} className="relative">
@@ -123,7 +123,7 @@ const SignupPage = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-accent focus:border-accent transition-all duration-300"
+                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary transition-all duration-300"
                 />
               </motion.div>
 
@@ -134,7 +134,7 @@ const SignupPage = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-accent focus:border-accent transition-all duration-300 pr-10"
+                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary transition-all duration-300 pr-10"
                 />
                  <button
                     type="button"
@@ -162,7 +162,7 @@ const SignupPage = () => {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-accent text-accent-foreground font-bold text-base h-12 hover:bg-accent/90 transition-all duration-300 shadow-[0_0_20px_hsl(var(--accent)/20%)]"
+                  className="w-full bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold text-base h-12 hover:opacity-90 transition-all duration-300 shadow-[0_0_20px_hsl(var(--primary)/20%)]"
                 >
                   {isLoading ? 'Creating Account...' : 'Sign Up'}
                 </Button>
@@ -170,7 +170,7 @@ const SignupPage = () => {
 
               <div className="text-center text-sm text-muted-foreground">
                 Already have an account?{' '}
-                <Link href="/auth/login" className="font-medium text-accent hover:underline">
+                <Link href="/auth/login" className="font-medium text-primary hover:underline">
                   Sign In
                 </Link>
               </div>
