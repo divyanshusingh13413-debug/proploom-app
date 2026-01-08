@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 interface SplashScreenProps {
@@ -8,14 +8,10 @@ interface SplashScreenProps {
 }
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
-  const hasFinished = useRef(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (!hasFinished.current) {
-        hasFinished.current = true;
         onFinish();
-      }
     }, 3000); // Total duration of splash screen
 
     return () => clearTimeout(timer);
@@ -27,7 +23,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
       scale: 1, 
       rotate: 0, 
       opacity: 1, 
-      transition: { duration: 0.8, ease: [0.6, 0.05, -0.01, 0.9] } 
+      transition: { duration: 0.8, ease: [0.6, 0.05, 0.1, 0.9] } 
     },
   };
 
