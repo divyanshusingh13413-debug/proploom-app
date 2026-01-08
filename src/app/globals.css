@@ -121,7 +121,7 @@ body {
       #bf953f 100%
     );
     background-size: 200% auto;
-    color: #000;
+    color: #bf953f;
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -137,4 +137,3 @@ body {
   .text-glow {
     text-shadow: 0 0 8px hsl(var(--secondary) / 0.5), 0 0 20px hsl(var(--secondary) / 0.3);
   }
-
