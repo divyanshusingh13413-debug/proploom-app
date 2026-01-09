@@ -191,7 +191,7 @@ export default function WhatsappPage() {
         </div>
 
         {/* Floating Action Button */}
-        <div className="absolute bottom-6 right-6">
+        <div className="absolute bottom-8 right-8">
             <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -200,7 +200,7 @@ export default function WhatsappPage() {
                 style={{ animation: 'pulse-gold 2s infinite' }}
                 aria-label="Start new chat"
             >
-                <Plus className="w-7 h-7" />
+                <Plus className="w-6 h-6" />
             </motion.button>
         </div>
       </div>
