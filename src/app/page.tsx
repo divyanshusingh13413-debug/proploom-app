@@ -54,7 +54,7 @@ const Nav = ({ isCollapsed }: { isCollapsed: boolean }) => {
                         initial={{ opacity: 0, width: 0 }}
                         animate={{ opacity: 1, width: 'auto', transition: { duration: 0.2, delay: 0.1 } }}
                         exit={{ opacity: 0, width: 0, transition: { duration: 0.1 } }}
-                        className="overflow-hidden"
+                        className="overflow-hidden whitespace-nowrap"
                       >
                         {item.label}
                       </motion.span>
@@ -97,7 +97,7 @@ const DashboardPage = () => {
       </motion.div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col pl-6">
+      <motion.div layout className="flex-1 flex flex-col pl-6">
         <div className="flex items-center gap-2.5 font-bold text-lg text-foreground tracking-tighter mb-6">
           <Button variant="ghost" size="icon" onClick={() => setSidebarCollapsed(!isSidebarCollapsed)} className="h-8 w-8">
             <PanelLeft className="h-5 w-5" />
@@ -170,7 +170,7 @@ const DashboardPage = () => {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
