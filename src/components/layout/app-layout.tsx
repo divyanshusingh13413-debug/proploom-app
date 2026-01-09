@@ -6,37 +6,23 @@ import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
-  SidebarTrigger,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
 import {
-  Bell,
   Building2,
   LayoutDashboard,
   Users,
   Video,
   BarChart2,
   MessageSquare,
-  LogOut,
+  Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/firebase/provider';
-import { auth } from '@/firebase/config';
-import { signOut } from 'firebase/auth';
-import { Avatar, AvatarFallback } from '../ui/avatar';
-import { useToast } from '../ui/use-toast';
-
-const AppLogo = () => (
-  <div className="flex items-center gap-2.5 font-bold text-lg text-sidebar-foreground tracking-tighter">
-    <Building2 className="text-primary" />
-    <span className="font-headline bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">PROPLOOM</span>
-  </div>
-);
 
 const Nav = () => {
   const pathname = usePathname();
@@ -72,25 +58,7 @@ const Nav = () => {
 export default function AppLayout({ children }: PropsWithChildren) {
   const pathname = usePathname();
   const { user } = useAuth();
-  const router = useRouter();
-  const { toast } = useToast();
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      toast({ title: 'Logged out successfully.' });
-      router.push('/auth/login');
-    } catch (error) {
-      toast({ variant: 'destructive', title: 'Logout failed. Please try again.' });
-    }
-  };
-
-  const getInitials = (name: string | null | undefined) => {
-    if (!name) return 'U';
-    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-  }
-
-
+  
   if (pathname.startsWith('/chat/')) {
     return <main className="flex-1">{children}</main>;
   }
@@ -98,46 +66,22 @@ export default function AppLayout({ children }: PropsWithChildren) {
   return (
     <SidebarProvider>
         <Sidebar>
-          <SidebarHeader>
-            <div className="flex items-center justify-between">
-              <AppLogo />
-              <SidebarTrigger className="text-sidebar-foreground hover:text-primary" />
-            </div>
-          </SidebarHeader>
+          <SidebarHeader className="h-20" />
           <SidebarContent>
             <Nav />
           </SidebarContent>
-          <SidebarContent className="!flex-1 justify-end">
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleLogout}>
-                  <LogOut />
-                  Logout
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarContent>
         </Sidebar>
       <SidebarInset>
-          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border/50 bg-background/50 px-4 backdrop-blur-md sm:px-6">
-            <SidebarTrigger className="md:hidden" />
-            <div className="flex items-center gap-4 ml-auto">
-               <Button variant="ghost" size="icon">
-                  <Bell className="h-5 w-5 text-muted-foreground hover:text-primary" />
-                  <span className="sr-only">Notifications</span>
-                </Button>
-                <Avatar className="h-9 w-9">
-                  <AvatarFallback className='bg-gradient-to-br from-primary to-secondary text-primary-foreground font-bold'>
-                    {getInitials(user?.displayName)}
-                  </AvatarFallback>
-                </Avatar>
-            </div>
-          </header>
-        <main
-          className="flex-1 p-4 sm:p-6"
-        >
-          {children}
-        </main>
+        <div className="relative flex min-h-screen flex-col items-center justify-center p-4">
+          <div className="content-glow w-full h-[calc(100vh-2rem)]">
+              <div className="relative z-10 h-full w-full rounded-lg bg-card text-card-foreground p-6 overflow-y-auto gold-scrollbar">
+                {children}
+              </div>
+          </div>
+          <div className="absolute bottom-6 right-6 text-primary/50">
+            <Sparkles className="h-8 w-8" />
+          </div>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

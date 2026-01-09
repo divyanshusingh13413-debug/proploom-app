@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { 
-  Users, TrendingUp, Video 
+  Users, TrendingUp, Video, Building2
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -17,6 +17,11 @@ const DashboardPage = () => {
 
   return (
     <div className="space-y-8">
+      <div className="flex items-center gap-2.5 font-bold text-lg text-foreground tracking-tighter">
+        <Building2 className="text-primary" />
+        <span className="font-headline bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">PROPLOOM</span>
+      </div>
+
        <div className="space-y-2">
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
           Dashboard Overview
@@ -29,7 +34,7 @@ const DashboardPage = () => {
       {/* STATS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat) => (
-          <div key={stat.label} className="bg-card p-6 rounded-2xl border border-border/50 transition-all hover:border-primary/50 shadow-lg">
+          <div key={stat.label} className="bg-background p-6 rounded-2xl border border-border/50 transition-all hover:border-primary/50 shadow-lg">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-muted-foreground text-sm">{stat.label}</p>
@@ -44,11 +49,11 @@ const DashboardPage = () => {
 
       {/* LEADS & REMINDERS SECTION */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-card p-6 rounded-2xl border border-border/50">
+        <div className="bg-background p-6 rounded-2xl border border-border/50">
           <h3 className="text-lg font-bold mb-4 text-foreground">Recent Leads</h3>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center justify-between p-4 bg-background rounded-xl border border-border">
+              <div key={i} className="flex items-center justify-between p-4 bg-card rounded-xl border border-border/50">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-muted rounded-full" />
                   <div>
@@ -64,11 +69,11 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <div className="bg-card p-6 rounded-2xl border border-border/50">
+        <div className="bg-background p-6 rounded-2xl border border-border/50">
           <h3 className="text-lg font-bold mb-4 text-foreground">Reminders</h3>
           <div className="space-y-4">
             {[1, 2].map((i) => (
-               <div key={i} className="flex items-center justify-between p-4 bg-background rounded-xl border border-border">
+               <div key={i} className="flex items-center justify-between p-4 bg-card rounded-xl border border-border/50">
                 <div>
                   <p className="font-medium text-sm text-foreground">Follow-up with Client {i}</p>
                   <p className="text-xs text-muted-foreground">Call scheduled for 3:00 PM</p>
