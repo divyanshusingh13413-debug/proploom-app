@@ -9,34 +9,63 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, UserPlus } from 'lucide-react';
 import Link from 'next/link';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/firebase/config';
+import { useToast } from '@/components/ui/use-toast';
+import type { Lead } from '@/lib/types';
 
 export default function NewLeadPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [property, setProperty] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSaveLead = (e: React.FormEvent) => {
+  const handleSaveLead = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name || !phone || !property) return;
+    
     setIsSaving(true);
-    // TODO: Implement saving logic to Firebase
-    console.log('Saving lead:', { name, phone, property });
-
-    // Simulate saving delay
-    setTimeout(() => {
-      setIsSaving(false);
-      // You can use a toast to show success
+    
+    try {
+      const newLead: Omit<Lead, 'id' | 'lastContact' | 'aiScore'> = {
+        name,
+        phone,
+        propertyName: property,
+        source: 'Manual',
+        status: 'New',
+        agentId: 'agent-1', // Default or assign dynamically
+        budget: 0,
+        email: `${name.replace(/\s+/g, '.').toLowerCase()}@example.com`,
+        timestamp: serverTimestamp(),
+      };
+      await addDoc(collection(db, 'leads'), newLead);
+      
+      toast({
+        title: "Lead Saved",
+        description: `${name} has been added to your leads.`,
+      });
       router.push('/leads');
-    }, 1000);
+
+    } catch (error) {
+      console.error("Error saving lead:", error);
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: "Could not save the lead. Please try again.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="mb-6">
-        <Link href="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <Link href="/leads" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="w-4 h-4" />
-          Back to Dashboard
+          Back to Leads
         </Link>
       </div>
 

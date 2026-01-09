@@ -1,3 +1,6 @@
+
+import { Timestamp } from 'firebase/firestore';
+
 export type Lead = {
   id: string;
   name: string;
@@ -10,6 +13,7 @@ export type Lead = {
   email: string;
   phone: string;
   aiScore?: number;
+  timestamp: Timestamp;
 };
 
 export type Agent = {

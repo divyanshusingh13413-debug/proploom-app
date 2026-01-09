@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { leads, agents } from '@/lib/data';
+import { useState, useEffect } from 'react';
+import { db } from '@/firebase/config';
+import { collection, onSnapshot, query, where, Timestamp } from 'firebase/firestore';
+import { agents } from '@/lib/data';
 import type { Lead, Agent } from '@/lib/types';
 import {
   Table,
@@ -20,9 +22,10 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, ChevronRight, UserPlus, FileText, Activity, MessageSquare } from 'lucide-react';
+import { MoreHorizontal, ChevronRight, UserPlus, FileText, Activity, MessageSquare, Plus, Loader2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import Link from 'next/link';
 
 const statusStyles: Record<string, string> = {
   New: 'bg-green-500/20 text-green-400 border-green-500/30 hover:bg-green-500/30',
@@ -30,12 +33,12 @@ const statusStyles: Record<string, string> = {
   'Meeting Today': 'bg-blue-500/20 text-blue-400 border-blue-500/30 hover:bg-blue-500/30',
 };
 
-const StatsCard = ({ title, value, subtitle, color, icon: Icon }: { title: string, value: string, subtitle: string, color: string, icon: React.ElementType }) => (
+const StatsCard = ({ title, value, subtitle, color, icon: Icon, isLoading }: { title: string, value: string, subtitle: string, color: string, icon: React.ElementType, isLoading?: boolean }) => (
     <Card className={`bg-gradient-to-br ${color} text-white`}>
         <CardHeader>
             <CardDescription className="text-white/80">{title}</CardDescription>
             <CardTitle className="text-4xl font-bold flex justify-between items-center">
-                {value}
+                {isLoading ? <Loader2 className="w-8 h-8 animate-spin" /> : value}
                 <Icon className="w-8 h-8 opacity-50" />
             </CardTitle>
             <p className="text-xs text-white/70">{subtitle}</p>
@@ -59,10 +62,10 @@ const LeadJourney = ({ lead }: { lead: Lead | null }) => {
                 <div className="flex items-start gap-4">
                     <Avatar className="w-12 h-12">
                         <AvatarImage src={agent?.avatarUrl} />
-                        <AvatarFallback>{lead.id.substring(0,2)}</AvatarFallback>
+                        <AvatarFallback>{lead.name.substring(0,2)}</AvatarFallback>
                     </Avatar>
                     <div>
-                        <p className="font-semibold">{`Lead ${lead.id}`}</p>
+                        <p className="font-semibold">{lead.name}</p>
                         <p className="text-sm text-muted-foreground">{lead.id.toUpperCase()}</p>
                     </div>
                 </div>
@@ -93,18 +96,62 @@ const LeadJourney = ({ lead }: { lead: Lead | null }) => {
 }
 
 export default function LeadsPage() {
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(leads[1]);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const q = query(collection(db, 'leads'));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const leadsData: Lead[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        leadsData.push({ 
+          id: doc.id,
+           ...data,
+          timestamp: data.timestamp, // Keep as Firestore Timestamp
+        } as Lead);
+      });
+      setLeads(leadsData);
+      setIsLoading(false);
+      if (leadsData.length > 0 && !selectedLead) {
+        setSelectedLead(leadsData[0]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [selectedLead]);
+  
+  const getLeadsTodayCount = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startOfToday = Timestamp.fromDate(today);
+
+    return leads.filter(lead => {
+        if (lead.timestamp) {
+            const leadDate = lead.timestamp.toDate();
+            return leadDate >= today;
+        }
+        return false;
+    }).length;
+  };
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold tracking-tight font-headline">
           Leads Management
         </h1>
+        <Link href="/leads/new">
+            <Button>
+                <Plus className="mr-2 h-4 w-4" /> Add New Lead
+            </Button>
+        </Link>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <StatsCard title="NEW LEADS TODAY" value="0" subtitle="from all channels" color="from-primary to-blue-700" icon={UserPlus} />
+        <StatsCard title="NEW LEADS TODAY" value={getLeadsTodayCount().toString()} subtitle="from all channels" color="from-primary to-blue-700" icon={UserPlus} isLoading={isLoading} />
         <StatsCard title="ASSIGNED TO ME" value="0" subtitle="Follow-ups pending" color="from-accent to-yellow-600" icon={UserPlus} />
         <StatsCard title="PRIORITY HOT LEADS" value="0" subtitle="Immediate action needed" color="from-secondary to-green-700" icon={UserPlus} />
       </div>
@@ -125,6 +172,18 @@ export default function LeadsPage() {
             </CardHeader>
             <CardContent>
                 <TabsContent value="all">
+                  {isLoading ? (
+                    <div className="flex justify-center items-center h-64">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    </div>
+                  ) : leads.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <p>No leads found.</p>
+                      <Link href="/leads/new" className='mt-4 inline-block'>
+                        <Button variant="outline">Add Your First Lead</Button>
+                      </Link>
+                    </div>
+                  ) : (
                     <Table>
                         <TableHeader>
                         <TableRow>
@@ -133,7 +192,7 @@ export default function LeadsPage() {
                             <TableHead>Status</TableHead>
                             <TableHead>Agent</TableHead>
                             <TableHead className="text-center">AI Score</TableHead>
-                            <TableHead>Last Activity</TableHead>
+                            <TableHead>Date Added</TableHead>
                             <TableHead className="text-right"></TableHead>
                         </TableRow>
                         </TableHeader>
@@ -142,7 +201,7 @@ export default function LeadsPage() {
                             const agent = agents.find(a => a.id === lead.agentId);
                             return (
                                 <TableRow key={lead.id} className="transition-colors hover:bg-muted/50 cursor-pointer" onClick={() => setSelectedLead(lead)}>
-                                    <TableCell className="font-medium">{`Lead ${lead.id}`}</TableCell>
+                                    <TableCell className="font-medium">{lead.name}</TableCell>
                                     <TableCell>{lead.source}</TableCell>
                                     <TableCell>
                                         <Badge className={statusStyles[lead.status] || 'bg-gray-500/20 text-gray-400 border-gray-500/30'}>
@@ -151,7 +210,7 @@ export default function LeadsPage() {
                                     </TableCell>
                                     <TableCell>{`Agent ${agent?.id.split('-')[1]}` || 'Unassigned'}</TableCell>
                                     <TableCell className="text-center font-semibold">{lead.aiScore || '-'}</TableCell>
-                                    <TableCell>{lead.lastContact}</TableCell>
+                                    <TableCell>{lead.timestamp ? lead.timestamp.toDate().toLocaleDateString() : 'N/A'}</TableCell>
                                     <TableCell className="text-right">
                                         <Button variant="ghost" size="icon" className="h-8 w-8">
                                             <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -162,6 +221,7 @@ export default function LeadsPage() {
                         })}
                         </TableBody>
                     </Table>
+                  )}
                 </TabsContent>
                 <TabsContent value="my">
                     <div className="text-center py-12 text-muted-foreground">My leads will be shown here.</div>
