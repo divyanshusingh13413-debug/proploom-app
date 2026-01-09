@@ -3,7 +3,7 @@ import type { PropsWithChildren } from 'react';
 import {
   Building2,
   Home,
-  Users,
+  MessageSquare,
   Video,
   BarChart2,
   Sparkles,
@@ -18,6 +18,7 @@ const Nav = () => {
   const navItems = [
     { href: '/', icon: Home, label: 'Dashboard' },
     { href: '/leads', icon: Clock, label: 'Leads' },
+    { href: '/whatsapp', icon: MessageSquare, label: 'WhatsApp' },
     { href: '/tours', icon: Video, label: 'Virtual Tour' },
     { href: '/sales', icon: BarChart2, label: 'Sales' },
   ];
