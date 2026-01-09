@@ -13,7 +13,8 @@ import {
   Home,
   MessageSquare,
   Clock,
-  PanelLeft
+  PanelLeft,
+  Plus
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from '@/components/ui/button';
@@ -145,23 +146,11 @@ const DashboardPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-background p-6 rounded-2xl border border-border/50">
                 <h3 className="text-lg font-bold mb-4 text-foreground">Recent Leads</h3>
-                <div className="space-y-4">
-                  {leads.slice(0, 3).map((lead: Lead) => (
-                    <div key={lead.id} className="flex items-center justify-between p-4 bg-card rounded-xl border border-border/50">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center text-primary font-bold">
-                           {lead.name.substring(0, 2).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm text-foreground">{lead.name}</p>
-                          <p className="text-xs text-muted-foreground italic">Viewed "{lead.propertyName}" {lead.lastContact}</p>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="icon" onClick={() => handleWhatsAppChat(lead.phone, lead.name)}>
-                        <MessageSquare className="h-5 w-5 text-green-500" />
-                      </Button>
-                    </div>
-                  ))}
+                <div className="space-y-4 flex items-center justify-center h-full min-h-[200px]">
+                  <Button variant="outline" className="h-auto py-4 w-full border-dashed border-2 hover:bg-muted/50 hover:border-solid">
+                      <Plus className="h-5 w-5 mr-2 text-muted-foreground"/>
+                      <span className="text-muted-foreground">Add New Lead</span>
+                  </Button>
                 </div>
               </div>
 
