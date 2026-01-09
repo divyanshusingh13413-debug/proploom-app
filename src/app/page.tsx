@@ -17,11 +17,6 @@ const DashboardPage = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-2.5 font-bold text-lg text-foreground tracking-tighter">
-        <Building2 className="text-primary" />
-        <span className="font-headline bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">PROPLOOM</span>
-      </div>
-
        <div className="space-y-2">
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
           Dashboard Overview
