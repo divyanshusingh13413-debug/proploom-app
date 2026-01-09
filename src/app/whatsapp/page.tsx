@@ -200,7 +200,7 @@ export default function WhatsappPage() {
                 style={{ animation: 'pulse-gold 2s infinite' }}
                 aria-label="Start new chat"
             >
-                <Plus className="w-8 h-8" />
+                <Plus className="w-7 h-7" />
             </motion.button>
         </div>
       </div>
