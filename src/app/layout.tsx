@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseProvider } from '@/firebase/provider';
+import ClientLayout from '@/components/layout/client-layout';
 
 export const metadata: Metadata = {
   title: 'PROPLOOM',
@@ -24,13 +25,15 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=EB+Garamond:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=EB+Garamond:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
       </head>
       <body className="font-body antialiased">
         <FirebaseProvider>
-          {children}
+          <ClientLayout>
+            {children}
+          </ClientLayout>
         </FirebaseProvider>
         <Toaster />
       </body>
