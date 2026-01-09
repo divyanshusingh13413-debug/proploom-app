@@ -147,10 +147,12 @@ const DashboardPage = () => {
               <div className="bg-background p-6 rounded-2xl border border-border/50">
                 <h3 className="text-lg font-bold mb-4 text-foreground">Recent Leads</h3>
                 <div className="space-y-4 flex items-center justify-center h-full min-h-[200px]">
-                  <Button variant="outline" className="h-auto py-4 w-full border-dashed border-2 hover:bg-muted/50 hover:border-solid">
-                      <Plus className="h-5 w-5 mr-2 text-muted-foreground"/>
-                      <span className="text-muted-foreground">Add New Lead</span>
-                  </Button>
+                  <Link href="/leads/new" className='w-full'>
+                    <Button variant="outline" className="h-auto py-4 w-full border-dashed border-2 hover:bg-muted/50 hover:border-solid">
+                        <Plus className="h-5 w-5 mr-2 text-muted-foreground"/>
+                        <span className="text-muted-foreground">Add New Lead</span>
+                    </Button>
+                  </Link>
                 </div>
               </div>
 
