@@ -18,6 +18,9 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { leads } from '@/lib/data';
+import type { Lead } from '@/lib/types';
+
 
 const Nav = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const pathname = usePathname();
@@ -85,6 +88,13 @@ const DashboardPage = () => {
     { label: 'Virtual Tours', value: '45', growth: '+25%', icon: Video },
   ];
 
+  const handleWhatsAppChat = (phone: string, name: string) => {
+    const message = `Hello ${name}, I am reaching out from Proploom regarding your property inquiry.`;
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   return (
     <div className="flex w-full h-full">
       {/* Sidebar */}
@@ -136,18 +146,20 @@ const DashboardPage = () => {
               <div className="bg-background p-6 rounded-2xl border border-border/50">
                 <h3 className="text-lg font-bold mb-4 text-foreground">Recent Leads</h3>
                 <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex items-center justify-between p-4 bg-card rounded-xl border border-border/50">
+                  {leads.slice(0, 3).map((lead: Lead) => (
+                    <div key={lead.id} className="flex items-center justify-between p-4 bg-card rounded-xl border border-border/50">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-muted rounded-full" />
+                        <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center text-primary font-bold">
+                           {lead.name.substring(0, 2).toUpperCase()}
+                        </div>
                         <div>
-                          <p className="font-medium text-sm text-foreground">Lead Person {i}</p>
-                          <p className="text-xs text-muted-foreground italic">Viewed "The Imperial" 2h ago</p>
+                          <p className="font-medium text-sm text-foreground">{lead.name}</p>
+                          <p className="text-xs text-muted-foreground italic">Viewed "{lead.propertyName}" {lead.lastContact}</p>
                         </div>
                       </div>
-                      <Link href="/leads">
-                        <button className="text-xs text-primary font-semibold hover:underline">Suggest</button>
-                      </Link>
+                      <Button variant="ghost" size="icon" onClick={() => handleWhatsAppChat(lead.phone, lead.name)}>
+                        <MessageSquare className="h-5 w-5 text-green-500" />
+                      </Button>
                     </div>
                   ))}
                 </div>
