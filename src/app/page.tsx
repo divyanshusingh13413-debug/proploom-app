@@ -7,7 +7,6 @@ import {
   MessageSquare, 
   Video, 
   TrendingUp, 
-  Bell,
   Search,
   UserCircle,
   LogOut
@@ -23,7 +22,6 @@ const DashboardPage = () => {
   ];
 
   return (
-    // 'fixed inset-0' se ye poori screen cover kar lega aur top patti chup jayegi
     <div className="fixed inset-0 flex bg-[#0F1115] text-white overflow-hidden z-[9999]">
       
       {/* LEFT SIDEBAR */}
