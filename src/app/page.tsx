@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,13 +14,16 @@ import {
   MessageSquare,
   Clock,
   PanelLeft,
-  Plus
+  Plus,
+  Loader2
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { leads } from '@/lib/data';
 import type { Lead } from '@/lib/types';
+import { db } from '@/firebase/config';
+import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 
 const Nav = ({ isCollapsed }: { isCollapsed: boolean }) => {
@@ -82,6 +85,24 @@ const Nav = ({ isCollapsed }: { isCollapsed: boolean }) => {
 
 const DashboardPage = () => {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [recentLeads, setRecentLeads] = useState<Lead[]>([]);
+  const [leadsLoading, setLeadsLoading] = useState(true);
+
+  
+  useEffect(() => {
+    setLeadsLoading(true);
+    const q = query(collection(db, "leads"), orderBy("timestamp", "desc"), limit(5));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const leadsData: Lead[] = [];
+      querySnapshot.forEach((doc) => {
+        leadsData.push({ id: doc.id, ...doc.data() } as Lead);
+      });
+      setRecentLeads(leadsData);
+      setLeadsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
   
   const stats = [
     { label: 'Active Leads', value: '128', growth: '+12%', icon: Users },
@@ -145,16 +166,58 @@ const DashboardPage = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-background p-6 rounded-2xl border border-border/50">
-                <h3 className="text-lg font-bold mb-4 text-foreground">Recent Leads</h3>
-                <div className="space-y-4 flex items-center justify-center h-full min-h-[200px]">
-                  <Link href="/leads/new" className='w-full'>
-                    <Button variant="outline" className="h-auto py-4 w-full border-dashed border-2 hover:bg-muted/50 hover:border-solid">
-                        <Plus className="h-5 w-5 mr-2 text-muted-foreground"/>
-                        <span className="text-muted-foreground">Add New Lead</span>
-                    </Button>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold text-foreground">Recent Leads</h3>
+                   <Link href="/leads/new">
+                      <Button variant="outline" size="sm">
+                          <Plus className="h-4 w-4 mr-2"/>
+                          Add Lead
+                      </Button>
                   </Link>
                 </div>
+                
+                 {leadsLoading ? (
+                  <div className="flex justify-center items-center h-full min-h-[200px]">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+                ) : recentLeads.length > 0 ? (
+                  <div className="space-y-4">
+                    {recentLeads.map((lead) => (
+                      <div key={lead.id} className="flex items-center justify-between p-3 bg-card rounded-xl border border-border/50">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-9 w-9">
+                            <AvatarFallback className="bg-muted text-muted-foreground font-semibold">
+                              {lead.name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium text-sm text-foreground">{lead.name}</p>
+                            <p className="text-xs text-muted-foreground">{lead.propertyName}</p>
+                          </div>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleWhatsAppChat(lead.phone, lead.name)}
+                          className="text-green-500 hover:bg-green-500/10 hover:text-green-400 h-8 w-8"
+                        >
+                          <MessageSquare className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full min-h-[200px]">
+                    <Link href="/leads/new" className='w-full'>
+                      <Button variant="outline" className="h-auto py-4 w-full border-dashed border-2 hover:bg-muted/50 hover:border-solid">
+                          <Plus className="h-5 w-5 mr-2 text-muted-foreground"/>
+                          <span className="text-muted-foreground">Add Your First Lead</span>
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </div>
+
 
               <div className="bg-background p-6 rounded-2xl border border-border/50">
                 <h3 className="text-lg font-bold mb-4 text-foreground">Reminders</h3>
