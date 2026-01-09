@@ -58,13 +58,13 @@ export default function ClientLayout({ children }: PropsWithChildren) {
    // Only show splash screen on the very first load of the root or auth pages
    useEffect(() => {
     const isFirstLoad = !sessionStorage.getItem('hasLoaded');
-    if (isFirstLoad && (pathname === '/' || pathname.startsWith('/auth'))) {
+    if (isFirstLoad) {
       setShowSplash(true);
       sessionStorage.setItem('hasLoaded', 'true');
     } else {
       setShowSplash(false);
     }
-  }, [pathname]);
+  }, []);
 
   return (
       <AnimatePresence mode="wait">

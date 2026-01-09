@@ -41,15 +41,15 @@ body {
   }
 
   .dark {
-    --background: 220 13% 5%; /* Even darker background */
+    --background: 222 83% 4%; /* #0F1115 */
     --foreground: 210 17% 98%; /* #F8F9FA */
     --card: 220 13% 10%; /* #161920 */
     --card-foreground: 210 17% 98%;
     --popover: 220 13% 10%;
     --popover-foreground: 210 17% 98%;
-    --primary: 38 92% 50%; /* Gold/Orange */
+    --primary: 44 96% 51%; /* #FACC15 */
     --primary-foreground: 220 13% 10%;
-    --secondary: 33 100% 50%; /* #FF8C00 */
+    --secondary: 26 95% 52%; /* #EA580C */
     --secondary-foreground: 220 13% 10%;
     --muted: 220 13% 15%;
     --muted-foreground: 220 9% 64%; /* #9CA3AF */

@@ -1,7 +1,7 @@
 
 'use client';
 import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SplashScreenProps {
   onFinish: () => void;
@@ -11,78 +11,89 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-        onFinish();
-    }, 3000); // Total duration of splash screen
+      onFinish();
+    }, 2500); // 2.5 seconds
 
     return () => clearTimeout(timer);
   }, [onFinish]);
 
-  const shapeVariants = {
-    hidden: { scale: 0, rotate: -45, opacity: 0 },
-    visible: { 
-      scale: 1, 
-      rotate: 0, 
-      opacity: 1, 
-      transition: { duration: 0.8, ease: [0.6, 0.05, 0.1, 0.9] } 
-    },
+  const containerVariants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1, transition: { duration: 0.5, when: "beforeChildren", staggerChildren: 0.3 } },
+    exit: { opacity: 0, transition: { duration: 0.5, ease: 'easeOut' } },
   };
 
-  const textVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { delay: 0.5, duration: 0.8, ease: 'easeOut' } 
-    },
+  const itemVariants = {
+    initial: { y: 20, opacity: 0 },
+    animate: { y: 0, opacity: 1, transition: { duration: 0.7, ease: [0.6, 0.05, 0.01, 0.9] } },
   };
 
-  const shimmerVariants = {
-    shimmer: {
-      backgroundPosition: ['-200% 0', '200% 0'],
+  const svgVariants = {
+    initial: { pathLength: 0, opacity: 0 },
+    animate: {
+      pathLength: 1,
+      opacity: 1,
       transition: {
         duration: 1.5,
-        ease: 'linear',
-        delay: 1,
+        ease: "easeInOut",
       },
     },
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-black"
-    >
-      <div className="absolute inset-0 bg-black opacity-80 z-0"></div>
-      <div className="absolute inset-0 pattern-bg opacity-10"></div>
-      
-      <motion.div
-        className="relative w-48 h-48 flex items-center justify-center"
-        variants={shapeVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        <div className="absolute w-full h-full border-2 border-amber-400/50 rounded-2xl transform rotate-45"></div>
-        <div className="absolute w-3/4 h-3/4 border border-amber-300/30 rounded-lg transform rotate-12"></div>
-      </motion.div>
-
-      <motion.div 
-        className="absolute flex flex-col items-center justify-center text-center z-10"
-        variants={textVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.h1 
-          className="text-6xl font-black text-glow shimmer-text tracking-tighter"
-          variants={shimmerVariants}
-          animate="shimmer"
+    <AnimatePresence>
+        <motion.div
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0F1115]"
+            variants={containerVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
         >
-          PROPLOOM
-        </motion.h1>
-        <p className="text-base text-amber-100/70 tracking-widest mt-2">
-          Defining Luxury Living
-        </p>
-      </motion.div>
-
-    </div>
+            <motion.div className="w-48 h-48" variants={itemVariants}>
+                <svg viewBox="0 0 100 100" className="w-full h-full">
+                    <defs>
+                        <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style={{ stopColor: 'hsl(var(--primary))' }} />
+                        <stop offset="100%" style={{ stopColor: 'hsl(var(--secondary))' }} />
+                        </linearGradient>
+                    </defs>
+                    <motion.path
+                        d="M50 15 L85 40 L85 85 L15 85 L15 40 Z"
+                        stroke="url(#iconGradient)"
+                        strokeWidth="3"
+                        fill="none"
+                        variants={svgVariants}
+                    />
+                    <motion.path
+                        d="M35 85 L35 55 L65 55 L65 85"
+                        stroke="url(#iconGradient)"
+                        strokeWidth="3"
+                        fill="none"
+                        variants={svgVariants}
+                        initial="initial"
+                        animate="animate"
+                    />
+                    <motion.circle
+                        cx="50"
+                        cy="40"
+                        r="8"
+                        stroke="url(#iconGradient)"
+                        strokeWidth="3"
+                        fill="none"
+                        variants={svgVariants}
+                        initial="initial"
+                        animate="animate"
+                    />
+                </svg>
+            </motion.div>
+            <motion.h1
+                className="mt-6 text-4xl font-black tracking-widest uppercase bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+                variants={itemVariants}
+            >
+                PROPLOOM
+            </motion.h1>
+        </motion.div>
+    </AnimatePresence>
   );
 };
 
