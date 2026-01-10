@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 const SignupPage = () => {
   const router = useRouter();
   const { toast } = useToast();
+  const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -44,23 +45,24 @@ const SignupPage = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      const randomName = `User ${user.uid.substring(0, 5)}`;
-      await updateProfile(user, { displayName: randomName });
+      await updateProfile(user, { displayName });
 
       // Create a document in the 'users' collection in Firestore
+      // By default, new signups are 'agent'. Admins must be set manually in Firestore.
       await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
-        displayName: randomName,
+        displayName: displayName,
         email: user.email,
+        role: 'agent', // Default role
         isFirstLogin: true,
         createdAt: serverTimestamp(),
       });
       
       toast({
         title: 'Account Created',
-        description: 'Welcome to PROPLOOM! Redirecting you to the portal.',
+        description: 'Welcome to PROPLOOM! Please log in to continue.',
       });
-      router.push('/');
+      router.push('/auth/login');
 
     } catch (err: any) {
       if (err.code === 'auth/email-already-in-use') {
@@ -129,6 +131,19 @@ const SignupPage = () => {
             </div>
             
             <form onSubmit={handleSignup} className="space-y-6">
+              <motion.div variants={inputVariants} initial="hidden" animate="visible" custom={0} className="relative text-left">
+                <Label htmlFor="displayName">Full Name</Label>
+                <Input
+                  id="displayName"
+                  type="text"
+                  placeholder="Your full name"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  required
+                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary transition-all duration-300 mt-2"
+                />
+              </motion.div>
+
               <motion.div variants={inputVariants} initial="hidden" animate="visible" custom={1} className="relative text-left">
                 <Label htmlFor="email">Email address</Label>
                 <Input
@@ -225,5 +240,3 @@ const SignupPage = () => {
 };
 
 export default SignupPage;
-
-    

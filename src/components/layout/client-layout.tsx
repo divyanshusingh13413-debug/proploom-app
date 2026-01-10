@@ -1,22 +1,19 @@
 
 'use client';
 import type { PropsWithChildren } from 'react';
-import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import SplashScreen from './splash-screen';
 import AppLayout from './app-layout';
+import { FirebaseProvider } from '@/firebase/provider'; // Restored for auth state management
 
 function ContentWrapper({ children }: PropsWithChildren) {
   const pathname = usePathname();
-
-  // The login page is the root page now
-  const isLoginPage = pathname === '/';
   
-  // These are other public pages that don't need the AppLayout
-  const isPublicPage = pathname.startsWith('/auth') || pathname.startsWith('/chat');
+  // Public pages that don't need the AppLayout
+  const isPublicPage = pathname === '/' || pathname.startsWith('/auth');
 
-  if (isLoginPage || isPublicPage) {
+  if (isPublicPage) {
     return <>{children}</>;
   }
 
@@ -25,15 +22,12 @@ function ContentWrapper({ children }: PropsWithChildren) {
 }
 
 export default function ClientLayout({ children }: PropsWithChildren) {
-  const [showSplash, setShowSplash] = useState(true);
-
+  // For simplicity, we are removing the splash screen for now to focus on the auth flow.
+  // You can re-enable it by wrapping the content in the AnimatePresence logic.
+  
   return (
-      <AnimatePresence mode="wait">
-        {showSplash ? (
-          <motion.div key="splash">
-            <SplashScreen onFinish={() => setShowSplash(false)} />
-          </motion.div>
-        ) : (
+    <FirebaseProvider>
+        <AnimatePresence mode="wait">
           <motion.div
             key="main"
             initial={{ opacity: 0 }}
@@ -42,7 +36,7 @@ export default function ClientLayout({ children }: PropsWithChildren) {
           >
             <ContentWrapper>{children}</ContentWrapper>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>
+    </FirebaseProvider>
   );
 }

@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -18,6 +19,11 @@
           "type": "string",
           "description": "The user's display name."
         },
+        "role": {
+          "type": "string",
+          "description": "The user's role, e.g., 'admin' or 'agent'.",
+          "enum": ["admin", "agent"]
+        },
         "isFirstLogin": {
           "type": "boolean",
           "description": "Flag to check if this is the user's first login."
@@ -28,7 +34,7 @@
             "description": "The timestamp when the user account was created."
         }
       },
-      "required": ["uid", "email", "isFirstLogin", "createdAt", "displayName"]
+      "required": ["uid", "email", "displayName", "role", "isFirstLogin", "createdAt"]
     }
   },
   "auth": {

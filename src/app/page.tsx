@@ -7,32 +7,34 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Building2, Key, ShieldCheck, UserCheck, LogOut, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import Link from 'next/link';
 
-type Role = 'admin' | 'agent' | null;
+type Portal = 'admin' | 'agent' | null;
 
-const LoginPage = () => {
+const RoleSelectionPage = () => {
   const router = useRouter();
-  const [selectedRole, setSelectedRole] = useState<Role>(null);
+  const [selectedPortal, setSelectedPortal] = useState<Portal>(null);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleRoleSelect = (role: Role) => {
+  const handlePortalSelect = (portal: Portal) => {
     setError('');
     setPassword('');
-    setSelectedRole(role);
+    if (portal === 'admin') {
+      router.push('/auth/login');
+    } else {
+      setSelectedPortal(portal);
+    }
   };
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handleAgentPasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    const isAdmin = selectedRole === 'admin' && password === 'Admin@Pro2026';
-    const isAgent = selectedRole === 'agent' && password === 'Agent#786';
+    const isAgent = selectedPortal === 'agent' && password === 'Agent#786';
 
-    if (isAdmin) {
-      router.push('/dashboard');
-    } else if (isAgent) {
+    if (isAgent) {
       router.push('/leads');
     } else {
       setError('Incorrect password. Please try again.');
@@ -56,7 +58,7 @@ const LoginPage = () => {
   return (
     <div className="flex items-center justify-center min-h-screen w-full bg-[#0F1115] text-white p-4">
       <AnimatePresence mode="wait">
-        {!selectedRole ? (
+        {!selectedPortal ? (
           <motion.div
             key="role-selection"
             variants={pageVariants}
@@ -82,7 +84,7 @@ const LoginPage = () => {
                 variants={buttonVariants}
                 whileHover="hover"
                 whileTap="tap"
-                onClick={() => handleRoleSelect('admin')}
+                onClick={() => handlePortalSelect('admin')}
                 className="p-1 rounded-2xl bg-gradient-to-br from-primary via-secondary to-primary/50 cursor-pointer"
               >
                 <div className="bg-[#1a1a1a] rounded-xl p-8 h-full flex flex-col items-center justify-center">
@@ -95,7 +97,7 @@ const LoginPage = () => {
                 variants={buttonVariants}
                 whileHover="hover"
                 whileTap="tap"
-                onClick={() => handleRoleSelect('agent')}
+                onClick={() => handlePortalSelect('agent')}
                 className="p-1 rounded-2xl bg-gradient-to-br from-primary via-secondary to-primary/50 cursor-pointer"
               >
                 <div className="bg-[#1a1a1a] rounded-xl p-8 h-full flex flex-col items-center justify-center">
@@ -106,10 +108,12 @@ const LoginPage = () => {
               </motion.div>
             </div>
             
-            <Button variant="ghost" onClick={() => {}} className="mt-12 text-muted-foreground hover:text-white invisible">
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-            </Button>
+            <div className="mt-12 text-center text-sm text-muted-foreground">
+              New user?{' '}
+              <Link href="/auth/signup" className="font-medium text-primary hover:underline">
+                Create an account
+              </Link>
+            </div>
             
           </motion.div>
         ) : (
@@ -130,11 +134,11 @@ const LoginPage = () => {
               </div>
               
               <h2 className="text-2xl font-bold mb-2">
-                  Enter {selectedRole === 'admin' ? 'Admin' : 'Agent'} Portal
+                  Enter {selectedPortal === 'admin' ? 'Admin' : 'Agent'} Portal
               </h2>
               <p className="text-muted-foreground mb-8">Please enter your password to proceed.</p>
 
-              <form onSubmit={handlePasswordSubmit} className="space-y-6">
+              <form onSubmit={handleAgentPasswordSubmit} className="space-y-6">
                   <div className="relative">
                       <Key className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <Input
@@ -159,7 +163,7 @@ const LoginPage = () => {
                   </Button>
               </form>
 
-              <Button variant="link" onClick={() => handleRoleSelect(null)} className="mt-6 text-muted-foreground">
+              <Button variant="link" onClick={() => handlePortalSelect(null)} className="mt-6 text-muted-foreground">
                 Back to role selection
               </Button>
             </div>
@@ -170,4 +174,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default RoleSelectionPage;
