@@ -34,10 +34,10 @@ const SignupPage = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      // Update user profile
+      // Update user profile in Firebase Auth
       await updateProfile(user, { displayName: name });
 
-      // Create a document in the 'users' collection
+      // Create a document in the 'users' collection in Firestore
       await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
         displayName: name,

@@ -28,7 +28,7 @@
             "description": "The timestamp when the user account was created."
         }
       },
-      "required": ["uid", "email", "isFirstLogin", "createdAt"]
+      "required": ["uid", "email", "isFirstLogin", "createdAt", "displayName"]
     }
   },
   "auth": {

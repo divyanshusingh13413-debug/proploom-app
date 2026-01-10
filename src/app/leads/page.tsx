@@ -208,7 +208,7 @@ export default function LeadsPage() {
                                             {lead.status}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell>{`Agent ${agent?.id.split('-')[1]}` || 'Unassigned'}</TableCell>
+                                    <TableCell>{agent?.name || 'Unassigned'}</TableCell>
                                     <TableCell className="text-center font-semibold">{lead.aiScore || '-'}</TableCell>
                                     <TableCell>{lead.timestamp ? lead.timestamp.toDate().toLocaleDateString() : 'N/A'}</TableCell>
                                     <TableCell className="text-right">
