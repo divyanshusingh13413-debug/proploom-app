@@ -5,7 +5,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '@/firebase/config';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '@/firebase/config';
 import { useToast } from '@/components/ui/use-toast';
 import { Building2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -31,21 +32,33 @@ const SignupPage = () => {
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
       
-      if (auth.currentUser) {
-        await updateProfile(auth.currentUser, { displayName: name });
-      }
+      // Update user profile
+      await updateProfile(user, { displayName: name });
+
+      // Create a document in the 'users' collection
+      await setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid,
+        displayName: name,
+        email: user.email,
+        isFirstLogin: true,
+        createdAt: serverTimestamp(),
+      });
       
       toast({
         title: 'Account Created',
-        description: 'Welcome to PROPLOOM! Redirecting you to the dashboard.',
+        description: 'Welcome to PROPLOOM! Redirecting you to the portal.',
       });
       router.push('/');
 
     } catch (err: any) {
       if (err.code === 'auth/email-already-in-use') {
         setError('This email is already associated with an account.');
-      } else {
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password should be at least 6 characters long.');
+      }
+      else {
         setError('An unexpected error occurred. Please try again.');
       }
       setAnimation('shake');

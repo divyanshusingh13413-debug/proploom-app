@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // USERS
+    match /users/{userId} {
+      // Users can create their own user document
+      allow create: if isSignedIn() && isOwner(userId);
+      // Users can read their own document
+      allow get: if isSignedIn() && isOwner(userId);
+      // Users can update their own document, e.g., to set isFirstLogin to false
+      allow update: if isSignedIn() && isOwner(userId);
+      // Users cannot delete their own document
+      allow delete: if false;
+    }
+
+    // CHATS
+    match /chats/{chatId}/{document=**} {
+      // For now, allow signed-in users to read/write to chats
+      // This should be secured further based on chat participants
+      allow read, write: if isSignedIn();
+    }
+
+    // LEADS
+    match /leads/{leadId} {
+      // Allow any signed-in user to create, read, update, or delete leads for now
+      allow read, write: if isSignedIn();
+    }
+  }
+}
