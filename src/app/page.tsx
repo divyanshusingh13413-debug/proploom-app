@@ -1,244 +1,170 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Users, 
-  TrendingUp, 
-  Video, 
-  Building2,
-  Home,
-  MessageSquare,
-  Clock,
-  PanelLeft,
-  Plus,
-  Loader2
-} from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Building2, Key, ShieldCheck, UserCheck, LogOut, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import type { Lead } from '@/lib/types';
-import { db } from '@/firebase/config';
-import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
+import { useAuth } from '@/firebase/provider';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/firebase/config';
 
+type Role = 'admin' | 'agent' | null;
 
-const Nav = ({ isCollapsed }: { isCollapsed: boolean }) => {
-  const pathname = usePathname();
-  const navItems = [
-    { href: '/', icon: Home, label: 'Dashboard' },
-    { href: '/leads', icon: Clock, label: 'Leads' },
-    { href: '/whatsapp', icon: MessageSquare, label: 'WhatsApp' },
-    { href: '/tours', icon: Video, label: 'Virtual Tour' },
-    { href: '/sales', icon: TrendingUp, label: 'Sales' },
-  ];
+const RoleSelectionPage = () => {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [selectedRole, setSelectedRole] = useState<Role>(null);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  return (
-    <TooltipProvider delayDuration={0}>
-      <nav className="flex flex-col items-stretch space-y-3 px-4">
-        {navItems.map((item) => {
-          const isActive = (item.href === '/' && pathname === '/') || (item.href !== '/' && pathname.startsWith(item.href));
-          return (
-            <Tooltip key={item.href}>
-              <TooltipTrigger asChild>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    'flex items-center justify-start h-12 rounded-xl transition-all duration-300 group',
-                    isActive
-                      ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold shadow-lg'
-                      : 'bg-card/50 hover:bg-card text-card-foreground border border-border',
-                    isCollapsed ? 'w-12 justify-center' : 'w-48 px-4'
-                  )}
-                >
-                  <item.icon className={cn('h-5 w-5 shrink-0', !isCollapsed && 'mr-3')} />
-                  <AnimatePresence>
-                    {!isCollapsed && (
-                      <motion.span
-                        initial={{ opacity: 0, width: 0 }}
-                        animate={{ opacity: 1, width: 'auto', transition: { duration: 0.2, delay: 0.1 } }}
-                        exit={{ opacity: 0, width: 0, transition: { duration: 0.1 } }}
-                        className="overflow-hidden whitespace-nowrap"
-                      >
-                        {item.label}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </Link>
-              </TooltipTrigger>
-              {isCollapsed && (
-                <TooltipContent side="right" className="bg-card text-card-foreground border-border">
-                  {item.label}
-                </TooltipContent>
-              )}
-            </Tooltip>
-          );
-        })}
-      </nav>
-    </TooltipProvider>
-  );
-};
+  const handleRoleSelect = (role: Role) => {
+    setSelectedRole(role);
+    setError('');
+    setPassword('');
+  };
 
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Dummy password check for now
+    if (password === 'password') {
+      if (selectedRole === 'admin') {
+        router.push('/dashboard');
+      } else {
+        router.push('/leads');
+      }
+    } else {
+      setError('Incorrect password. Please try again.');
+    }
+  };
 
-const DashboardPage = () => {
-  const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [recentLeads, setRecentLeads] = useState<Lead[]>([]);
-  const [leadsLoading, setLeadsLoading] = useState(true);
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/auth/login');
+  };
 
-  
-  useEffect(() => {
-    setLeadsLoading(true);
-    const q = query(collection(db, "leads"), orderBy("timestamp", "desc"), limit(5));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const leadsData: Lead[] = [];
-      querySnapshot.forEach((doc) => {
-        leadsData.push({ id: doc.id, ...doc.data() } as Lead);
-      });
-      setRecentLeads(leadsData);
-      setLeadsLoading(false);
-    });
+  const pageVariants = {
+    initial: { opacity: 0 },
+    in: { opacity: 1 },
+    out: { opacity: 0 },
+  };
 
-    return () => unsubscribe();
-  }, []);
-  
-  const stats = [
-    { label: 'Active Leads', value: '128', growth: '+12%', icon: Users },
-    { label: 'Sales', value: '$4.2M', growth: '+8%', icon: TrendingUp },
-    { label: 'Virtual Tours', value: '45', growth: '+25%', icon: Video },
-  ];
-
-  const handleWhatsAppChat = (phone: string, name: string) => {
-    const message = `Hello ${name}, I am reaching out from Proploom regarding your property inquiry.`;
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodedMessage}`;
-    window.open(whatsappUrl, '_blank');
+  const buttonVariants = {
+    hover: {
+      scale: 1.05,
+      boxShadow: '0px 0px 30px rgba(250, 204, 21, 0.4)',
+    },
+    tap: { scale: 0.95 },
   };
 
   return (
-    <div className="flex w-full h-full">
-      {/* Sidebar */}
-      <motion.div
-        layout
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="flex flex-col justify-center"
-      >
-        <Nav isCollapsed={isSidebarCollapsed} />
-      </motion.div>
-
-      {/* Main Content */}
-      <motion.div layout className="flex-1 flex flex-col pl-6">
-        <div className="flex items-center gap-2.5 font-bold text-lg text-foreground tracking-tighter mb-6">
-          <Button variant="ghost" size="icon" onClick={() => setSidebarCollapsed(!isSidebarCollapsed)} className="h-8 w-8">
-            <PanelLeft className="h-5 w-5" />
-          </Button>
-          <Building2 className="text-primary" />
-          <span className="font-headline bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">PROPLOOM</span>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto gold-scrollbar pr-6">
-          <div className="space-y-8">
-            <div className="space-y-2">
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Dashboard Overview
-              </h1>
-              <p className="text-muted-foreground">
-                Here's a snapshot of your real estate activities.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {stats.map((stat) => (
-                <div key={stat.label} className="bg-background p-6 rounded-2xl border border-border/50 transition-all hover:border-primary/50 shadow-lg">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-muted-foreground text-sm">{stat.label}</p>
-                      <h3 className="text-2xl font-bold mt-1 text-foreground">{stat.value}</h3>
-                      <span className="text-green-400 text-xs font-medium">{stat.growth} from last month</span>
-                    </div>
-                    <stat.icon className="text-primary" size={24} />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-background p-6 rounded-2xl border border-border/50">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-bold text-foreground">Recent Leads</h3>
-                   <Link href="/leads/new">
-                      <Button variant="outline" size="sm">
-                          <Plus className="h-4 w-4 mr-2"/>
-                          Add Lead
-                      </Button>
-                  </Link>
-                </div>
-                
-                 {leadsLoading ? (
-                  <div className="flex justify-center items-center h-full min-h-[200px]">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                  </div>
-                ) : recentLeads.length > 0 ? (
-                  <div className="space-y-4">
-                    {recentLeads.map((lead) => (
-                      <div key={lead.id} className="flex items-center justify-between p-3 bg-card rounded-xl border border-border/50">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9">
-                            <AvatarFallback className="bg-muted text-muted-foreground font-semibold">
-                              {lead.name.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-sm text-foreground">{lead.name}</p>
-                            <p className="text-xs text-muted-foreground">{lead.propertyName}</p>
-                          </div>
-                        </div>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleWhatsAppChat(lead.phone, lead.name)}
-                          className="text-green-500 hover:bg-green-500/10 hover:text-green-400 h-8 w-8"
-                        >
-                          <MessageSquare className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center h-full min-h-[200px]">
-                    <Link href="/leads/new" className='w-full'>
-                      <Button variant="outline" className="h-auto py-4 w-full border-dashed border-2 hover:bg-muted/50 hover:border-solid">
-                          <Plus className="h-5 w-5 mr-2 text-muted-foreground"/>
-                          <span className="text-muted-foreground">Add Your First Lead</span>
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </div>
-
-
-              <div className="bg-background p-6 rounded-2xl border border-border/50">
-                <h3 className="text-lg font-bold mb-4 text-foreground">Reminders</h3>
-                <div className="space-y-4">
-                  {[1, 2].map((i) => (
-                     <div key={i} className="flex items-center justify-between p-4 bg-card rounded-xl border border-border/50">
-                      <div>
-                        <p className="font-medium text-sm text-foreground">Follow-up with Client {i}</p>
-                        <p className="text-xs text-muted-foreground">Call scheduled for 3:00 PM</p>
-                      </div>
-                      <button className="text-xs text-primary font-semibold hover:underline">Details</button>
-                    </div>
-                  ))}
-                </div>
+    <div className="flex items-center justify-center min-h-screen w-full bg-[#0F1115] text-white p-4">
+      <AnimatePresence mode="wait">
+        {!selectedRole ? (
+          <motion.div
+            key="role-selection"
+            variants={pageVariants}
+            initial="initial"
+            animate="in"
+            exit="out"
+            className="w-full max-w-4xl text-center"
+          >
+            <div className="flex justify-center mb-10">
+              <div className="flex items-center gap-4 font-bold text-4xl tracking-tighter">
+                <Building2 className="text-primary h-10 w-10" />
+                <span className="font-headline bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  PROPLOOM
+                </span>
               </div>
             </div>
-          </div>
-        </div>
-      </motion.div>
+
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Welcome Back</h1>
+            <p className="text-muted-foreground text-lg mb-12">Please select your portal to continue.</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <motion.div
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+                onClick={() => handleRoleSelect('admin')}
+                className="p-1 rounded-2xl bg-gradient-to-br from-primary via-secondary to-primary/50 cursor-pointer"
+              >
+                <div className="bg-[#1a1a1a] rounded-xl p-8 h-full flex flex-col items-center justify-center">
+                  <ShieldCheck className="h-16 w-16 text-primary mb-4" />
+                  <h2 className="text-3xl font-bold">Admin Portal</h2>
+                  <p className="text-muted-foreground mt-2">Full access to analytics and settings.</p>
+                </div>
+              </motion.div>
+              <motion.div
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+                onClick={() => handleRoleSelect('agent')}
+                className="p-1 rounded-2xl bg-gradient-to-br from-primary via-secondary to-primary/50 cursor-pointer"
+              >
+                <div className="bg-[#1a1a1a] rounded-xl p-8 h-full flex flex-col items-center justify-center">
+                  <UserCheck className="h-16 w-16 text-primary mb-4" />
+                  <h2 className="text-3xl font-bold">Agent Portal</h2>
+                  <p className="text-muted-foreground mt-2">Manage and track your assigned leads.</p>
+                </div>
+              </motion.div>
+            </div>
+             {user && (
+                <Button variant="ghost" onClick={handleLogout} className="mt-12 text-muted-foreground hover:text-white">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                </Button>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="password-entry"
+            variants={pageVariants}
+            initial="initial"
+            animate="in"
+            exit="out"
+            className="w-full max-w-md"
+          >
+            <div className="bg-card/80 backdrop-blur-lg rounded-2xl border border-border/50 shadow-2xl p-10 text-center">
+              <div className="flex justify-center mb-6">
+                <div className="flex items-center gap-2.5 font-bold text-2xl text-foreground tracking-tighter">
+                  <Building2 className="text-primary" />
+                  <span className="font-headline bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">PROPLOOM</span>
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold mb-2">
+                Enter {selectedRole === 'admin' ? 'Admin' : 'Agent'} Portal
+              </h2>
+              <p className="text-muted-foreground mb-8">Please enter your password to proceed.</p>
+
+              <form onSubmit={handlePasswordSubmit} className="space-y-6">
+                <div className="relative">
+                  <Key className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary transition-all duration-300 h-14 pl-12 text-lg"
+                  />
+                </div>
+                {error && <p className="text-destructive text-sm">{error}</p>}
+                <Button type="submit" className="w-full h-14 text-lg font-bold bg-gradient-to-r from-primary to-secondary text-primary-foreground hover:opacity-90">
+                  Continue <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </form>
+              <Button variant="link" onClick={() => handleRoleSelect(null)} className="mt-6 text-muted-foreground">
+                Back to role selection
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
-export default DashboardPage;
+export default RoleSelectionPage;

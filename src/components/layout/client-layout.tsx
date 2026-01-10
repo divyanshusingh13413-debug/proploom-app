@@ -17,6 +17,8 @@ function AuthWrapper({ children }: PropsWithChildren) {
   useEffect(() => {
     if (!loading) {
       const isAuthPage = pathname.startsWith('/auth');
+      const isRoleSelectionPage = pathname === '/';
+
       if (!user && !isAuthPage) {
         router.push('/auth/login');
       } else if (user && isAuthPage) {
@@ -34,19 +36,24 @@ function AuthWrapper({ children }: PropsWithChildren) {
   }
   
   const isAuthPage = pathname.startsWith('/auth');
+  const isRoleSelectionPage = pathname === '/';
 
+  // If user is not logged in and not on an auth page, redirecting...
   if (!user && !isAuthPage) {
-    return null; // Show nothing while redirecting
+    return null; 
   }
   
+  // If user is logged in and on an auth page, redirecting...
   if (user && isAuthPage) {
-    return null; // Show nothing while redirecting
+    return null;
   }
 
-  if (user) {
+  // If user is logged in and on a page other than role selection, wrap with AppLayout
+  if (user && !isRoleSelectionPage) {
     return <AppLayout>{children}</AppLayout>
   }
-
+  
+  // For role selection page or auth pages, render children directly
   return <>{children}</>;
 }
 
