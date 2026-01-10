@@ -27,7 +27,7 @@ const RoleSelectionPage = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   
   const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -137,13 +137,13 @@ const RoleSelectionPage = () => {
                     Set Your Secure Password
                 </h2>
                 <p className="text-muted-foreground mb-8">
-                    To secure your account, please set a new password.
+                    To secure your account, please confirm your current password and set a new one.
                 </p>
                 <form onSubmit={handleSetAgentPassword} className="space-y-4">
                     <div className="relative">
                         <Key className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
-                            type={showPassword ? 'text' : 'password'}
+                            type={showCurrentPassword ? 'text' : 'password'}
                             placeholder="Current Password (from signup)"
                             value={currentPassword}
                             onChange={(e) => setCurrentPassword(e.target.value)}
@@ -152,10 +152,10 @@ const RoleSelectionPage = () => {
                         />
                         <button
                             type="button"
-                            onClick={() => setShowPassword(!showPassword)}
+                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                             className="absolute inset-y-0 right-0 flex items-center pr-4 text-muted-foreground hover:text-foreground"
                         >
-                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>
                     </div>
                     <div className="relative">
