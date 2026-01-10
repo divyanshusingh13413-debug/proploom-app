@@ -12,16 +12,18 @@ import { Building2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
+import { Label } from '@/components/ui/label';
 
 const SignupPage = () => {
   const router = useRouter();
   const { toast } = useToast();
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [animation, setAnimation] = useState<'initial' | 'shake'>('initial');
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -30,17 +32,25 @@ const SignupPage = () => {
     setError(null);
     setAnimation('initial');
 
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      setIsLoading(false);
+      setAnimation('shake');
+      setTimeout(() => setAnimation('initial'), 500);
+      return;
+    }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      // Update user profile in Firebase Auth
-      await updateProfile(user, { displayName: name });
+      const randomName = `User ${user.uid.substring(0, 5)}`;
+      await updateProfile(user, { displayName: randomName });
 
       // Create a document in the 'users' collection in Firestore
       await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
-        displayName: name,
+        displayName: randomName,
         email: user.email,
         isFirstLogin: true,
         createdAt: serverTimestamp(),
@@ -119,43 +129,61 @@ const SignupPage = () => {
             </div>
             
             <form onSubmit={handleSignup} className="space-y-6">
-              <motion.div variants={inputVariants} initial="hidden" animate="visible" custom={1} className="relative">
+              <motion.div variants={inputVariants} initial="hidden" animate="visible" custom={1} className="relative text-left">
+                <Label htmlFor="email">Email address</Label>
                 <Input
-                  type="text"
-                  placeholder="Full Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary transition-all duration-300"
-                />
-              </motion.div>
-              <motion.div variants={inputVariants} initial="hidden" animate="visible" custom={2} className="relative">
-                <Input
+                  id="email"
                   type="email"
-                  placeholder="Email"
+                  placeholder="Your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary transition-all duration-300"
+                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary transition-all duration-300 mt-2"
                 />
               </motion.div>
 
-              <motion.div variants={inputVariants} initial="hidden" animate="visible" custom={3} className="relative">
-                <Input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary transition-all duration-300 pr-10"
-                />
-                 <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
+              <motion.div variants={inputVariants} initial="hidden" animate="visible" custom={2} className="relative text-left">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative mt-2">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Choose a password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary transition-all duration-300 pr-10"
+                    />
+                     <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                </div>
+              </motion.div>
+
+              <motion.div variants={inputVariants} initial="hidden" animate="visible" custom={3} className="relative text-left">
+                 <Label htmlFor="confirm-password">Confirm password</Label>
+                <div className="relative mt-2">
+                    <Input
+                      id="confirm-password"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      placeholder="Confirm your password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary transition-all duration-300 pr-10"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                    >
+                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                </div>
               </motion.div>
 
               <AnimatePresence>
@@ -177,7 +205,7 @@ const SignupPage = () => {
                   disabled={isLoading}
                   className="w-full bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold text-base h-12 hover:opacity-90 transition-all duration-300 shadow-[0_0_20px_hsl(var(--primary)/20%)]"
                 >
-                  {isLoading ? 'Creating Account...' : 'Sign Up'}
+                  {isLoading ? 'Creating Account...' : 'Create account'}
                 </Button>
               </motion.div>
 
@@ -197,3 +225,5 @@ const SignupPage = () => {
 };
 
 export default SignupPage;
+
+    
