@@ -38,16 +38,22 @@ const RoleSelectionPage = () => {
     setNewPassword('');
     setConfirmPassword('');
 
+    if (role === 'admin') {
+      setSelectedRole(role);
+      return;
+    }
+
     if (role === 'agent' && user) {
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists() && userDoc.data().isFirstLogin) {
             setAgentFlow('set_password');
+            setSelectedRole(role);
         } else {
-            setAgentFlow('enter_password');
+            // If it's not the first login, redirect directly to the leads page
+            router.push('/leads');
         }
     }
-    setSelectedRole(role);
   };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
@@ -202,33 +208,8 @@ const RoleSelectionPage = () => {
             </>
         )
     }
-    // Default to 'enter_password' flow
-    return (
-        <>
-            <h2 className="text-2xl font-bold mb-2">
-                Enter Agent Portal
-            </h2>
-            <p className="text-muted-foreground mb-8">Please enter your password to proceed.</p>
-
-            <form onSubmit={handlePasswordSubmit} className="space-y-6">
-                <div className="relative">
-                    <Key className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input
-                        type="password"
-                        placeholder="Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary transition-all duration-300 h-14 pl-12 text-lg"
-                    />
-                </div>
-                {error && <p className="text-destructive text-sm">{error}</p>}
-                <Button type="submit" className="w-full h-14 text-lg font-bold bg-gradient-to-r from-primary to-secondary text-primary-foreground hover:opacity-90">
-                    Continue <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-            </form>
-        </>
-    );
+    // This part should no longer be reached for agents after their first login
+    return null;
   };
 
   return (
