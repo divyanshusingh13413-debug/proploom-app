@@ -20,7 +20,7 @@ export default function LoginPage() {
   
   const intendedRole = searchParams.get('role');
   
-  const [email, setEmail] = useState(intendedRole === 'admin' ? 'admin@proploom.com' : '');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,6 +62,7 @@ export default function LoginPage() {
       }
 
     } catch (error: any) {
+      console.error("Login Error:", error);
       toast({
         variant: 'destructive',
         title: 'Login Failed',
