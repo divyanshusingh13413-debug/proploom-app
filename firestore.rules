@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -12,16 +13,31 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
+    function getUserData(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && getUserData(request.auth.uid).role == 'admin';
+    }
+
     // USERS
     match /users/{userId} {
-      // Users can create their own user document
-      allow create: if isSignedIn() && isOwner(userId);
-      // Users can read their own document
-      allow get: if isSignedIn() && isOwner(userId);
-      // Users can update their own document, e.g., to set isFirstLogin to false
-      allow update: if isSignedIn() && isOwner(userId);
-      // Users cannot delete their own document
-      allow delete: if false;
+      // Admins can create new users (agents)
+      allow create: if isAdmin();
+      
+      // Users can read their own document, Admins can read any user document
+      allow get: if (isSignedIn() && isOwner(userId)) || isAdmin();
+      
+      // Users can update their own document
+      // Admins can update any user document (e.g. to change roles - future)
+      allow update: if (isSignedIn() && isOwner(userId)) || isAdmin();
+
+      // Admins can delete users (agents)
+      allow delete: if isAdmin();
+      
+      // Admins can list all users
+      allow list: if isAdmin();
     }
 
     // CHATS
@@ -38,3 +54,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

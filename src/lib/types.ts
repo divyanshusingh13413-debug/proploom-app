@@ -13,7 +13,7 @@ export type Lead = {
   email: string;
   phone: string;
   aiScore?: number;
-  timestamp: Timestamp;
+  timestamp?: Timestamp;
 };
 
 export type Agent = {
@@ -48,3 +48,14 @@ export type Message = {
   status: 'sent' | 'delivered' | 'read';
   timestamp: any; // Firestore Timestamp
 };
+
+export type User = {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  role: 'admin' | 'agent';
+  isFirstLogin: boolean;
+  createdAt?: Timestamp;
+};
+
+    

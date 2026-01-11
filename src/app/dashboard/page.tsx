@@ -15,7 +15,8 @@ import {
   Clock,
   PanelLeft,
   Plus,
-  Loader2
+  Loader2,
+  Users2
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,7 @@ const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string
   const navItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard', roles: ['admin', 'agent'] },
     { href: '/leads', icon: Clock, label: 'Leads', roles: ['admin', 'agent'] },
+    { href: '/agents', icon: Users2, label: 'Manage Agents', roles: ['admin'] },
     { href: '/whatsapp', icon: MessageSquare, label: 'WhatsApp', roles: ['admin', 'agent'] },
     { href: '/tours', icon: Video, label: 'Virtual Tour', roles: ['admin'] },
     { href: '/sales', icon: TrendingUp, label: 'Sales', roles: ['admin'] },
@@ -96,10 +98,10 @@ const DashboardPage = () => {
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        setDisplayName(user.displayName);
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
+          setDisplayName(userDoc.data().displayName);
           setUserRole(userDoc.data().role);
         }
       } else {
@@ -207,8 +209,10 @@ const DashboardPage = () => {
                 </div>
                 
                  {leadsLoading ? (
-                  <div className="flex justify-center items-center h-full min-h-[200px]">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                   <div className="flex flex-col gap-4">
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
                   </div>
                 ) : recentLeads.length > 0 ? (
                   <div className="space-y-4">
@@ -272,3 +276,5 @@ const DashboardPage = () => {
 };
 
 export default DashboardPage;
+
+    
