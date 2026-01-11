@@ -1,7 +1,7 @@
 
 'use client';
 import type { PropsWithChildren } from 'react';
-import React, { useState, useEffect } from 'react';
+import React, from 'react';
 import {
   Sparkles,
   Users, 
@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import SplashScreen from './splash-screen';
 import { useToast } from '../ui/use-toast';
+import { useState, useEffect } from 'react';
 
 const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string | null }) => {
   const pathname = usePathname();
@@ -90,19 +91,23 @@ export default function AppLayout({ children }: PropsWithChildren) {
   
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
 
   useEffect(() => {
     const adminAuth = sessionStorage.getItem('adminAuthenticated') === 'true';
     const agentAuth = sessionStorage.getItem('agentAuthenticated') === 'true';
-    const currentRole = adminAuth ? 'admin' : agentAuth ? 'agent' : null;
-    setUserRole(currentRole);
+    const role = adminAuth ? 'admin' : agentAuth ? 'agent' : null;
+    const name = sessionStorage.getItem('displayName');
+    
+    setUserRole(role);
+    setDisplayName(name);
 
-    if (!adminAuth && !agentAuth) {
+    if (!role) {
       router.replace('/');
       return;
     }
 
-    if (currentRole === 'agent') {
+    if (role === 'agent') {
       const adminPages = ['/tours', '/sales', '/agents', '/dashboard'];
       if (adminPages.includes(pathname)) {
         toast({
@@ -118,6 +123,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
   const handleLogout = () => {
     sessionStorage.removeItem('adminAuthenticated');
     sessionStorage.removeItem('agentAuthenticated');
+    sessionStorage.removeItem('displayName');
     toast({
       title: 'Logged Out',
       description: `You have been logged out.`,
@@ -151,9 +157,9 @@ export default function AppLayout({ children }: PropsWithChildren) {
                       </Link>
                     </div>
                     <div className="flex items-center gap-4">
-                      {userRole && (
+                      {displayName && (
                         <div className="text-sm font-medium capitalize">
-                          Hello, {userRole}
+                          Hello, {displayName}
                         </div>
                       )}
                       <Button variant="ghost" size="sm" onClick={handleLogout}>Logout</Button>

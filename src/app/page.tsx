@@ -53,6 +53,8 @@ const LoginPage = () => {
     setTimeout(() => {
         if (password === correctPassword) {
             sessionStorage.setItem(`${selectedPortal}Authenticated`, 'true');
+            // For demo purposes, we'll store a name. In a real app, this would come from a DB lookup.
+            sessionStorage.setItem('displayName', selectedPortal === 'admin' ? 'Admin User' : 'Agent Smith');
             setIsAuthenticated(prev => ({ ...prev, [selectedPortal!]: true }));
             toast({
                 title: 'Login Successful',
@@ -75,6 +77,7 @@ const LoginPage = () => {
   const handleLogout = (e: React.MouseEvent, portal: 'admin' | 'agent') => {
     e.stopPropagation();
     sessionStorage.removeItem(`${portal}Authenticated`);
+    sessionStorage.removeItem('displayName');
     setIsAuthenticated(prev => ({ ...prev, [portal]: false }));
     toast({
       title: 'Logged Out',

@@ -112,14 +112,6 @@ export default function ManageAgentsPage() {
 
   return (
     <div className="w-full space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <Link href="/dashboard" className="flex items-center gap-2.5">
-            <Building2 className="text-primary" />
-            <span className="font-headline bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">PROPLOOM</span>
-          </Link>
-        </div>
-      </div>
       
       <div className="space-y-2">
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -233,5 +225,3 @@ export default function ManageAgentsPage() {
     </div>
   );
 }
-
-    

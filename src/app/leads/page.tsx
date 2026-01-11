@@ -54,7 +54,7 @@ const LeadJourney = ({ lead }: { lead: Lead | null }) => {
 
     const handleWhatsAppRedirect = () => {
       if (!lead) return;
-      const message = `Hello ${lead.name}, I am calling from Proploom regarding your property interest. How can I help you?`;
+      const message = `Hi ${lead.name}, I am calling from Proploom. Are you still interested in the property?`;
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `https://wa.me/${lead.phone.replace(/\D/g, '')}?text=${encodedMessage}`;
       window.open(whatsappUrl, '_blank');
@@ -165,7 +165,7 @@ export default function LeadsPage() {
     });
 
     return () => unsubscribe();
-  }, [selectedLead]);
+  }, []);
   
   const getLeadsTodayCount = () => {
     const today = new Date();
@@ -181,7 +181,7 @@ export default function LeadsPage() {
   };
 
   const handleWhatsAppChat = (phone: string, name: string) => {
-    const message = `Hello ${name}, I am calling from Proploom regarding your property interest. How can I help you?`;
+    const message = `Hi ${name}, I am calling from Proploom. Are you still interested in the property?`;
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
@@ -295,5 +295,3 @@ export default function LeadsPage() {
     </div>
   );
 }
-
-    

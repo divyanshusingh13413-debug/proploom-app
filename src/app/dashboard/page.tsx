@@ -49,7 +49,7 @@ const DashboardPage = () => {
   ];
 
   const handleWhatsAppChat = (phone: string, name: string) => {
-    const message = `Hello ${name}, I am reaching out from Proploom regarding your property inquiry.`;
+    const message = `Hi ${name}, I am calling from Proploom. Are you still interested in the property?`;
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
