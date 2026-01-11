@@ -8,16 +8,26 @@ import { Building2, UserCheck, ShieldCheck, Eye, EyeOff, Loader2 } from 'lucide-
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
+import SplashScreen from '@/components/layout/splash-screen';
 
 const LoginPage = () => {
   const router = useRouter();
   const { toast } = useToast();
   
+  const [showSplash, setShowSplash] = useState(true);
   const [selectedPortal, setSelectedPortal] = useState<'admin' | 'agent' | null>(null);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState({ admin: false, agent: false });
+
+   useEffect(() => {
+    // Check if splash has been shown in the current session
+    if (sessionStorage.getItem('splashShown')) {
+      setShowSplash(false);
+    }
+  }, []);
+
 
   useEffect(() => {
     const adminAuth = sessionStorage.getItem('adminAuthenticated') === 'true';
@@ -77,6 +87,15 @@ const LoginPage = () => {
     setPassword('');
     setShowPassword(false);
   };
+
+  const handleSplashFinish = () => {
+    sessionStorage.setItem('splashShown', 'true');
+    setShowSplash(false);
+  };
+
+  if (showSplash) {
+    return <SplashScreen onFinish={handleSplashFinish} />;
+  }
 
   const buttonVariants = {
     hover: {
