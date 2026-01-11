@@ -21,13 +21,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { db, auth } from '@/firebase/config';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { Loader2 } from 'lucide-react';
 
 const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string | null }) => {
   const pathname = usePathname();
   const navItems = [
-    { href: '/dashboard', icon: Home, label: 'Dashboard', roles: ['admin', 'agent'] },
+    { href: '/dashboard', icon: Home, label: 'Dashboard', roles: ['admin'] },
     { href: '/leads', icon: Clock, label: 'Leads', roles: ['admin', 'agent'] },
     { href: '/agents', icon: Users2, label: 'Manage Agents', roles: ['admin'] },
     { href: '/whatsapp', icon: MessageSquare, label: 'WhatsApp', roles: ['admin', 'agent'] },
@@ -94,27 +95,52 @@ export default function AppLayout({ children }: PropsWithChildren) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const adminAuthenticated = sessionStorage.getItem('adminAuthenticated') === 'true';
-    const agentAuthenticated = sessionStorage.getItem('agentAuthenticated') === 'true';
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
 
-    if (adminAuthenticated) {
-        setUserRole('admin');
-        setDisplayName('Admin'); // Placeholder, can be fetched if needed
-        setIsLoading(false);
-    } else if (agentAuthenticated) {
-        setUserRole('agent');
-        setDisplayName('Agent'); // Placeholder for agent
-        const adminPages = ['/tours', '/sales', '/agents'];
-        if (adminPages.includes(pathname)) {
-            router.replace('/leads');
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setUserRole(userData.role);
+          setDisplayName(userData.displayName);
+
+          if (userData.isFirstLogin && pathname !== '/auth/set-password') {
+            router.replace('/auth/set-password');
+            return; // Stop further execution until password is set
+          }
+
+          if (userData.role === 'agent') {
+            sessionStorage.setItem('agentAuthenticated', 'true');
+            const adminPages = ['/tours', '/sales', '/agents', '/dashboard'];
+            if (adminPages.includes(pathname)) {
+                router.replace('/leads');
+            }
+          } else if (userData.role === 'admin') {
+            sessionStorage.setItem('adminAuthenticated', 'true');
+          }
+          
+        } else {
+          // No user document found, treat as unauthenticated
+          router.replace('/');
         }
-        setIsLoading(false);
-    } else {
-        router.replace('/');
-    }
+      } else {
+        // No user is signed in
+        sessionStorage.removeItem('adminAuthenticated');
+        sessionStorage.removeItem('agentAuthenticated');
+        // Allow access only to auth pages if not authenticated
+        if (!pathname.startsWith('/auth') && pathname !== '/') {
+            router.replace('/');
+        }
+      }
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [pathname, router]);
 
   const handleLogout = async () => {
+    await signOut(auth);
     sessionStorage.removeItem('adminAuthenticated');
     sessionStorage.removeItem('agentAuthenticated');
     router.replace('/');
@@ -123,9 +149,14 @@ export default function AppLayout({ children }: PropsWithChildren) {
   if (isLoading) {
       return (
           <div className="flex items-center justify-center min-h-screen w-full bg-[#0F1115]">
-              {/* Add a high-end spinner here if you have one */}
+              <Loader2 className="h-10 w-10 text-primary animate-spin"/>
           </div>
       )
+  }
+
+  // Render children directly for auth pages
+  if (pathname.startsWith('/auth/')) {
+    return <main className="flex-1">{children}</main>;
   }
 
   if (pathname.startsWith('/chat/')) {
