@@ -20,11 +20,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { db, auth } from '@/firebase/config';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { Loader2 } from 'lucide-react';
 import SplashScreen from './splash-screen';
+import { useToast } from '../ui/use-toast';
 
 const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string | null }) => {
   const pathname = usePathname();
@@ -89,97 +86,45 @@ const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string
 export default function AppLayout({ children }: PropsWithChildren) {
   const pathname = usePathname();
   const router = useRouter();
+  const { toast } = useToast();
   
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [displayName, setDisplayName] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [showSplash, setShowSplash] = useState(true);
 
-  // Check for splash screen status on mount
   useEffect(() => {
-    if (sessionStorage.getItem('splashShown')) {
-      setShowSplash(false);
+    const adminAuth = sessionStorage.getItem('adminAuthenticated') === 'true';
+    const agentAuth = sessionStorage.getItem('agentAuthenticated') === 'true';
+    const currentRole = adminAuth ? 'admin' : agentAuth ? 'agent' : null;
+    setUserRole(currentRole);
+
+    if (!adminAuth && !agentAuth) {
+      router.replace('/');
+      return;
     }
-  }, []);
 
-  const handleSplashFinish = () => {
-    sessionStorage.setItem('splashShown', 'true');
-    setShowSplash(false);
-  };
-
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setUserRole(userData.role);
-          setDisplayName(userData.displayName);
-
-          if (userData.isFirstLogin && pathname !== '/auth/set-password') {
-            router.replace('/auth/set-password');
-            setIsAuthLoading(false); // Stop auth loading here
-            return;
-          }
-
-          if (userData.role === 'agent') {
-            sessionStorage.setItem('agentAuthenticated', 'true');
-            const adminPages = ['/tours', '/sales', '/agents', '/dashboard'];
-            if (adminPages.includes(pathname)) {
-                router.replace('/leads');
-            }
-          } else if (userData.role === 'admin') {
-            sessionStorage.setItem('adminAuthenticated', 'true');
-          }
-          
-        } else {
-          router.replace('/');
-        }
-      } else {
-        sessionStorage.removeItem('adminAuthenticated');
-        sessionStorage.removeItem('agentAuthenticated');
-        if (!pathname.startsWith('/auth') && pathname !== '/') {
-            router.replace('/');
-        }
+    if (currentRole === 'agent') {
+      const adminPages = ['/tours', '/sales', '/agents', '/dashboard'];
+      if (adminPages.includes(pathname)) {
+        toast({
+            variant: "destructive",
+            title: "Access Denied",
+            description: "You do not have permission to view this page.",
+        });
+        router.replace('/leads');
       }
-      setIsAuthLoading(false);
-    });
+    }
+  }, [pathname, router, toast]);
 
-    return () => unsubscribe();
-  }, [pathname, router]);
-
-  const handleLogout = async () => {
-    await signOut(auth);
+  const handleLogout = () => {
     sessionStorage.removeItem('adminAuthenticated');
     sessionStorage.removeItem('agentAuthenticated');
+    toast({
+      title: 'Logged Out',
+      description: `You have been logged out.`,
+    });
     router.replace('/');
   }
   
-  if (showSplash) {
-    return <SplashScreen onFinish={handleSplashFinish} />;
-  }
-
-  if (isAuthLoading) {
-      return (
-          <div className="flex items-center justify-center min-h-screen w-full bg-[#0F1115]">
-              <Loader2 className="h-10 w-10 text-primary animate-spin"/>
-          </div>
-      )
-  }
-
-  // Render children directly for auth pages
-  if (pathname.startsWith('/auth/')) {
-    return <main className="flex-1">{children}</main>;
-  }
-
-  if (pathname.startsWith('/chat/')) {
-    return <main className="flex-1">{children}</main>;
-  }
-
   return (
     <div className="relative flex min-h-screen items-center justify-center p-4">
         <div className="content-glow w-full h-[calc(100vh-2rem)]">
@@ -200,15 +145,15 @@ export default function AppLayout({ children }: PropsWithChildren) {
                       <Button variant="ghost" size="icon" onClick={() => setSidebarCollapsed(!isSidebarCollapsed)} className="h-8 w-8">
                         <PanelLeft className="h-5 w-5" />
                       </Button>
-                      <Link href="/dashboard" className="flex items-center gap-2.5">
+                      <Link href={userRole === 'admin' ? '/dashboard' : '/leads'} className="flex items-center gap-2.5">
                         <Building2 className="text-primary" />
                         <span className="font-headline bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">PROPLOOM</span>
                       </Link>
                     </div>
                     <div className="flex items-center gap-4">
-                      {displayName && (
-                        <div className="text-sm font-medium">
-                          Hello, {displayName}
+                      {userRole && (
+                        <div className="text-sm font-medium capitalize">
+                          Hello, {userRole}
                         </div>
                       )}
                       <Button variant="ghost" size="sm" onClick={handleLogout}>Logout</Button>
