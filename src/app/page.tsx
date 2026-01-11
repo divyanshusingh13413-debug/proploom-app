@@ -27,15 +27,28 @@ const LoginPage = () => {
   const [resetEmail, setResetEmail] = useState('');
 
    useEffect(() => {
-    if (sessionStorage.getItem('splashShown')) {
+    // This check should only run on the client side
+    if (typeof window !== 'undefined' && sessionStorage.getItem('splashShown')) {
       setShowSplash(false);
+    } else {
+      // If it's the first visit, ensure splash is shown and then marked as shown
+      const timer = setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('splashShown', 'true');
+        }
+        setShowSplash(false);
+      }, 2500); // Match splash screen duration
+      return () => clearTimeout(timer);
     }
   }, []);
 
+
   useEffect(() => {
-    const adminAuth = sessionStorage.getItem('adminAuthenticated') === 'true';
-    const agentAuth = sessionStorage.getItem('agentAuthenticated') === 'true';
-    setIsAuthenticated({ admin: adminAuth, agent: agentAuth });
+     if (typeof window !== 'undefined') {
+        const adminAuth = sessionStorage.getItem('adminAuthenticated') === 'true';
+        const agentAuth = sessionStorage.getItem('agentAuthenticated') === 'true';
+        setIsAuthenticated({ admin: adminAuth, agent: agentAuth });
+     }
   }, []);
 
   const handlePortalClick = (e: React.MouseEvent, portal: 'admin' | 'agent') => {
@@ -57,8 +70,19 @@ const LoginPage = () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       
+      const userDoc = {
+          displayName: auth.currentUser?.displayName || (selectedPortal === 'admin' ? 'Admin User' : 'Agent Smith'),
+          isFirstLogin: false, // In a real app, this would be fetched from Firestore
+      };
+
+      if (userDoc.isFirstLogin) {
+          router.push('/auth/set-password');
+          return;
+      }
+
       sessionStorage.setItem(`${selectedPortal}Authenticated`, 'true');
-      sessionStorage.setItem('displayName', auth.currentUser?.displayName || (selectedPortal === 'admin' ? 'Admin User' : 'Agent Smith'));
+      sessionStorage.setItem('displayName', userDoc.displayName);
+      sessionStorage.setItem('userRole', selectedPortal!);
       
       setIsAuthenticated(prev => ({ ...prev, [selectedPortal!]: true }));
 
@@ -77,7 +101,6 @@ const LoginPage = () => {
     } finally {
         setIsLoading(false);
         setPassword('');
-        setSelectedPortal(null);
     }
   };
 
@@ -86,8 +109,13 @@ const LoginPage = () => {
     if (!resetEmail) return;
     setIsLoading(true);
 
+    const actionCodeSettings = {
+        url: `${window.location.origin}`,
+        handleCodeInApp: true,
+    };
+
     try {
-      await sendPasswordResetEmail(auth, resetEmail);
+      await sendPasswordResetEmail(auth, resetEmail, actionCodeSettings);
       toast({
         title: 'Reset Link Sent',
         description: 'Please check your email to reset your password.',
@@ -95,7 +123,6 @@ const LoginPage = () => {
       setShowForgotPassword(false);
       setResetEmail('');
     } catch (error: any) {
-      // Firebase returns 'auth/user-not-found' but for security it's better to give a generic message
       if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-email') {
          toast({
             variant: 'destructive',
@@ -119,6 +146,7 @@ const LoginPage = () => {
     e.stopPropagation();
     sessionStorage.removeItem(`${portal}Authenticated`);
     sessionStorage.removeItem('displayName');
+    sessionStorage.removeItem('userRole');
     setIsAuthenticated(prev => ({ ...prev, [portal]: false }));
     toast({
       title: 'Logged Out',
