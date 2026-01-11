@@ -48,7 +48,8 @@ const LoginPage = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    const correctPassword = selectedPortal === 'admin' ? 'Admin@Pro2026' : 'Agent#786';
+    // Hardcoded password check
+    const correctPassword = selectedPortal === 'admin' ? 'Admin@2026' : 'Agent#786';
     
     setTimeout(() => {
         if (password === correctPassword) {
