@@ -52,6 +52,14 @@ const LeadJourney = ({ lead }: { lead: Lead | null }) => {
     if (!lead) return null;
     const agent = agents.find(a => a.id === lead.agentId);
 
+    const handleWhatsAppRedirect = () => {
+      if (!lead) return;
+      const message = `Hello ${lead.name}, I am calling from Proploom regarding your property interest. How can I help you?`;
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/${lead.phone.replace(/\D/g, '')}?text=${encodedMessage}`;
+      window.open(whatsappUrl, '_blank');
+    };
+
     return (
         <Card>
             <CardHeader>
@@ -87,11 +95,11 @@ const LeadJourney = ({ lead }: { lead: Lead | null }) => {
                 </div>
                 <div className="flex flex-col sm:flex-row md:flex-col gap-2 self-start">
                     <Button variant="outline">Log Activity</Button>
-                    <Button className="bg-secondary hover:bg-secondary/90">WhatsApp</Button>
+                    <Button onClick={handleWhatsAppRedirect} className="bg-secondary hover:bg-secondary/90">WhatsApp</Button>
                 </div>
             </CardContent>
              <div className="p-6 pt-0 text-right">
-                <Button variant="link" className="text-primary">Share on WhatsApp <ChevronRight className="w-4 h-4 ml-1" /></Button>
+                <Button onClick={handleWhatsAppRedirect} variant="link" className="text-primary">Share on WhatsApp <ChevronRight className="w-4 h-4 ml-1" /></Button>
             </div>
         </Card>
     )
@@ -107,7 +115,7 @@ const LeadsTableSkeleton = () => (
           <TableHead>Agent</TableHead>
           <TableHead className="text-center">AI Score</TableHead>
           <TableHead>Date Added</TableHead>
-          <TableHead className="text-right"></TableHead>
+          <TableHead colSpan={2}>Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -119,6 +127,7 @@ const LeadsTableSkeleton = () => (
             <TableCell><Skeleton className="h-5 w-20" /></TableCell>
             <TableCell className="text-center"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
             <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+            <TableCell className="text-right"><Skeleton className="h-8 w-8 rounded-md" /></TableCell>
             <TableCell className="text-right"><Skeleton className="h-8 w-8 rounded-md" /></TableCell>
           </TableRow>
         ))}
@@ -161,7 +170,6 @@ export default function LeadsPage() {
   const getLeadsTodayCount = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const startOfToday = Timestamp.fromDate(today);
 
     return leads.filter(lead => {
         if (lead.timestamp) {
@@ -170,6 +178,13 @@ export default function LeadsPage() {
         }
         return false;
     }).length;
+  };
+
+  const handleWhatsAppChat = (phone: string, name: string) => {
+    const message = `Hello ${name}, I am calling from Proploom regarding your property interest. How can I help you?`;
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
@@ -226,7 +241,7 @@ export default function LeadsPage() {
                             <TableHead>Agent</TableHead>
                             <TableHead className="text-center">AI Score</TableHead>
                             <TableHead>Date Added</TableHead>
-                            <TableHead className="text-right"></TableHead>
+                            <TableHead colSpan={2} className="text-right">Actions</TableHead>
                         </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -244,6 +259,19 @@ export default function LeadsPage() {
                                     <TableCell>{agent?.name || 'Unassigned'}</TableCell>
                                     <TableCell className="text-center font-semibold">{lead.aiScore || '-'}</TableCell>
                                     <TableCell>{lead.timestamp ? lead.timestamp.toDate().toLocaleDateString() : 'N/A'}</TableCell>
+                                    <TableCell className="text-right">
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        onClick={(e) => {
+                                          e.stopPropagation(); // Prevent row click
+                                          handleWhatsAppChat(lead.phone, lead.name)
+                                        }}
+                                        className="text-green-500 hover:bg-green-500/10 hover:text-green-400 h-8 w-8"
+                                      >
+                                        <MessageSquare className="h-4 w-4" />
+                                      </Button>
+                                    </TableCell>
                                     <TableCell className="text-right">
                                         <Button variant="ghost" size="icon" className="h-8 w-8">
                                             <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -267,3 +295,5 @@ export default function LeadsPage() {
     </div>
   );
 }
+
+    
