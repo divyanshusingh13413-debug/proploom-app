@@ -1,7 +1,7 @@
 
 'use client';
 import type { PropsWithChildren } from 'react';
-import React, from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
   Users, 
@@ -16,13 +16,15 @@ import {
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import SplashScreen from './splash-screen';
 import { useToast } from '../ui/use-toast';
-import { useState, useEffect } from 'react';
+import { auth, db } from '@/firebase/config';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { Loader2 } from 'lucide-react';
 
 const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string | null }) => {
   const pathname = usePathname();
@@ -56,8 +58,7 @@ const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string
                   )}
                 >
                   <item.icon className={cn('h-5 w-5 shrink-0', !isCollapsed && 'mr-3')} />
-                  <AnimatePresence>
-                    {!isCollapsed && (
+                  {!isCollapsed && (
                       <motion.span
                         initial={{ opacity: 0, width: 0 }}
                         animate={{ opacity: 1, width: 'auto', transition: { duration: 0.2, delay: 0.1 } }}
@@ -67,7 +68,6 @@ const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string
                         {item.label}
                       </motion.span>
                     )}
-                  </AnimatePresence>
                 </Link>
               </TooltipTrigger>
               {isCollapsed && (
@@ -92,50 +92,76 @@ export default function AppLayout({ children }: PropsWithChildren) {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const adminAuth = sessionStorage.getItem('adminAuthenticated') === 'true';
-    const agentAuth = sessionStorage.getItem('agentAuthenticated') === 'true';
-    const role = adminAuth ? 'admin' : agentAuth ? 'agent' : null;
-    const name = sessionStorage.getItem('displayName');
-    
-    setUserRole(role);
-    setDisplayName(name);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
 
-    if (!role) {
-      router.replace('/');
-      return;
-    }
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const role = userData.role;
+          
+          setUserRole(role);
+          setDisplayName(userData.displayName || 'User');
+          sessionStorage.setItem('userRole', role);
+          sessionStorage.setItem('userId', user.uid);
+          sessionStorage.setItem('displayName', userData.displayName || 'User');
 
-    if (role === 'agent') {
-      const adminPages = ['/tours', '/sales', '/agents', '/dashboard'];
-      if (adminPages.includes(pathname)) {
-        toast({
-            variant: "destructive",
-            title: "Access Denied",
-            description: "You do not have permission to view this page.",
-        });
-        router.replace('/leads');
+          if (userData.isFirstLogin) {
+              router.replace('/auth/set-password');
+              return; // Stop further execution until password is set
+          }
+
+          // Role-based route protection
+          const adminPages = ['/dashboard', '/agents', '/tours', '/sales'];
+          if (role === 'agent' && adminPages.includes(pathname)) {
+            toast({
+              variant: "destructive",
+              title: "Access Denied",
+              description: "You do not have permission to view this page.",
+            });
+            router.replace('/leads');
+          }
+        } else {
+          // User exists in Auth but not in Firestore, treat as unauthenticated
+          handleLogout();
+        }
+      } else {
+        // No user logged in
+        router.replace('/');
       }
-    }
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [pathname, router, toast]);
 
   const handleLogout = () => {
-    sessionStorage.removeItem('adminAuthenticated');
-    sessionStorage.removeItem('agentAuthenticated');
-    sessionStorage.removeItem('displayName');
-    toast({
-      title: 'Logged Out',
-      description: `You have been logged out.`,
+    signOut(auth).then(() => {
+      sessionStorage.clear();
+      toast({
+        title: 'Logged Out',
+        description: `You have been successfully logged out.`,
+      });
+      router.replace('/');
     });
-    router.replace('/');
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen w-full bg-card">
+        <Loader2 className="h-10 w-10 text-primary animate-spin"/>
+      </div>
+    );
   }
   
   return (
     <div className="relative flex min-h-screen items-center justify-center p-4">
         <div className="content-glow w-full h-[calc(100vh-2rem)]">
             <div className="relative z-10 h-full w-full rounded-lg bg-card text-card-foreground p-6 flex">
-                {/* Sidebar */}
                 <motion.div
                   layout
                   transition={{ type: 'spring', stiffness: 300, damping: 30 }}
@@ -144,7 +170,6 @@ export default function AppLayout({ children }: PropsWithChildren) {
                   <Nav isCollapsed={isSidebarCollapsed} userRole={userRole} />
                 </motion.div>
 
-                {/* Main Content */}
                 <motion.div layout className="flex-1 flex flex-col pl-6">
                   <header className="flex items-center justify-between font-bold text-lg text-foreground tracking-tighter mb-6">
                     <div className="flex items-center gap-2.5">

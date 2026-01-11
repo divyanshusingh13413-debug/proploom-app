@@ -12,13 +12,12 @@ export default function ClientLayout({ children }: PropsWithChildren) {
   const [isClient, setIsClient] = useState(false);
   
   // Public pages that don't need the AppLayout
-  const isPublicPage = pathname === '/' || pathname.startsWith('/auth') || pathname.startsWith('/chat');
+  const isPublicPage = pathname === '/' || pathname.startsWith('/auth');
 
   useEffect(() => {
     setIsClient(true);
   }, []);
   
-  // While waiting for the client to mount, show a loader to prevent hydration mismatch
   if (!isClient) {
     return (
       <div className="flex items-center justify-center min-h-screen w-full bg-[#0F1115]">
@@ -27,7 +26,6 @@ export default function ClientLayout({ children }: PropsWithChildren) {
     );
   }
 
-  // Animate page transitions
   return (
     <AnimatePresence mode="wait">
       <motion.div
