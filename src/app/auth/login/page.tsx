@@ -28,6 +28,7 @@ export default function LoginPage() {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    console.log('Login started...');
 
     if (!email || !password) {
         toast({ variant: 'destructive', title: 'Missing fields', description: 'Please enter both email and password.' });
@@ -39,34 +40,48 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Verify user role from Firestore
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
 
-      if (userDoc.exists() && userDoc.data().role === intendedRole) {
+      if (userDoc.exists()) {
         const userData = userDoc.data();
-        sessionStorage.setItem('userRole', userData.role);
-        sessionStorage.setItem('displayName', userData.displayName);
-        sessionStorage.setItem('userId', user.uid);
-        
-        toast({ title: 'Login Successful', description: `Welcome to the ${intendedRole} portal.` });
-        
-        if (userData.isFirstLogin) {
-            router.push('/auth/set-password');
+        const userRole = userData.role;
+        console.log('User role is:', userRole);
+
+        if (userRole === intendedRole) {
+          sessionStorage.setItem('userRole', userData.role);
+          sessionStorage.setItem('displayName', userData.displayName);
+          sessionStorage.setItem('userId', user.uid);
+          
+          toast({ title: 'Login Successful', description: `Welcome to the ${intendedRole} portal.` });
+          
+          if (userData.isFirstLogin) {
+              router.push('/auth/set-password');
+          } else {
+              router.push(intendedRole === 'admin' ? '/dashboard' : '/leads');
+          }
         } else {
-            router.push(intendedRole === 'admin' ? '/dashboard' : '/leads');
+          await auth.signOut();
+          toast({ variant: 'destructive', title: 'Access Denied', description: 'You do not have access to this portal.' });
         }
       } else {
-        await auth.signOut(); // Sign out user if role doesn't match
-        toast({ variant: 'destructive', title: 'Access Denied', description: 'You do not have access to this portal.' });
+        // This case handles when a user exists in Firebase Auth but not in your 'users' collection.
+        await auth.signOut();
+        toast({ variant: 'destructive', title: 'Login Failed', description: 'User data not found. Please contact support.' });
       }
 
     } catch (error: any) {
-      console.error("Login Error:", error);
+      console.error("Login Error:", error.code);
+      let description = "An unexpected error occurred. Please try again.";
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        description = 'Incorrect email or password. Please try again.';
+      } else if (error.code === 'auth/network-request-failed') {
+        description = 'Network error. Please check your connection.';
+      }
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: 'Incorrect email or password. Please try again.',
+        description: description,
       });
     } finally {
       setIsLoading(false);
@@ -84,7 +99,7 @@ export default function LoginPage() {
   };
 
   if (!intendedRole) {
-      // Redirect if no role is specified
+      // Redirect if no role is specified, protects against direct access
       router.replace('/');
       return null;
   }
