@@ -8,12 +8,14 @@ export type Lead = {
   propertyName: string;
   source: string;
   lastContact: string;
-  agentId: string;
+  agentId: string; // original agent if needed
   budget: number;
   email: string;
   phone: string;
   aiScore?: number;
   timestamp?: Timestamp;
+  assignedAgentId?: string;
+  assignedAgentName?: string;
 };
 
 export type Agent = {

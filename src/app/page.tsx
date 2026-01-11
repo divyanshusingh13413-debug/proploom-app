@@ -68,10 +68,11 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
       
       const userDoc = {
-          displayName: auth.currentUser?.displayName || (selectedPortal === 'admin' ? 'Admin User' : 'Agent Smith'),
+          displayName: user?.displayName || (selectedPortal === 'admin' ? 'Admin User' : 'Agent Smith'),
           isFirstLogin: false, // In a real app, this would be fetched from Firestore
       };
 
@@ -83,6 +84,7 @@ const LoginPage = () => {
       sessionStorage.setItem(`${selectedPortal}Authenticated`, 'true');
       sessionStorage.setItem('displayName', userDoc.displayName);
       sessionStorage.setItem('userRole', selectedPortal!);
+      sessionStorage.setItem('userId', user.uid);
       
       setIsAuthenticated(prev => ({ ...prev, [selectedPortal!]: true }));
 
@@ -147,6 +149,7 @@ const LoginPage = () => {
     sessionStorage.removeItem(`${portal}Authenticated`);
     sessionStorage.removeItem('displayName');
     sessionStorage.removeItem('userRole');
+    sessionStorage.removeItem('userId');
     setIsAuthenticated(prev => ({ ...prev, [portal]: false }));
     toast({
       title: 'Logged Out',
@@ -275,3 +278,5 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
+    
