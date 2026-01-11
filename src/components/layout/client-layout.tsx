@@ -39,7 +39,7 @@ export default function ClientLayout({ children }: PropsWithChildren) {
   }
   
   // Show splash screen on first visit of the session
-  if (showSplash) {
+  if (showSplash && isPublicPage) {
     return <SplashScreen onFinish={handleSplashFinish} />;
   }
 
