@@ -8,26 +8,17 @@ import AppLayout from './app-layout';
 import SplashScreen from './splash-screen';
 import { Loader2 } from 'lucide-react';
 
-function ContentWrapper({ children }: PropsWithChildren) {
+export default function ClientLayout({ children }: PropsWithChildren) {
   const pathname = usePathname();
+  const [showSplash, setShowSplash] = useState(true);
+  const [isClient, setIsClient] = useState(false);
   
   // Public pages that don't need the AppLayout
   const isPublicPage = pathname === '/' || pathname.startsWith('/auth') || pathname.startsWith('/chat');
 
-  if (isPublicPage) {
-    return <>{children}</>;
-  }
-
-  // All other pages are assumed to be protected and will get the AppLayout
-  return <AppLayout>{children}</AppLayout>;
-}
-
-export default function ClientLayout({ children }: PropsWithChildren) {
-  const [showSplash, setShowSplash] = useState(true);
-  const [isClient, setIsClient] = useState(false);
-
   useEffect(() => {
     setIsClient(true);
+    // Check if splash has been shown in the current session
     if (sessionStorage.getItem('splashShown')) {
       setShowSplash(false);
     }
@@ -38,6 +29,7 @@ export default function ClientLayout({ children }: PropsWithChildren) {
     setShowSplash(false);
   };
   
+  // While waiting for the client to mount, show a loader to prevent hydration mismatch
   if (!isClient) {
     return (
       <div className="flex items-center justify-center min-h-screen w-full bg-[#0F1115]">
@@ -46,20 +38,22 @@ export default function ClientLayout({ children }: PropsWithChildren) {
     );
   }
   
+  // Show splash screen on first visit of the session
   if (showSplash) {
     return <SplashScreen onFinish={handleSplashFinish} />;
   }
 
+  // Animate page transitions
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key={usePathname()}
+        key={pathname}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <ContentWrapper>{children}</ContentWrapper>
+        {isPublicPage ? children : <AppLayout>{children}</AppLayout>}
       </motion.div>
     </AnimatePresence>
   );
