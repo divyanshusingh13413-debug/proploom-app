@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -26,6 +27,7 @@ import { MoreHorizontal, ChevronRight, UserPlus, FileText, Activity, MessageSqua
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const statusStyles: Record<string, string> = {
   New: 'bg-green-500/20 text-green-400 border-green-500/30 hover:bg-green-500/30',
@@ -95,6 +97,36 @@ const LeadJourney = ({ lead }: { lead: Lead | null }) => {
     )
 }
 
+const LeadsTableSkeleton = () => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>Source</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Agent</TableHead>
+          <TableHead className="text-center">AI Score</TableHead>
+          <TableHead>Date Added</TableHead>
+          <TableHead className="text-right"></TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <TableRow key={index}>
+            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+            <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+            <TableCell className="text-center"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+            <TableCell className="text-right"><Skeleton className="h-8 w-8 rounded-md" /></TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+);
+
+
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -118,6 +150,9 @@ export default function LeadsPage() {
       if (leadsData.length > 0 && !selectedLead) {
         setSelectedLead(leadsData[0]);
       }
+    }, (error) => {
+        console.error("Error fetching leads:", error);
+        setIsLoading(false);
     });
 
     return () => unsubscribe();
@@ -153,7 +188,7 @@ export default function LeadsPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatsCard title="NEW LEADS TODAY" value={getLeadsTodayCount().toString()} subtitle="from all channels" color="from-primary to-blue-700" icon={UserPlus} isLoading={isLoading} />
         <StatsCard title="ASSIGNED TO ME" value="0" subtitle="Follow-ups pending" color="from-accent to-yellow-600" icon={UserPlus} />
-        <StatsCard title="PRIORITY HOT LEADS" value="0" subtitle="Immediate action needed" color="from-secondary to-green-700" icon={UserPlus} />
+        <StatsCard title="PRIORITY HOT LEADS" value="0" subtitle="from-secondary to-green-700" icon={UserPlus} />
       </div>
       
       <Tabs defaultValue="all">
@@ -173,9 +208,7 @@ export default function LeadsPage() {
             <CardContent>
                 <TabsContent value="all">
                   {isLoading ? (
-                    <div className="flex justify-center items-center h-64">
-                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                    </div>
+                    <LeadsTableSkeleton />
                   ) : leads.length === 0 ? (
                     <div className="text-center py-12 text-muted-foreground">
                       <p>No leads found.</p>

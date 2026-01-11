@@ -21,25 +21,28 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { Lead } from '@/lib/types';
-import { db } from '@/firebase/config';
-import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
+import { db, auth } from '@/firebase/config';
+import { collection, onSnapshot, query, orderBy, limit, doc, getDoc } from 'firebase/firestore';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { onAuthStateChanged } from 'firebase/auth';
 
 
-const Nav = ({ isCollapsed }: { isCollapsed: boolean }) => {
+const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string | null }) => {
   const pathname = usePathname();
   const navItems = [
-    { href: '/dashboard', icon: Home, label: 'Dashboard' },
-    { href: '/leads', icon: Clock, label: 'Leads' },
-    { href: '/whatsapp', icon: MessageSquare, label: 'WhatsApp' },
-    { href: '/tours', icon: Video, label: 'Virtual Tour' },
-    { href: '/sales', icon: TrendingUp, label: 'Sales' },
+    { href: '/dashboard', icon: Home, label: 'Dashboard', roles: ['admin', 'agent'] },
+    { href: '/leads', icon: Clock, label: 'Leads', roles: ['admin', 'agent'] },
+    { href: '/whatsapp', icon: MessageSquare, label: 'WhatsApp', roles: ['admin', 'agent'] },
+    { href: '/tours', icon: Video, label: 'Virtual Tour', roles: ['admin'] },
+    { href: '/sales', icon: TrendingUp, label: 'Sales', roles: ['admin'] },
   ];
+
+  const visibleNavItems = navItems.filter(item => userRole && item.roles.includes(userRole));
 
   return (
     <TooltipProvider delayDuration={0}>
       <nav className="flex flex-col items-stretch space-y-3 px-4">
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const isActive = (item.href === '/dashboard' && pathname === '/dashboard') || (item.href !== '/dashboard' && pathname.startsWith(item.href));
           return (
             <Tooltip key={item.href}>
@@ -87,12 +90,27 @@ const DashboardPage = () => {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [recentLeads, setRecentLeads] = useState<Lead[]>([]);
   const [leadsLoading, setLeadsLoading] = useState(true);
-
+  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   
   useEffect(() => {
-    setLeadsLoading(true);
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setDisplayName(user.displayName);
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setUserRole(userDoc.data().role);
+        }
+      } else {
+        // Handle user not logged in
+        setDisplayName(null);
+        setUserRole(null);
+      }
+    });
+
     const q = query(collection(db, "leads"), orderBy("timestamp", "desc"), limit(5));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const unsubscribeLeads = onSnapshot(q, (querySnapshot) => {
       const leadsData: Lead[] = [];
       querySnapshot.forEach((doc) => {
         leadsData.push({ id: doc.id, ...doc.data() } as Lead);
@@ -101,7 +119,10 @@ const DashboardPage = () => {
       setLeadsLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAuth();
+      unsubscribeLeads();
+    };
   }, []);
   
   const stats = [
@@ -125,19 +146,26 @@ const DashboardPage = () => {
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         className="flex flex-col justify-center"
       >
-        <Nav isCollapsed={isSidebarCollapsed} />
+        <Nav isCollapsed={isSidebarCollapsed} userRole={userRole} />
       </motion.div>
 
       {/* Main Content */}
       <motion.div layout className="flex-1 flex flex-col pl-6">
-        <div className="flex items-center gap-2.5 font-bold text-lg text-foreground tracking-tighter mb-6">
-          <Button variant="ghost" size="icon" onClick={() => setSidebarCollapsed(!isSidebarCollapsed)} className="h-8 w-8">
-            <PanelLeft className="h-5 w-5" />
-          </Button>
-          <Link href="/dashboard" className="flex items-center gap-2.5">
-            <Building2 className="text-primary" />
-            <span className="font-headline bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">PROPLOOM</span>
-          </Link>
+        <div className="flex items-center justify-between font-bold text-lg text-foreground tracking-tighter mb-6">
+          <div className="flex items-center gap-2.5">
+            <Button variant="ghost" size="icon" onClick={() => setSidebarCollapsed(!isSidebarCollapsed)} className="h-8 w-8">
+              <PanelLeft className="h-5 w-5" />
+            </Button>
+            <Link href="/dashboard" className="flex items-center gap-2.5">
+              <Building2 className="text-primary" />
+              <span className="font-headline bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">PROPLOOM</span>
+            </Link>
+          </div>
+          {displayName && (
+            <div className="text-sm font-medium">
+              Hello, {displayName}
+            </div>
+          )}
         </div>
         
         <div className="flex-1 overflow-y-auto gold-scrollbar pr-6">
