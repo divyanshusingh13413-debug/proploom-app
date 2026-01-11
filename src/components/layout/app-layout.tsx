@@ -24,6 +24,7 @@ import { db, auth } from '@/firebase/config';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { Loader2 } from 'lucide-react';
+import SplashScreen from './splash-screen';
 
 const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string | null }) => {
   const pathname = usePathname();
@@ -92,7 +93,21 @@ export default function AppLayout({ children }: PropsWithChildren) {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
+
+  // Check for splash screen status on mount
+  useEffect(() => {
+    if (sessionStorage.getItem('splashShown')) {
+      setShowSplash(false);
+    }
+  }, []);
+
+  const handleSplashFinish = () => {
+    sessionStorage.setItem('splashShown', 'true');
+    setShowSplash(false);
+  };
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -107,7 +122,8 @@ export default function AppLayout({ children }: PropsWithChildren) {
 
           if (userData.isFirstLogin && pathname !== '/auth/set-password') {
             router.replace('/auth/set-password');
-            return; // Stop further execution until password is set
+            setIsAuthLoading(false); // Stop auth loading here
+            return;
           }
 
           if (userData.role === 'agent') {
@@ -121,19 +137,16 @@ export default function AppLayout({ children }: PropsWithChildren) {
           }
           
         } else {
-          // No user document found, treat as unauthenticated
           router.replace('/');
         }
       } else {
-        // No user is signed in
         sessionStorage.removeItem('adminAuthenticated');
         sessionStorage.removeItem('agentAuthenticated');
-        // Allow access only to auth pages if not authenticated
         if (!pathname.startsWith('/auth') && pathname !== '/') {
             router.replace('/');
         }
       }
-      setIsLoading(false);
+      setIsAuthLoading(false);
     });
 
     return () => unsubscribe();
@@ -145,8 +158,12 @@ export default function AppLayout({ children }: PropsWithChildren) {
     sessionStorage.removeItem('agentAuthenticated');
     router.replace('/');
   }
+  
+  if (showSplash) {
+    return <SplashScreen onFinish={handleSplashFinish} />;
+  }
 
-  if (isLoading) {
+  if (isAuthLoading) {
       return (
           <div className="flex items-center justify-center min-h-screen w-full bg-[#0F1115]">
               <Loader2 className="h-10 w-10 text-primary animate-spin"/>
