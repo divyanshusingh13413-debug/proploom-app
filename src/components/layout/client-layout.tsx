@@ -25,7 +25,6 @@ export default function ClientLayout({ children }: PropsWithChildren) {
   const [showSplash, setShowSplash] = useState(true);
 
   // This effect will only run once on the client, after the component mounts.
-  // It handles the case where a user might navigate away and back.
   useEffect(() => {
     if (sessionStorage.getItem('splashShown')) {
       setShowSplash(false);
