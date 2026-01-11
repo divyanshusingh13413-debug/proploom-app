@@ -94,47 +94,29 @@ export default function AppLayout({ children }: PropsWithChildren) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setDisplayName(userData.displayName);
-          setUserRole(userData.role);
-          
-          const adminPages = ['/tours', '/sales', '/agents'];
-          if (userData.role === 'agent' && adminPages.includes(pathname)) {
+    const adminAuthenticated = sessionStorage.getItem('adminAuthenticated') === 'true';
+    const agentAuthenticated = sessionStorage.getItem('agentAuthenticated') === 'true';
+
+    if (adminAuthenticated) {
+        setUserRole('admin');
+        setDisplayName('Admin'); // Placeholder, can be fetched if needed
+        setIsLoading(false);
+    } else if (agentAuthenticated) {
+        setUserRole('agent');
+        setDisplayName('Agent'); // Placeholder for agent
+        const adminPages = ['/tours', '/sales', '/agents'];
+        if (adminPages.includes(pathname)) {
             router.replace('/leads');
-          }
-
-        } else {
-           // User exists in Auth but not in Firestore, sign out
-           await signOut(auth);
-           router.replace('/');
         }
-      } else {
-        const agentAuthenticated = sessionStorage.getItem('agentAuthenticated') === 'true';
-        if (!agentAuthenticated) {
-            router.replace('/');
-        } else {
-            setUserRole('agent');
-            setDisplayName('Agent'); // Generic name for agent
-        }
-      }
-      setIsLoading(false);
-    });
-
-    return () => unsubscribeAuth();
+        setIsLoading(false);
+    } else {
+        router.replace('/');
+    }
   }, [pathname, router]);
 
   const handleLogout = async () => {
-    const agentAuthenticated = sessionStorage.getItem('agentAuthenticated') === 'true';
-    if(agentAuthenticated) {
-        sessionStorage.removeItem('agentAuthenticated');
-    } else {
-        await signOut(auth);
-    }
+    sessionStorage.removeItem('adminAuthenticated');
+    sessionStorage.removeItem('agentAuthenticated');
     router.replace('/');
   }
 
