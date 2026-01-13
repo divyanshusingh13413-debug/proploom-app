@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { updatePassword } from 'firebase/auth';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/firebase/config';
 import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
@@ -53,8 +53,8 @@ export default function SetPasswordPage() {
             toast({ title: 'Password Updated Successfully', description: 'You will now be redirected.' });
 
             // Step 3: Redirect to the appropriate dashboard
-            const userDoc = (await doc(db, 'users', user.uid).get()).data();
-            const role = userDoc?.role;
+            const userDocSnap = await getDoc(userDocRef);
+            const role = userDocSnap.exists() ? userDocSnap.data()?.role : 'agent'; // Default to agent if role not found
 
             router.replace(role === 'admin' ? '/dashboard' : '/leads');
 
@@ -122,4 +122,3 @@ export default function SetPasswordPage() {
         </div>
     );
 }
-

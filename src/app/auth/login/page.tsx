@@ -37,27 +37,31 @@ function LoginForm() {
 
       // 2. Database check (Agar error aaye toh skip kar do)
       let userRole = intendedRole || 'admin';
-      try {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          userRole = userData.role;
+      let displayName = 'User';
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
 
-           // Check if it's the user's first login
-          if (userData.isFirstLogin) {
-              toast({ title: 'Welcome!', description: 'Please set your new password to continue.' });
-              router.push('/auth/set-password');
-              return; // Stop execution to redirect
-          }
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        userRole = userData.role;
+        displayName = userData.displayName;
+
+         // Check if it's the user's first login
+        if (userData.isFirstLogin) {
+            toast({ title: 'Welcome!', description: 'Please set your new password to continue.' });
+            router.push('/auth/set-password');
+            return; // Stop execution to redirect
         }
-      } catch (dbError) {
-        console.log("Database check skipped, using default role.");
+      } else {
+        // This case should ideally not happen if user creation is handled correctly.
+        // But as a fallback, we can deny login.
+        throw new Error('User data not found in database.');
       }
 
       // 3. Session set karein
       sessionStorage.setItem('userRole', userRole);
       sessionStorage.setItem('userId', user.uid);
+      sessionStorage.setItem('displayName', displayName);
       
       toast({ title: 'Login Successful', description: `Redirecting as ${userRole}...` });
 
@@ -67,11 +71,18 @@ function LoginForm() {
       router.push(redirectPath);
 
     } catch (error: any) {
-      console.error("Login Error:", error.code);
+      console.error("Login Error:", error.message);
+      let description = "An unexpected error occurred. Please try again.";
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
+        description = "Invalid credentials. Please check your email and password.";
+      } else if (error.message.includes('User data not found')) {
+        description = "Your user profile is not configured correctly. Please contact support.";
+      }
+      
       toast({ 
         variant: 'destructive', 
         title: 'Login Failed', 
-        description: "Invalid credentials. Please try again." 
+        description: description
       });
     } finally {
       setIsLoading(false);
