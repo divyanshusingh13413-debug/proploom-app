@@ -14,6 +14,16 @@ import { useToast } from '@/components/ui/use-toast';
 import type { User } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { createUser } from '@/ai/flows/create-user';
+
+function generateTemporaryPassword(length = 12) {
+  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    password += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
+  return password;
+}
 
 export default function ManageAgentsPage() {
   const { toast } = useToast();
@@ -60,30 +70,30 @@ export default function ManageAgentsPage() {
     setIsSaving(true);
     
     try {
-      // Note: This only creates the user document in Firestore.
-      // You still need to create an actual Firebase Auth user.
-      const userRef = collection(db, 'users');
-      await addDoc(userRef, {
-        displayName: newAgentName,
+      // Generate a temporary password for the new user.
+      // They will be forced to change it on first login.
+      const tempPassword = generateTemporaryPassword();
+
+      const result = await createUser({
         email: newAgentEmail,
+        password: tempPassword,
+        displayName: newAgentName,
         role: 'agent',
-        isFirstLogin: true,
-        createdAt: new Date(),
       });
 
       toast({
         title: "Agent Added",
-        description: `${newAgentName} has been added to the system.`,
+        description: `${result.message}. The agent will need to set a new password on first login.`,
       });
       setNewAgentName('');
       setNewAgentEmail('');
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding agent:", error);
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
-        description: "Could not add the agent. Please try again.",
+        description: error.message || "Could not add the agent. Please try again.",
       });
     } finally {
       setIsSaving(false);
@@ -95,6 +105,8 @@ export default function ManageAgentsPage() {
       return;
     }
     try {
+      // Note: This only deletes the Firestore record.
+      // For a full solution, you'd need a backend function to delete the Auth user too.
       await deleteDoc(doc(db, 'users', agentId));
       toast({
         title: "Agent Deleted",
@@ -131,7 +143,7 @@ export default function ManageAgentsPage() {
                 <UserPlus className="h-6 w-6 text-primary"/>
                 <CardTitle className="text-xl font-bold tracking-tight">Add New Agent</CardTitle>
               </div>
-              <CardDescription>Enter details to add a new agent.</CardDescription>
+              <CardDescription>Enter details to create an agent profile and login.</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleAddAgent} className="space-y-6">
