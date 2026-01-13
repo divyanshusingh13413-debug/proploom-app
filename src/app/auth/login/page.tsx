@@ -1,24 +1,24 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/firebase/config';
 import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { doc, getDoc } from 'firebase/firestore';
+import { motion } from 'framer-motion';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   
-  const intendedRole = searchParams.get('role');
+  const intendedRole = searchParams.get('role') || 'admin';
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,56 +28,53 @@ export default function LoginPage() {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    console.log('Login started...');
-
-    if (!email || !password) {
-        toast({ variant: 'destructive', title: 'Missing fields', description: 'Please enter both email and password.' });
-        setIsLoading(false);
-        return;
-    }
 
     try {
+      // Step 1: Sign in with Firebase Auth
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      // Step 2: Fetch user document from Firestore to get role and other details
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
 
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        const userRole = userData.role;
-        console.log('User role is:', userRole);
-
-        if (userRole === intendedRole) {
-          sessionStorage.setItem('userRole', userData.role);
-          sessionStorage.setItem('displayName', userData.displayName);
-          sessionStorage.setItem('userId', user.uid);
-          
-          toast({ title: 'Login Successful', description: `Welcome to the ${intendedRole} portal.` });
-          
-          if (userData.isFirstLogin) {
-              router.push('/auth/set-password');
-          } else {
-              router.push(intendedRole === 'admin' ? '/dashboard' : '/leads');
-          }
-        } else {
-          await auth.signOut();
-          toast({ variant: 'destructive', title: 'Access Denied', description: 'You do not have access to this portal.' });
-        }
-      } else {
-        // This case handles when a user exists in Firebase Auth but not in your 'users' collection.
-        await auth.signOut();
-        toast({ variant: 'destructive', title: 'Login Failed', description: 'User data not found. Please contact support.' });
+      if (!userDoc.exists()) {
+        throw new Error("User data not found in Firestore.");
       }
+      
+      const userData = userDoc.data();
+      const userRole = userData.role;
+      
+      // Step 3: Check if the user's role matches the portal they are trying to log into
+      if (userRole !== intendedRole) {
+          throw new Error(`You are not authorized to access the ${intendedRole} portal.`);
+      }
+
+      // Step 4: Check if it's the user's first login
+      if (userData.isFirstLogin) {
+          toast({ title: 'Welcome!', description: 'Please set your new password to continue.' });
+          router.push('/auth/set-password');
+          return; // Stop execution to redirect to set-password page
+      }
+
+      // Step 5: Save session info and redirect to the appropriate dashboard
+      sessionStorage.setItem('userRole', userRole);
+      sessionStorage.setItem('userId', user.uid);
+      sessionStorage.setItem('displayName', userData.displayName || 'User');
+      
+      toast({ title: 'Login Successful', description: `Welcome back to the ${userRole} portal.` });
+      
+      router.push(userRole === 'admin' ? '/dashboard' : '/leads');
 
     } catch (error: any) {
-      console.error("Login Error:", error.code);
+      console.error("Login Error:", error);
       let description = "An unexpected error occurred. Please try again.";
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-        description = 'Incorrect email or password. Please try again.';
-      } else if (error.code === 'auth/network-request-failed') {
-        description = 'Network error. Please check your connection.';
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        description = "Invalid email or password. Please check your credentials and try again.";
+      } else if (error.message.includes("not authorized")) {
+        description = error.message;
       }
+      
       toast({
         variant: 'destructive',
         title: 'Login Failed',
@@ -88,73 +85,72 @@ export default function LoginPage() {
     }
   };
 
-  const modalBackdropVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1 },
-  };
-
-  const modalContentVariants = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 300, damping: 25 } },
-  };
-
-  if (!intendedRole) {
-      // Redirect if no role is specified, protects against direct access
-      router.replace('/');
-      return null;
-  }
-
   return (
     <div className="flex items-center justify-center min-h-screen w-full bg-[#0F1115] text-white p-4">
-       <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Portal Selection
-        </Link>
+      <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="w-4 h-4" />
+        Back to Portal Selection
+      </Link>
       <motion.div 
-        variants={modalBackdropVariants} 
-        initial="hidden" 
-        animate="visible" 
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        className="w-full max-w-sm p-8 bg-[#1a1a1a] border border-primary/20 rounded-2xl shadow-2xl"
       >
-        <motion.div 
-          variants={modalContentVariants} 
-          className="w-full max-w-sm p-8 bg-[#1a1a1a] border border-primary/20 rounded-2xl shadow-2xl"
-        >
-          <h2 className="text-2xl font-bold text-center mb-2 capitalize">{intendedRole} Portal Login</h2>
-          <p className="text-muted-foreground text-center mb-8">Enter your credentials to continue.</p>
+        <h2 className="text-2xl font-bold text-center mb-2 capitalize">{intendedRole} Portal Login</h2>
+        <p className="text-muted-foreground text-center mb-8">Enter your credentials to continue.</p>
+        
+        <form onSubmit={handleLoginSubmit} className="space-y-4">
+          <Input 
+            type="email" 
+            placeholder="Email" 
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)} 
+            required 
+            autoFocus
+            className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary transition-all duration-300 h-12"
+             />
           
-          <form onSubmit={handleLoginSubmit} className="space-y-4">
+          <div className="relative">
             <Input 
-              type="email" 
-              placeholder="Email" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
+              type={showPassword ? 'text' : 'password'} 
+              placeholder="Password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
               required 
-              autoFocus 
-              className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary transition-all duration-300 h-12" />
-            <div className="relative">
-              <Input 
-                type={showPassword ? 'text' : 'password'} 
-                placeholder="Password" 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
-                required 
-                className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary transition-all duration-300 pr-10 h-12" />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground">
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-            <div className="text-right">
-              <Link href="/auth/forgot-password" className="text-xs text-primary/80 hover:text-primary hover:underline">
-                Forgot Password?
+              className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary transition-all duration-300 h-12 pr-10" />
+            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground">
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+
+          <div className="text-right">
+              <Link href="/auth/forgot-password"
+                 className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Forgot Password?
               </Link>
-            </div>
-            <Button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold text-base h-12">
-              {isLoading ? <Loader2 className="animate-spin" /> : 'Continue'}
-            </Button>
-          </form>
-        </motion.div>
+          </div>
+
+          <Button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold text-base h-12">
+            {isLoading ? <Loader2 className="animate-spin" /> : 'Continue'}
+          </Button>
+        </form>
       </motion.div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <div className="flex items-center gap-2">
+            <Loader2 className="animate-spin text-primary"/>
+            <span className="font-mono">Loading Secure Portal...</span>
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
