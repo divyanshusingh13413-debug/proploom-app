@@ -243,7 +243,7 @@ export default function LeadsPage() {
 
   const handleWhatsAppChat = (e: React.MouseEvent, phone: string, name: string) => {
     e.stopPropagation(); // Prevent row click
-    const message = `Hi ${name}, I am calling from Proploom. Are you still interested in the property?`;
+    const message = `Hi ${name}, this is from Proploom regarding your interest in our properties. When would be a good time to connect?`;
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');

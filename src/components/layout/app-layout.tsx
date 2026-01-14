@@ -12,7 +12,8 @@ import {
   MessageSquare,
   Users2,
   PanelLeft,
-  LogOut
+  LogOut,
+  BrainCircuit
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -32,6 +33,7 @@ const navItems = [
   { href: '/leads', icon: Users, label: 'Leads', roles: ['admin', 'agent'] },
   { href: '/sales', icon: TrendingUp, label: 'Sales Pipeline', roles: ['admin'] },
   { href: '/tours', icon: Video, label: 'Virtual Tours', roles: ['admin'] },
+  { href: '/analytics', icon: BrainCircuit, label: 'AI Analytics', roles: ['admin'] },
   { href: '/agents', icon: Users2, label: 'Manage Agents', roles: ['admin'] },
   { href: '/whatsapp', icon: MessageSquare, label: 'WhatsApp', roles: ['admin', 'agent'] },
 ];
@@ -184,7 +186,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
   }
 
   const visibleNavItems = navItems.filter(item => userRole && item.roles.includes(userRole));
-  const pageTitle = navItems.find(item => pathname.startsWith(item.href))?.label || 'Proploom';
+  const pageTitle = visibleNavItems.find(item => pathname.startsWith(item.href))?.label || 'Proploom';
 
   return (
     <div className="relative flex min-h-screen items-center justify-center p-4 bg-background">
