@@ -35,16 +35,14 @@ function LoginForm() {
       const user = userCredential.user;
       console.log('Auth Success for:', user.uid);
 
-      // 2. Database check (Agar error aaye toh skip kar do)
-      let userRole = intendedRole || 'admin';
-      let displayName = 'User';
+      // 2. Database check
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
 
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        userRole = userData.role;
-        displayName = userData.displayName;
+        const userRole = userData.role;
+        const displayName = userData.displayName;
 
          // Check if it's the user's first login
         if (userData.isFirstLogin) {
@@ -52,23 +50,22 @@ function LoginForm() {
             router.push('/auth/set-password');
             return; // Stop execution to redirect
         }
+
+        // 3. Session set karein
+        sessionStorage.setItem('userRole', userRole);
+        sessionStorage.setItem('userId', user.uid);
+        sessionStorage.setItem('displayName', displayName);
+        
+        toast({ title: 'Login Successful', description: `Redirecting as ${userRole}...` });
+
+        // 4. Sabse important: Redirect logic
+        const redirectPath = userRole === 'admin' ? '/dashboard' : '/leads';
+        router.push(redirectPath);
+
       } else {
         // This case should ideally not happen if user creation is handled correctly.
-        // But as a fallback, we can deny login.
         throw new Error('User data not found in database.');
       }
-
-      // 3. Session set karein
-      sessionStorage.setItem('userRole', userRole);
-      sessionStorage.setItem('userId', user.uid);
-      sessionStorage.setItem('displayName', displayName);
-      
-      toast({ title: 'Login Successful', description: `Redirecting as ${userRole}...` });
-
-      // 4. Sabse important: Redirect logic
-      // Agar role agent hai toh /leads, agar admin hai toh /dashboard
-      const redirectPath = userRole === 'admin' ? '/dashboard' : '/leads';
-      router.push(redirectPath);
 
     } catch (error: any) {
       console.error("Login Error:", error.message);

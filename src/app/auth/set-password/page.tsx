@@ -54,7 +54,13 @@ export default function SetPasswordPage() {
 
             // Step 3: Redirect to the appropriate dashboard
             const userDocSnap = await getDoc(userDocRef);
-            const role = userDocSnap.exists() ? userDocSnap.data()?.role : 'agent'; // Default to agent if role not found
+            const userData = userDocSnap.data();
+            const role = userData?.role || 'agent'; // Default to agent
+            const displayName = userData?.displayName || 'User';
+
+            // Also update session storage
+            sessionStorage.setItem('userRole', role);
+            sessionStorage.setItem('displayName', displayName);
 
             router.replace(role === 'admin' ? '/dashboard' : '/leads');
 
