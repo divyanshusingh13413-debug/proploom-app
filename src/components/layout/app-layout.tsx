@@ -131,14 +131,14 @@ export default function AppLayout({ children }: PropsWithChildren) {
           }
 
           // Role-based route protection
-          const adminOnlyPages = ['/dashboard', '/agents', '/tours', '/sales'];
-          if (role === 'agent' && adminOnlyPages.some(p => pathname.startsWith(p))) {
+          const currentItem = navItems.find(item => pathname.startsWith(item.href));
+          if (currentItem && !currentItem.roles.includes(role)) {
             toast({
               variant: "destructive",
               title: "Access Denied",
               description: "You do not have permission to view this page.",
             });
-            router.replace('/leads');
+            router.replace(role === 'admin' ? '/dashboard' : '/leads');
           }
         } else {
           // User exists in Auth but not in Firestore, critical error.
@@ -183,6 +183,9 @@ export default function AppLayout({ children }: PropsWithChildren) {
     return name.substring(0, 2);
   }
 
+  const visibleNavItems = navItems.filter(item => userRole && item.roles.includes(userRole));
+  const pageTitle = navItems.find(item => pathname.startsWith(item.href))?.label || 'Proploom';
+
   return (
     <div className="relative flex min-h-screen items-center justify-center p-4 bg-background">
         <div className="content-glow w-full h-[calc(100vh-2rem)]">
@@ -224,7 +227,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
                   <header className="flex items-center justify-between font-bold text-lg text-foreground tracking-tighter mb-4">
                     <div className="flex items-center gap-2.5">
                        <h1 className="text-2xl font-bold tracking-tight">
-                        {navItems.find(item => pathname.startsWith(item.href))?.label || 'Proploom'}
+                        {pageTitle}
                        </h1>
                     </div>
                     <div className="flex items-center gap-4">
