@@ -1,20 +1,17 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
+import { db } from '@/firebase/config';
+import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { DollarSign, TrendingUp, Cpu, Activity, Users, LineChart } from 'lucide-react';
+import { DollarSign, TrendingUp, Cpu, Activity, Users, LineChart, Loader2, BarChart2 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-
-const leadScoreData = [
-  { name: 'Aarav Sharma', property: 'The Imperial', score: 92, status: 'High Probability' },
-  { name: 'Diya Patel', property: 'Greenwood Heights', score: 78, status: 'Warm' },
-  { name: 'Rohan Mehta', property: 'Oceanic View', score: 65, status: 'Warm' },
-  { name: 'Isha Verma', property: 'Skyline Towers', score: 45, status: 'Cold' },
-  { name: 'Vikram Singh', property: 'Azure Bay', score: 95, status: 'High Probability' },
-];
+import type { Lead } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const monthlySalesData = [
   { month: 'Jan', sales: 65000 },
@@ -26,13 +23,46 @@ const monthlySalesData = [
 ];
 
 const statusStyles: { [key: string]: string } = {
-  'High Probability': 'bg-green-500/20 text-green-400 border-green-500/30',
-  'Warm': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  'Cold': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  'New': 'bg-green-500/20 text-green-400 border-green-500/30',
+  'Follow-up Due': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  'Meeting Today': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  'Contacted': 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+  'Closed': 'bg-gray-500/20 text-gray-400 border-gray-500/30',
 };
 
 
 export default function AnalyticsPage() {
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, "leads"), orderBy("timestamp", "desc"), limit(5));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const leadsData: Lead[] = [];
+      querySnapshot.forEach((doc) => {
+        leadsData.push({ id: doc.id, ...doc.data() } as Lead);
+      });
+      setLeads(leadsData);
+      setIsLoading(false);
+    }, (error) => {
+      console.error("Error fetching leads:", error);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const getLeadStatusForScoring = (lead: Lead) => {
+    if (lead.aiScore && lead.aiScore >= 90) return { text: 'High Probability', style: 'bg-green-500/20 text-green-400 border-green-500/30' };
+    if (lead.aiScore && lead.aiScore >= 70) return { text: 'Warm', style: 'bg-orange-500/20 text-orange-400 border-orange-500/30' };
+    if (lead.status === 'New') return { text: 'New', style: 'bg-blue-500/20 text-blue-400 border-blue-500/30' };
+    return { text: 'Cold', style: 'bg-gray-500/20 text-gray-400 border-gray-500/30' };
+  }
+  
+  const totalLeads = leads.length;
+  const hotLeads = leads.filter(l => (l.aiScore || 0) >= 70).length;
+  const conversionRate = totalLeads > 0 ? Math.round((hotLeads / totalLeads) * 100) : 0;
+
   return (
     <div className="w-full space-y-8">
       <div className="space-y-2">
@@ -51,9 +81,9 @@ export default function AnalyticsPage() {
             <DollarSign className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$4.8M</div>
+            {isLoading ? <Skeleton className="h-8 w-24 mt-1" /> : <div className="text-2xl font-bold">$0</div>}
             <p className="text-xs text-muted-foreground">
-              +15% from last month's forecast
+              Real-time data pending
             </p>
           </CardContent>
         </Card>
@@ -63,7 +93,7 @@ export default function AnalyticsPage() {
             <TrendingUp className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">85%</div>
+            {isLoading ? <Skeleton className="h-8 w-16 mt-1" /> : <div className="text-2xl font-bold">{conversionRate}%</div>}
             <p className="text-xs text-muted-foreground">
               Based on AI scoring model
             </p>
@@ -75,7 +105,7 @@ export default function AnalyticsPage() {
             <LineChart className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Bullish</div>
+             <div className="text-2xl font-bold">Bullish</div>
             <p className="text-xs text-muted-foreground">
               Positive trends detected in your area
             </p>
@@ -87,42 +117,58 @@ export default function AnalyticsPage() {
         <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle>AI-Powered Lead Scoring</CardTitle>
-            <CardDescription>Leads ranked by their conversion probability.</CardDescription>
+            <CardDescription>Latest leads ranked by their conversion probability.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Client</TableHead>
-                  <TableHead>AI Score</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Property Interest</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {leadScoreData.map((lead) => (
-                  <TableRow key={lead.name}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9">
-                          <AvatarFallback className="bg-muted text-muted-foreground font-semibold">
-                            {lead.name.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="font-medium">{lead.name}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-bold text-lg text-foreground">{lead.score}</TableCell>
-                    <TableCell>
-                      <Badge className={statusStyles[lead.status] || ''}>
-                        {lead.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground">{lead.property}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            {isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                </div>
+            ) : leads.length > 0 ? (
+                 <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Client</TableHead>
+                      <TableHead>AI Score</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Property Interest</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {leads.map((lead) => {
+                      const leadStatus = getLeadStatusForScoring(lead);
+                      return (
+                      <TableRow key={lead.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-9 w-9">
+                              <AvatarFallback className="bg-muted text-muted-foreground font-semibold">
+                                {lead.name.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="font-medium">{lead.name}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-bold text-lg text-foreground">{lead.aiScore || 'N/A'}</TableCell>
+                        <TableCell>
+                          <Badge className={leadStatus.style}>
+                            {leadStatus.text}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right text-muted-foreground">{lead.propertyName}</TableCell>
+                      </TableRow>
+                    )})}
+                  </TableBody>
+                </Table>
+            ) : (
+                <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-full py-16 border-2 border-dashed rounded-lg">
+                    <Users className="h-12 w-12 mb-4 text-muted-foreground/50"/>
+                    <p className="font-medium">No Real-time Data Available</p>
+                    <p className="text-sm">Add new leads to see analytics here.</p>
+                </div>
+            )}
           </CardContent>
         </Card>
 
@@ -132,22 +178,28 @@ export default function AnalyticsPage() {
             <CardDescription>AI forecast vs. actual sales.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlySalesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
-                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value/1000}k`}/>
-                <Tooltip
-                  cursor={{ fill: 'hsl(var(--accent))', opacity: 0.5 }}
-                  contentStyle={{
-                    background: 'hsl(var(--background))',
-                    borderColor: 'hsl(var(--border))',
-                    borderRadius: 'var(--radius)',
-                  }}
-                />
-                <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {isLoading ? (
+                <div className="flex items-center justify-center h-[300px]">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+            ) : (
+                 <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={monthlySalesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
+                    <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value/1000}k`}/>
+                    <Tooltip
+                      cursor={{ fill: 'hsl(var(--accent))', opacity: 0.5 }}
+                      contentStyle={{
+                        background: 'hsl(var(--background))',
+                        borderColor: 'hsl(var(--border))',
+                        borderRadius: 'var(--radius)',
+                      }}
+                    />
+                    <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
       </div>
