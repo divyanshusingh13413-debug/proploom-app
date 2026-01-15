@@ -80,24 +80,28 @@ export default function WhatsappPage() {
 
   const handleCreateLead = async (name: string, phone: string, property: string) => {
     try {
-        const newLead: Omit<Lead, 'id' | 'lastContact' | 'aiScore'> = {
+        const newLeadData: Omit<Lead, 'id' | 'lastContact' | 'aiScore'> = {
             name,
             phone,
             propertyName: property,
             source: 'WhatsApp',
             status: 'New',
             agentId: userRole === 'agent' && userId ? userId : 'unassigned', // Assign to self if agent
-            assignedAgentId: userRole === 'agent' && userId ? userId : undefined,
-            assignedAgentName: userRole === 'agent' ? sessionStorage.getItem('displayName') || undefined : undefined,
             budget: 0,
             email: `${name.replace(/\s+/g, '.').toLowerCase()}@example.com`,
             timestamp: serverTimestamp(),
         };
-      const docRef = await addDoc(collection(db, 'leads'), newLead);
+
+        if (userRole === 'agent' && userId) {
+            newLeadData.assignedAgentId = userId;
+            newLeadData.assignedAgentName = sessionStorage.getItem('displayName') || undefined;
+        }
+
+      const docRef = await addDoc(collection(db, 'leads'), newLeadData);
 
       const createdLead = { 
         id: docRef.id, 
-        ...newLead, 
+        ...newLeadData, 
         lastContact: new Date().toLocaleDateString(),
         timestamp: undefined // temp placeholder
       } as Lead;
@@ -272,5 +276,3 @@ export default function WhatsappPage() {
     </div>
   );
 }
-
-    
