@@ -218,7 +218,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
                         <Tooltip>
                           <TooltipTrigger asChild>
                              <Button variant="ghost" onClick={handleLogout} className={cn('w-full flex justify-start h-10', isSidebarCollapsed && 'justify-center')}>
-                                <LogOut className={cn('h-5 w-5 shrink-0', !isCollapsed && 'mr-3')}/>
+                                <LogOut className={cn('h-5 w-5 shrink-0', !isSidebarCollapsed && 'mr-3')}/>
                                 {!isSidebarCollapsed && 'Logout'}
                              </Button>
                           </TooltipTrigger>
