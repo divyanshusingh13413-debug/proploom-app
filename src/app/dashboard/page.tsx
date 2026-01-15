@@ -48,10 +48,13 @@ const DashboardPage = () => {
     { label: 'Virtual Tours', value: '45', growth: '+25%', icon: Video },
   ];
 
-  const handleWhatsAppChat = (phone: string, name: string) => {
-    const message = `Hi ${name}, I am calling from Proploom. Are you still interested in the property?`;
+  const handleWhatsAppChat = (phone: string, name?: string) => {
+    const message = name
+      ? `Hi ${name}, I am calling from Proploom. Are you still interested in the property?`
+      : 'Hello, I am interested in your property listing.';
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodedMessage}`;
+    const cleanedPhone = phone.replace(/[\s+-]/g, '');
+    const whatsappUrl = `https://wa.me/${cleanedPhone}?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
   };
 

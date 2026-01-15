@@ -182,11 +182,14 @@ export default function LeadsPage() {
     }).length;
   };
 
-  const handleWhatsAppChat = (e: React.MouseEvent, phone: string, name: string) => {
+  const handleWhatsAppChat = (e: React.MouseEvent, phone: string, name?: string) => {
     e.stopPropagation(); // Prevent row click
-    const message = `Hi ${name}, this is from Proploom regarding your interest in our properties. When would be a good time to connect?`;
+    const message = name
+      ? `Hi ${name}, this is from Proploom regarding your interest in our properties. When would be a good time to connect?`
+      : 'Hello, I am interested in your property listing.';
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodedMessage}`;
+    const cleanedPhone = phone.replace(/[\s+-]/g, '');
+    const whatsappUrl = `https://wa.me/${cleanedPhone}?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
   };
 
