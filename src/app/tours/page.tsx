@@ -2,151 +2,160 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Plus, Trash2, Video } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { MapPin, CheckCircle, Navigation } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-export default function VirtualTourPage() {
-  const [tours, setTours] = useState<{ name: string, location: string, image: string }[]>([]);
-  const [newTourName, setNewTourName] = useState('');
-  const [newTourLocation, setNewTourLocation] = useState('');
-  const [newTourImage, setNewTourImage] = useState<File | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+const upcomingVisitsData = [
+  {
+    id: 1,
+    agentName: 'Raj Patel',
+    agentInitial: 'RP',
+    clientName: 'Aarav Sharma',
+    property: 'The Imperial, Mumbai',
+    status: 'En Route',
+    statusColor: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  },
+  {
+    id: 2,
+    agentName: 'Priya Sharma',
+    agentInitial: 'PS',
+    clientName: 'Diya Patel',
+    property: 'Greenwood Heights, Delhi',
+    status: 'Arrived',
+    statusColor: 'bg-green-500/20 text-green-400 border-green-500/30',
+  },
+  {
+    id: 3,
+    agentName: 'Amit Singh',
+    agentInitial: 'AS',
+    clientName: 'Rohan Mehta',
+    property: 'Oceanic View, Goa',
+    status: 'Starting Soon',
+    statusColor: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  },
+   {
+    id: 4,
+    agentName: 'Raj Patel',
+    agentInitial: 'RP',
+    clientName: 'Isha Verma',
+    property: 'Skyline Towers, Bangalore',
+    status: 'Delayed',
+    statusColor: 'bg-red-500/20 text-red-400 border-red-500/30',
+  },
+];
 
-  const handleCreateTour = () => {
-    if (newTourName && newTourLocation && newTourImage) {
-      const newTour = {
-        name: newTourName,
-        location: newTourLocation,
-        image: URL.createObjectURL(newTourImage),
-      };
-      setTours([...tours, newTour]);
-      // Reset form
-      setNewTourName('');
-      setNewTourLocation('');
-      setNewTourImage(null);
-      setDialogOpen(false);
-    }
-  };
+export default function SiteVisitPage() {
+  const [verifiedVisits, setVerifiedVisits] = useState<number[]>([]);
 
-  const handleRemoveTour = (indexToRemove: number) => {
-    setTours(tours.filter((_, index) => index !== indexToRemove));
+  const handleVerifyVisit = (visitId: number) => {
+    setVerifiedVisits(prev => 
+      prev.includes(visitId) ? prev.filter(id => id !== visitId) : [...prev, visitId]
+    );
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="space-y-2">
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          Site Visits & Virtual Tours
+          Site Visit Tracker
         </h1>
         <p className="text-muted-foreground max-w-2xl">
-          Manage and showcase your 360° virtual property tours. This page is currently a placeholder.
+          Monitor your agents' site visits in real-time and verify their completion.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <button className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed rounded-xl border-muted-foreground/50 text-muted-foreground hover:border-primary hover:text-primary transition-colors bg-card-foreground/5">
-              <Plus className="w-12 h-12 mb-2" />
-              <span className="font-medium">Add New Tour</span>
-            </button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Create New Virtual Tour</DialogTitle>
-              <DialogDescription>
-                Upload a panorama image and provide details for your new tour.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="tour-name" className="text-right">
-                  Name
-                </Label>
-                <Input
-                  id="tour-name"
-                  value={newTourName}
-                  onChange={(e) => setNewTourName(e.target.value)}
-                  className="col-span-3"
-                  placeholder="e.g., 'The Imperial Penthouse'"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="tour-location" className="text-right">
-                  Location
-                </Label>
-                <Input
-                  id="tour-location"
-                  value={newTourLocation}
-                  onChange={(e) => setNewTourLocation(e.target.value)}
-                  className="col-span-3"
-                  placeholder="e.g., 'Mumbai, India'"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="tour-image" className="text-right">
-                  Image
-                </Label>
-                <Input
-                  id="tour-image"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => e.target.files && setNewTourImage(e.target.files[0])}
-                  className="col-span-3"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleCreateTour}>Create Tour</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {tours.map((tour, index) => (
-          <Card key={index} className="overflow-hidden group relative transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1">
-             <Button
-                variant="destructive"
-                size="icon"
-                className="absolute top-2 right-2 z-10 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => handleRemoveTour(index)}
-              >
-                <Trash2 className="h-4 w-4" />
-                <span className="sr-only">Remove tour</span>
-              </Button>
-             <div className="overflow-hidden aspect-video relative">
-                <Image
-                    src={tour.image}
-                    alt={`Virtual tour of ${tour.name}`}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-             </div>
-             <CardHeader>
-                <CardTitle className="text-base">{tour.name}</CardTitle>
-                <p className="text-sm text-muted-foreground">{tour.location}</p>
-             </CardHeader>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Upcoming Site Visits List */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Upcoming Site Visits</CardTitle>
+              <CardDescription>A summary of scheduled client visits for today.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Agent</TableHead>
+                    <TableHead>Client & Property</TableHead>
+                    <TableHead>GPS Status</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {upcomingVisitsData.map((visit) => {
+                    const isVerified = verifiedVisits.includes(visit.id);
+                    return (
+                      <TableRow key={visit.id} className="hover:bg-muted/50">
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-9 w-9">
+                              <AvatarFallback className="bg-muted text-muted-foreground font-semibold">
+                                {visit.agentInitial}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium">{visit.agentName}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium text-foreground">{visit.clientName}</div>
+                          <div className="text-sm text-muted-foreground">{visit.property}</div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={cn("whitespace-nowrap", visit.statusColor)}>{visit.status}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant={isVerified ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => handleVerifyVisit(visit.id)}
+                            className={cn(
+                                "transition-all w-[120px]",
+                                isVerified && 'bg-green-600 hover:bg-green-700 text-white'
+                            )}
+                          >
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            {isVerified ? 'Verified' : 'Verify Visit'}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
           </Card>
-        ))}
-         {tours.length === 0 && (
-             <div className="col-span-full flex flex-col items-center justify-center text-center text-muted-foreground h-full py-16 border-2 border-dashed rounded-lg">
-                <Video className="h-12 w-12 mb-4 text-muted-foreground/50"/>
-                <p className="font-medium">No Virtual Tours</p>
-                <p className="text-sm">Click 'Add New Tour' to upload your first one.</p>
-            </div>
-         )}
+        </div>
+
+        {/* Map Placeholder */}
+        <div className="lg:col-span-1">
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>Today's Visit Locations</CardTitle>
+              <CardDescription>Live map of agent locations.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="aspect-square w-full bg-muted rounded-lg flex items-center justify-center relative overflow-hidden border border-border">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/black-felt.png')] opacity-50"></div>
+                 <div className="absolute inset-0 bg-gradient-to-br from-background via-transparent to-background"></div>
+                <div className="text-center z-10 p-4">
+                    <MapPin className="h-16 w-16 text-primary mx-auto mb-4" />
+                    <p className="font-bold text-lg text-foreground">Map View Unavailable</p>
+                    <p className="text-sm text-muted-foreground">GPS integration is pending.</p>
+                </div>
+                {/* Mock pins */}
+                <Navigation className="h-6 w-6 text-blue-400 absolute top-[20%] left-[30%] -rotate-45" />
+                <Navigation className="h-6 w-6 text-green-400 absolute bottom-[30%] right-[25%]" />
+                 <Navigation className="h-6 w-6 text-yellow-400 absolute top-[40%] right-[15%] rotate-90" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
