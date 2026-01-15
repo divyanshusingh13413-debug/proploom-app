@@ -31,11 +31,11 @@ import { Avatar, AvatarFallback } from '../ui/avatar';
 const navItems = [
   { href: '/dashboard', icon: Home, label: 'Dashboard', roles: ['admin'] },
   { href: '/leads', icon: Users, label: 'Leads', roles: ['admin', 'agent'] },
+  { href: '/sales', icon: TrendingUp, label: 'Sales Pipeline', roles: ['admin'] },
   { href: '/tours', icon: Video, label: 'Virtual Tours', roles: ['admin'] },
   { href: '/analytics', icon: BrainCircuit, label: 'AI Analytics', roles: ['admin'] },
   { href: '/agents', icon: Users2, label: 'Manage Agents', roles: ['admin'] },
   { href: '/whatsapp', icon: MessageSquare, label: 'WhatsApp', roles: ['admin', 'agent'] },
-  { href: '/sales', icon: TrendingUp, label: 'Sales Pipeline', roles: ['admin'] },
 ];
 
 const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string | null }) => {
@@ -101,16 +101,17 @@ export default function AppLayout({ children }: PropsWithChildren) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // 1. Check session storage for quick setup
+    const cachedRole = sessionStorage.getItem('userRole');
+    const cachedName = sessionStorage.getItem('displayName');
+    if (cachedRole && cachedName) {
+        setUserRole(cachedRole);
+        setDisplayName(cachedName);
+    }
+
+    // 2. Set up Firebase Auth listener
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Use sessionStorage first for faster loads on navigation
-        const cachedRole = sessionStorage.getItem('userRole');
-        const cachedName = sessionStorage.getItem('displayName');
-        if (cachedRole) {
-          setUserRole(cachedRole);
-          setDisplayName(cachedName);
-        }
-
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
 
@@ -132,23 +133,22 @@ export default function AppLayout({ children }: PropsWithChildren) {
               return;
           }
 
-          // Role-based route protection
-          const currentItem = navItems.find(item => pathname.startsWith(item.href));
-          if (currentItem && !currentItem.roles.includes(role)) {
+          // 3. Role-based route protection
+          const currentNav = navItems.find(item => pathname.startsWith(item.href));
+          if (currentNav && !currentNav.roles.includes(role)) {
             toast({
               variant: "destructive",
               title: "Access Denied",
               description: "You do not have permission to view this page.",
             });
+            // Redirect to their respective default page
             router.replace(role === 'admin' ? '/dashboard' : '/leads');
           }
         } else {
-          // User exists in Auth but not in Firestore, critical error.
-          toast({ variant: 'destructive', title: "Configuration Error", description: "User profile not found in database."})
+          toast({ variant: 'destructive', title: "Configuration Error", description: "User profile not found. Logging out."})
           handleLogout();
         }
       } else {
-        // No user logged in
         router.replace('/');
       }
       setIsLoading(false);
@@ -184,9 +184,8 @@ export default function AppLayout({ children }: PropsWithChildren) {
     }
     return name.substring(0, 2);
   }
-
-  const visibleNavItems = navItems.filter(item => userRole && item.roles.includes(userRole));
-  const pageTitle = visibleNavItems.find(item => pathname.startsWith(item.href))?.label || 'Proploom';
+  
+  const welcomeMessage = displayName ? `Welcome, ${displayName}` : 'Welcome';
 
   return (
     <div className="relative flex min-h-screen items-center justify-center p-4 bg-background">
@@ -199,13 +198,17 @@ export default function AppLayout({ children }: PropsWithChildren) {
                   className={cn("flex flex-col justify-between py-4 bg-background rounded-xl border", isSidebarCollapsed ? 'w-[68px]' : 'w-56')}
                 >
                   <div>
-                    <div className={cn("flex items-center justify-between mb-6", isSidebarCollapsed ? 'px-[1.1rem]' : 'px-4')}>
+                    <div className={cn("flex items-center justify-between mb-2", isSidebarCollapsed ? 'px-[1.1rem]' : 'px-4')}>
                        <Link href={userRole === 'admin' ? '/dashboard' : '/leads'} className={cn(isSidebarCollapsed && 'hidden')}>
                           <Building2 className="h-7 w-7 text-primary" />
                        </Link>
                        <Button variant="ghost" size="icon" onClick={() => setSidebarCollapsed(!isSidebarCollapsed)} className="h-8 w-8">
                         <PanelLeft className="h-5 w-5" />
                       </Button>
+                    </div>
+                     <div className={cn("px-4 mb-4", isSidebarCollapsed ? 'hidden' : 'block')}>
+                        <p className="text-sm font-semibold truncate text-foreground">{welcomeMessage}</p>
+                        <p className="text-xs text-muted-foreground capitalize">{userRole} Portal</p>
                     </div>
                     <Nav isCollapsed={isSidebarCollapsed} userRole={userRole} />
                   </div>
@@ -215,7 +218,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
                         <Tooltip>
                           <TooltipTrigger asChild>
                              <Button variant="ghost" onClick={handleLogout} className={cn('w-full flex justify-start h-10', isSidebarCollapsed && 'justify-center')}>
-                                <LogOut className={cn('h-5 w-5 shrink-0', !isSidebarCollapsed && 'mr-3')}/>
+                                <LogOut className={cn('h-5 w-5 shrink-0', !isCollapsed && 'mr-3')}/>
                                 {!isSidebarCollapsed && 'Logout'}
                              </Button>
                           </TooltipTrigger>
@@ -226,23 +229,11 @@ export default function AppLayout({ children }: PropsWithChildren) {
                 </motion.div>
 
                 <main className="flex-1 flex flex-col">
-                  <header className="flex items-center justify-between font-bold text-lg text-foreground tracking-tighter mb-4">
+                   <header className="flex items-center justify-between font-bold text-lg text-foreground tracking-tighter mb-4">
                     <div className="flex items-center gap-2.5">
-                       <h1 className="text-2xl font-bold tracking-tight">
-                        {pageTitle}
-                       </h1>
+                       {/* Header can be used for breadcrumbs or page titles if needed */}
                     </div>
                     <div className="flex items-center gap-4">
-                      {displayName && (
-                        <div className="text-right">
-                          <div className="text-sm font-bold capitalize">
-                            {displayName}
-                          </div>
-                           <div className="text-xs text-muted-foreground font-medium capitalize">
-                            {userRole}
-                          </div>
-                        </div>
-                      )}
                       <Avatar className="h-10 w-10 border-2 border-primary/50">
                         <AvatarFallback className="bg-primary/20 text-primary font-bold">
                           {getInitials(displayName)}

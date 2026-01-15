@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -14,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Video } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function VirtualTourPage() {
@@ -46,16 +47,21 @@ export default function VirtualTourPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-6xl font-black tracking-tighter font-headline">
-        Virtual Tour
-      </h1>
+      <div className="space-y-2">
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          Site Visits & Virtual Tours
+        </h1>
+        <p className="text-muted-foreground max-w-2xl">
+          Manage and showcase your 360° virtual property tours. This page is currently a placeholder.
+        </p>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <button className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed rounded-lg border-muted-foreground text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-              <Plus className="w-16 h-16 mb-4" />
-              <span className="text-xl">Add New Tour</span>
+            <button className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed rounded-xl border-muted-foreground/50 text-muted-foreground hover:border-primary hover:text-primary transition-colors bg-card-foreground/5">
+              <Plus className="w-12 h-12 mb-2" />
+              <span className="font-medium">Add New Tour</span>
             </button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
@@ -134,6 +140,13 @@ export default function VirtualTourPage() {
              </CardHeader>
           </Card>
         ))}
+         {tours.length === 0 && (
+             <div className="col-span-full flex flex-col items-center justify-center text-center text-muted-foreground h-full py-16 border-2 border-dashed rounded-lg">
+                <Video className="h-12 w-12 mb-4 text-muted-foreground/50"/>
+                <p className="font-medium">No Virtual Tours</p>
+                <p className="text-sm">Click 'Add New Tour' to upload your first one.</p>
+            </div>
+         )}
       </div>
     </div>
   );

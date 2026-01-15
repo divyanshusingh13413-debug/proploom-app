@@ -2,12 +2,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { db } from '@/firebase/config'; // Firebase config import
-import { collection, onSnapshot, query, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
-import { agents } from '@/lib/data';
-import type { Lead } from '@/lib/types';
+import { db } from '@/firebase/config';
+import { collection, onSnapshot, query, orderBy, addDoc, serverTimestamp, where } from 'firebase/firestore';
+import type { Lead, User } from '@/lib/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Bot, CheckCheck, Plus, Search } from 'lucide-react';
+import { Bot, CheckCheck, Plus, Search, Loader2 } from 'lucide-react';
 import { ChatWindow } from '@/components/whatsapp/chat-window';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,6 +20,9 @@ export default function WhatsappPage() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   // Bot Assistant Constant
   const botAssistant: Lead = {
@@ -28,7 +30,7 @@ export default function WhatsappPage() {
     name: 'PropCall 360 AI',
     propertyName: 'Assistant',
     source: 'System',
-    status: 'New', // Changed from 'Online' to a valid status
+    status: 'New',
     lastContact: 'Now',
     agentId: 'bot',
     budget: 0,
@@ -36,42 +38,72 @@ export default function WhatsappPage() {
     phone: 'AI-BOT'
   };
 
-  // Real-time listener for leads
   useEffect(() => {
-    const q = query(collection(db, 'leads'), orderBy('lastContact', 'desc'));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const leadsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Lead));
-      setLeads(leadsData);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  // Default selection
-  useEffect(() => {
+    const role = sessionStorage.getItem('userRole');
+    const uid = sessionStorage.getItem('userId');
+    setUserRole(role);
+    setUserId(uid);
+    
     if (!selectedLead) setSelectedLead(botAssistant);
   }, []);
 
+  // Real-time listener for leads based on role
+  useEffect(() => {
+    if (!userRole) return;
+    
+    setIsLoading(true);
+
+    let leadsQuery;
+    if (userRole === 'agent' && userId) {
+      leadsQuery = query(collection(db, 'leads'), where('assignedAgentId', '==', userId), orderBy('timestamp', 'desc'));
+    } else { // Admin gets all leads
+      leadsQuery = query(collection(db, 'leads'), orderBy('timestamp', 'desc'));
+    }
+
+    const unsubscribe = onSnapshot(leadsQuery, (querySnapshot) => {
+      const leadsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Lead));
+      setLeads(leadsData);
+      setIsLoading(false);
+    }, (error) => {
+      console.error("Error fetching leads:", error);
+      setIsLoading(false);
+      toast({
+        variant: "destructive",
+        title: "Failed to load chats",
+        description: "Could not retrieve lead data."
+      });
+    });
+
+    return () => unsubscribe();
+  }, [userRole, userId, toast]);
+
+
   const handleCreateLead = async (name: string, phone: string, property: string) => {
     try {
-        const newLead: Omit<Lead, 'id'> = {
+        const newLead: Omit<Lead, 'id' | 'lastContact' | 'aiScore'> = {
             name,
             phone,
             propertyName: property,
-            source: 'Manual Entry',
+            source: 'WhatsApp',
             status: 'New',
-            lastContact: new Date().toLocaleDateString(), // simplified
-            agentId: 'agent-1', // Default or assign dynamically
+            agentId: userRole === 'agent' && userId ? userId : 'unassigned', // Assign to self if agent
+            assignedAgentId: userRole === 'agent' && userId ? userId : undefined,
+            assignedAgentName: userRole === 'agent' ? sessionStorage.getItem('displayName') || undefined : undefined,
             budget: 0,
             email: `${name.replace(/\s+/g, '.').toLowerCase()}@example.com`,
+            timestamp: serverTimestamp(),
         };
-      const docRef = await addDoc(collection(db, 'leads'), {
-        ...newLead,
-        timestamp: serverTimestamp() 
-      });
+      const docRef = await addDoc(collection(db, 'leads'), newLead);
+
+      const createdLead = { 
+        id: docRef.id, 
+        ...newLead, 
+        lastContact: new Date().toLocaleDateString(),
+        timestamp: undefined // temp placeholder
+      } as Lead;
 
       // Immediately set the new lead as selected
-      setSelectedLead({ id: docRef.id, ...newLead });
+      setSelectedLead(createdLead);
       toast({
         title: "Chat Created",
         description: `Conversation with ${name} has been started.`,
@@ -94,10 +126,8 @@ export default function WhatsappPage() {
   return (
     <div className="h-screen w-screen flex bg-[#0a0a0a] text-white font-sans overflow-hidden">
       
-      {/* LEFT PANEL: CHAT LIST */}
       <div className="w-full max-w-xs xl:max-w-md border-r border-zinc-800/50 flex flex-col bg-black/40 backdrop-blur-xl relative">
         
-        {/* Header */}
         <div className="p-6 space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold bg-gradient-to-r from-amber-200 to-yellow-500 bg-clip-text text-transparent">
@@ -105,7 +135,6 @@ export default function WhatsappPage() {
             </h2>
           </div>
           
-          {/* Search Bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
             <input 
@@ -117,10 +146,8 @@ export default function WhatsappPage() {
           </div>
         </div>
 
-        {/* Chat List Items */}
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           
-          {/* 1. Bot AI Item */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -149,48 +176,50 @@ export default function WhatsappPage() {
             </div>
           </motion.div>
 
-          {/* 2. Real Leads List */}
-          <AnimatePresence>
-            {filteredLeads.map((lead, index) => {
-              const agent = agents.find(a => a.id === lead.agentId);
-              const isSelected = selectedLead?.id === lead.id;
+          {isLoading ? (
+             <div className="flex justify-center items-center p-8">
+                <Loader2 className="w-6 h-6 animate-spin text-primary"/>
+             </div>
+          ) : (
+            <AnimatePresence>
+                {filteredLeads.map((lead, index) => {
+                const isSelected = selectedLead?.id === lead.id;
 
-              return (
-                <motion.div
-                  key={lead.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className={cn(
-                    'flex items-center gap-4 p-4 cursor-pointer transition-all border-l-4',
-                    isSelected ? 'bg-zinc-900/80 border-amber-500' : 'hover:bg-zinc-900/40 border-transparent'
-                  )}
-                  onClick={() => setSelectedLead(lead)}
-                >
-                  <Avatar className="h-12 w-12 border border-zinc-800">
-                    <AvatarImage src={agent?.avatarUrl} />
-                    <AvatarFallback className="bg-zinc-800 text-amber-500 font-bold">
-                      {lead.name.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-center">
-                      <p className="font-medium text-zinc-200 truncate">{`Lead ${lead.id}`}</p>
-                      <p className="text-[10px] text-zinc-500">{lead.lastContact}</p>
+                return (
+                    <motion.div
+                    key={lead.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className={cn(
+                        'flex items-center gap-4 p-4 cursor-pointer transition-all border-l-4',
+                        isSelected ? 'bg-zinc-900/80 border-amber-500' : 'hover:bg-zinc-900/40 border-transparent'
+                    )}
+                    onClick={() => setSelectedLead(lead)}
+                    >
+                    <Avatar className="h-12 w-12 border border-zinc-800">
+                        <AvatarFallback className="bg-zinc-800 text-amber-500 font-bold">
+                        {lead.name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center">
+                        <p className="font-medium text-zinc-200 truncate">{lead.name}</p>
+                        <p className="text-[10px] text-zinc-500">{lead.timestamp ? new Date(lead.timestamp.seconds * 1000).toLocaleDateString() : 'N/A'}</p>
+                        </div>
+                        <div className="flex justify-between items-center mt-1">
+                        <p className="text-sm text-zinc-500 truncate">{lead.propertyName}</p>
+                        <CheckCheck className={cn("h-4 w-4", isSelected ? "text-sky-400" : "text-zinc-600")} />
+                        </div>
                     </div>
-                    <div className="flex justify-between items-center mt-1">
-                      <p className="text-sm text-zinc-500 truncate">Property: {lead.propertyName}</p>
-                      <CheckCheck className={cn("h-4 w-4", isSelected ? "text-sky-400" : "text-zinc-600")} />
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+                    </motion.div>
+                );
+                })}
+            </AnimatePresence>
+          )}
         </div>
 
-        {/* Floating Action Button */}
         <div className="absolute bottom-16 right-8">
             <motion.button
                 whileHover={{ scale: 1.1 }}
@@ -205,7 +234,6 @@ export default function WhatsappPage() {
         </div>
       </div>
 
-      {/* RIGHT PANEL: CHAT WINDOW */}
       <div className="flex-1 flex flex-col bg-[#050505] relative">
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
         
@@ -221,7 +249,6 @@ export default function WhatsappPage() {
         )}
       </div>
 
-      {/* New Chat Modal */}
       <NewChatDialog 
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
@@ -229,7 +256,6 @@ export default function WhatsappPage() {
       />
 
 
-      {/* Style for scrollbar and pulse animation */}
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

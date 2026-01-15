@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -18,8 +19,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, DollarSign, Target, Hash, ChevronRight } from 'lucide-react';
-import { deals } from '@/lib/data';
-import type { Deal } from '@/lib/types';
+
+const deals = [
+    { id: 'deal-1', clientName: 'Client 1', dealName: 'Luxury Penthouse', status: 'New', dealValue: '750K', agentId: 'agent-1', lastActivity: 'Now' },
+    { id: 'deal-2', clientName: 'Client 2', dealName: 'Meajstion', status: 'Negotiation', dealValue: '150K', agentId: 'agent-2', lastActivity: 'Yesterday' },
+    { id: 'deal-3', clientName: 'Client 3', dealName: 'Negrisrattion', status: 'New', dealValue: '1.2M', agentId: 'agent-3', lastActivity: '3 days ago' },
+  ];
 
 const StatsCard = ({ title, value, color, icon: Icon }: { title: string, value: string, color: string, icon: React.ElementType }) => (
     <Card className={`bg-gradient-to-br ${color} text-white`}>
@@ -47,6 +52,7 @@ export default function SalesPage() {
         <h1 className="text-2xl font-bold tracking-tight font-headline">
             Sales Pipeline & Closure
         </h1>
+         <p className="text-muted-foreground">This page is under construction. Future updates will show live sales data.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
