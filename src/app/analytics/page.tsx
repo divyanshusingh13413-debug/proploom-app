@@ -3,12 +3,12 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/firebase/config';
-import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { DollarSign, TrendingUp, Cpu, Activity, Users, LineChart, Loader2, BarChart2 } from 'lucide-react';
+import { Users, TrendingUp, Bell, Loader2, Users2 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import type { Lead } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,21 +22,12 @@ const monthlySalesData = [
   { month: 'Jun', sales: 95000 },
 ];
 
-const statusStyles: { [key: string]: string } = {
-  'New': 'bg-green-500/20 text-green-400 border-green-500/30',
-  'Follow-up Due': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  'Meeting Today': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  'Contacted': 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  'Closed': 'bg-gray-500/20 text-gray-400 border-gray-500/30',
-};
-
-
 export default function AnalyticsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, "leads"), orderBy("timestamp", "desc"), limit(5));
+    const q = query(collection(db, "leads"), orderBy("timestamp", "desc"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const leadsData: Lead[] = [];
       querySnapshot.forEach((doc) => {
@@ -62,6 +53,9 @@ export default function AnalyticsPage() {
   const totalLeads = leads.length;
   const hotLeads = leads.filter(l => (l.aiScore || 0) >= 70).length;
   const conversionRate = totalLeads > 0 ? Math.round((hotLeads / totalLeads) * 100) : 0;
+  const pendingFollowUps = leads.filter(l => l.status === 'Follow-up Due').length;
+  const recentLeads = leads.slice(0, 5);
+
 
   return (
     <div className="w-full space-y-8">
@@ -77,13 +71,13 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue Prediction</CardTitle>
-            <DollarSign className="w-4 h-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Active Leads</CardTitle>
+            <Users className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-8 w-24 mt-1" /> : <div className="text-2xl font-bold">$0</div>}
+            {isLoading ? <Skeleton className="h-8 w-16 mt-1" /> : <div className="text-2xl font-bold">{totalLeads}</div>}
             <p className="text-xs text-muted-foreground">
-              Real-time data pending
+              Across all channels
             </p>
           </CardContent>
         </Card>
@@ -101,13 +95,13 @@ export default function AnalyticsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Market Sentiment</CardTitle>
-            <LineChart className="w-4 h-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Pending Follow-ups</CardTitle>
+            <Bell className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-             <div className="text-2xl font-bold">Bullish</div>
+             {isLoading ? <Skeleton className="h-8 w-16 mt-1" /> : <div className="text-2xl font-bold">{pendingFollowUps}</div>}
             <p className="text-xs text-muted-foreground">
-              Positive trends detected in your area
+              Require immediate attention
             </p>
           </CardContent>
         </Card>
@@ -126,7 +120,7 @@ export default function AnalyticsPage() {
                   <Skeleton className="h-16 w-full" />
                   <Skeleton className="h-16 w-full" />
                 </div>
-            ) : leads.length > 0 ? (
+            ) : recentLeads.length > 0 ? (
                  <Table>
                   <TableHeader>
                     <TableRow>
@@ -137,7 +131,7 @@ export default function AnalyticsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {leads.map((lead) => {
+                    {recentLeads.map((lead) => {
                       const leadStatus = getLeadStatusForScoring(lead);
                       return (
                       <TableRow key={lead.id}>
@@ -164,7 +158,7 @@ export default function AnalyticsPage() {
                 </Table>
             ) : (
                 <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-full py-16 border-2 border-dashed rounded-lg">
-                    <Users className="h-12 w-12 mb-4 text-muted-foreground/50"/>
+                    <Users2 className="h-12 w-12 mb-4 text-muted-foreground/50"/>
                     <p className="font-medium">No Real-time Data Available</p>
                     <p className="text-sm">Add new leads to see analytics here.</p>
                 </div>
@@ -206,3 +200,5 @@ export default function AnalyticsPage() {
     </div>
   );
 }
+
+    
