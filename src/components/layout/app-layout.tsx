@@ -13,7 +13,8 @@ import {
   Users2,
   PanelLeft,
   LogOut,
-  BrainCircuit
+  BrainCircuit,
+  Eye
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -27,6 +28,8 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '../ui/avatar';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 const navItems = [
   { href: '/dashboard', icon: Home, label: 'Dashboard', roles: ['admin'] },
@@ -97,6 +100,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
   
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [viewAsRole, setViewAsRole] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -106,6 +110,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
     const cachedName = sessionStorage.getItem('displayName');
     if (cachedRole && cachedName) {
         setUserRole(cachedRole);
+        setViewAsRole(cachedRole); // Initially, view as your own role
         setDisplayName(cachedName);
     }
 
@@ -122,6 +127,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
           
           // Update state and session storage with fresh data
           setUserRole(role);
+          setViewAsRole(role); // On auth change, reset view to actual role
           setDisplayName(name);
           sessionStorage.setItem('userRole', role);
           sessionStorage.setItem('userId', user.uid);
@@ -133,7 +139,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
               return;
           }
 
-          // 3. Role-based route protection
+          // 3. Role-based route protection (using the *actual* role)
           const currentNav = navItems.find(item => pathname.startsWith(item.href));
           if (currentNav && !currentNav.roles.includes(role)) {
             toast({
@@ -195,6 +201,10 @@ export default function AppLayout({ children }: PropsWithChildren) {
   }
   
   const welcomeMessage = displayName ? `${displayName}` : 'Welcome';
+  
+  const handleViewToggle = (isAgentView: boolean) => {
+      setViewAsRole(isAgentView ? 'agent' : 'admin');
+  };
 
   return (
     <div className="relative flex min-h-screen items-center justify-center p-4 bg-background">
@@ -219,21 +229,37 @@ export default function AppLayout({ children }: PropsWithChildren) {
                         <p className="text-sm font-semibold truncate text-foreground">{welcomeMessage}</p>
                         <p className="text-xs text-muted-foreground capitalize">{userRole} Portal</p>
                     </div>
-                    <Nav isCollapsed={isSidebarCollapsed} userRole={userRole} />
+                    <Nav isCollapsed={isSidebarCollapsed} userRole={viewAsRole} />
                   </div>
                   
-                  <div className={cn("border-t pt-4 mx-2", isSidebarCollapsed ? "px-0" : "px-2")}>
-                      <TooltipProvider delayDuration={0}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                             <Button variant="ghost" onClick={handleLogout} className={cn('w-full flex justify-start h-10', isSidebarCollapsed && 'justify-center')}>
-                                <LogOut className={cn('h-5 w-5 shrink-0', !isSidebarCollapsed && 'mr-3')}/>
-                                {!isSidebarCollapsed && 'Logout'}
-                             </Button>
-                          </TooltipTrigger>
-                          {isSidebarCollapsed && <TooltipContent side="right">Logout</TooltipContent>}
-                        </Tooltip>
-                      </TooltipProvider>
+                  <div className="flex flex-col gap-2">
+                    {userRole === 'admin' && !isSidebarCollapsed && (
+                         <div className="border-t pt-4 mx-2 px-2 flex items-center justify-between">
+                            <Label htmlFor="view-switch" className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Eye className="h-4 w-4"/>
+                                <span>View as Agent</span>
+                            </Label>
+                            <Switch 
+                                id="view-switch" 
+                                checked={viewAsRole === 'agent'}
+                                onCheckedChange={handleViewToggle}
+                             />
+                        </div>
+                    )}
+
+                    <div className={cn("border-t pt-4 mx-2", isSidebarCollapsed ? "px-0" : "px-2")}>
+                        <TooltipProvider delayDuration={0}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                               <Button variant="ghost" onClick={handleLogout} className={cn('w-full flex justify-start h-10', isSidebarCollapsed && 'justify-center')}>
+                                  <LogOut className={cn('h-5 w-5 shrink-0', !isSidebarCollapsed && 'mr-3')}/>
+                                  {!isSidebarCollapsed && 'Logout'}
+                               </Button>
+                            </TooltipTrigger>
+                            {isSidebarCollapsed && <TooltipContent side="right">Logout</TooltipContent>}
+                          </Tooltip>
+                        </TooltipProvider>
+                    </div>
                   </div>
                 </motion.div>
 
@@ -263,3 +289,4 @@ export default function AppLayout({ children }: PropsWithChildren) {
     </div>
   );
 }
+
