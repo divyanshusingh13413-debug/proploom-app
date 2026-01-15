@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 
 function LoginForm() {
@@ -39,41 +39,51 @@ function LoginForm() {
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
 
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        const userRole = userData.role;
-        const displayName = userData.displayName;
-
-         // Check if it's the user's first login
-        if (userData.isFirstLogin) {
-            toast({ title: 'Welcome!', description: 'Please set your new password to continue.' });
-            router.push('/auth/set-password');
-            return; // Stop execution to redirect
-        }
-
-        // 3. Session set karein
-        sessionStorage.setItem('userRole', userRole);
-        sessionStorage.setItem('userId', user.uid);
-        sessionStorage.setItem('displayName', displayName);
+      if (!userDoc.exists()) {
+        console.warn(`User document not found for UID: ${user.uid}. Creating a new one.`);
         
-        toast({ title: 'Login Successful', description: `Redirecting as ${userRole}...` });
-
-        // 4. Sabse important: Redirect logic
-        const redirectPath = userRole === 'admin' ? '/dashboard' : '/leads';
-        router.push(redirectPath);
-
-      } else {
-        // This case should ideally not happen if user creation is handled correctly.
-        throw new Error('User data not found in database.');
+        // Create the user document on the fly to self-heal
+        await setDoc(userDocRef, {
+          displayName: user.displayName || user.email,
+          email: user.email,
+          role: 'agent', // Default to 'agent' for safety
+          isFirstLogin: true, // Force password reset
+          createdAt: serverTimestamp(),
+        });
+        
+        toast({ title: 'Welcome!', description: 'Please set your new password to continue.' });
+        router.push('/auth/set-password');
+        setIsLoading(false);
+        return; // Stop execution to redirect
       }
+
+      const userData = userDoc.data();
+      const userRole = userData.role;
+      const displayName = userData.displayName;
+
+      // Check if it's the user's first login
+      if (userData.isFirstLogin) {
+          toast({ title: 'Welcome!', description: 'Please set your new password to continue.' });
+          router.push('/auth/set-password');
+          return; // Stop execution to redirect
+      }
+
+      // 3. Session set karein
+      sessionStorage.setItem('userRole', userRole);
+      sessionStorage.setItem('userId', user.uid);
+      sessionStorage.setItem('displayName', displayName);
+      
+      toast({ title: 'Login Successful', description: `Redirecting as ${userRole}...` });
+
+      // 4. Sabse important: Redirect logic
+      const redirectPath = userRole === 'admin' ? '/dashboard' : '/leads';
+      router.push(redirectPath);
 
     } catch (error: any) {
       console.error("Login Error:", error.message);
       let description = "An unexpected error occurred. Please try again.";
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
         description = "Invalid credentials. Please check your email and password.";
-      } else if (error.message.includes('User data not found')) {
-        description = "Your user profile is not configured correctly. Please contact support.";
       }
       
       toast({ 
