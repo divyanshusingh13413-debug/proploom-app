@@ -46,10 +46,16 @@ export function ChatWindow({ lead }: ChatWindowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
+  const [userId, setUserId] = useState<string|null>(null);
   
-  const AGENT_ID = 'agent-1'; // Hardcoded agent ID
-  const chatRoomId = lead ? [AGENT_ID, lead.id].sort().join('_') : null;
+  const AGENT_ID = userId; // Use logged-in user's ID
+  const chatRoomId = lead && AGENT_ID ? [AGENT_ID, lead.id].sort().join('_') : null;
   const chatRoomRef = chatRoomId ? doc(db, 'chats', chatRoomId) : null;
+
+  useEffect(() => {
+    const uid = sessionStorage.getItem('userId');
+    setUserId(uid);
+  }, []);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -60,7 +66,7 @@ export function ChatWindow({ lead }: ChatWindowProps) {
 
   // Real-time listener for messages and typing status
   useEffect(() => {
-    if (!chatRoomId || !chatRoomRef || !lead) return;
+    if (!chatRoomId || !chatRoomRef || !lead || !AGENT_ID) return;
 
     setIsLoading(true);
     const messagesQuery = query(collection(db, 'chats', chatRoomId, 'messages'), orderBy('timestamp', 'asc'));
@@ -101,11 +107,11 @@ export function ChatWindow({ lead }: ChatWindowProps) {
         unsubscribeMessages();
         unsubscribeTyping();
     };
-  }, [chatRoomId, lead?.id]);
+  }, [chatRoomId, lead?.id, AGENT_ID]);
 
   const updateTypingStatus = useCallback(
     debounce(async (isTyping: boolean) => {
-        if (chatRoomRef) {
+        if (chatRoomRef && AGENT_ID) {
             try {
                 await setDoc(chatRoomRef, { typing: { [AGENT_ID]: isTyping } }, { merge: true });
             } catch (error) {
@@ -113,7 +119,7 @@ export function ChatWindow({ lead }: ChatWindowProps) {
             }
         }
     }, 500),
-    [chatRoomRef]
+    [chatRoomRef, AGENT_ID]
   );
 
   useEffect(() => {
@@ -127,7 +133,7 @@ export function ChatWindow({ lead }: ChatWindowProps) {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim() || !chatRoomId) return;
+    if (!inputValue.trim() || !chatRoomId || !AGENT_ID) return;
 
     const text = inputValue;
     setInputValue('');
@@ -164,7 +170,7 @@ export function ChatWindow({ lead }: ChatWindowProps) {
     );
   }
 
-  const leadName = lead.id === 'bot-assistant' ? lead.name : `Lead ${lead.id}`;
+  const leadName = lead.id === 'bot-assistant' ? lead.name : `${lead.name}`;
   const leadStatus = lead.id === 'bot-assistant' ? 'Online' : 'Active';
 
   return (
