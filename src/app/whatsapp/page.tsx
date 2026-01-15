@@ -55,7 +55,7 @@ export default function WhatsappPage() {
 
     let leadsQuery;
     if (userRole === 'agent' && userId) {
-      leadsQuery = query(collection(db, 'leads'), where('assignedAgentId', '==', userId), orderBy('timestamp', 'desc'));
+      leadsQuery = query(collection(db, 'leads'), where('assignedAgentId', '==', userId));
     } else { // Admin gets all leads
       leadsQuery = query(collection(db, 'leads'), orderBy('timestamp', 'desc'));
     }
@@ -272,3 +272,5 @@ export default function WhatsappPage() {
     </div>
   );
 }
+
+    
