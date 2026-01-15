@@ -31,11 +31,11 @@ import { Avatar, AvatarFallback } from '../ui/avatar';
 const navItems = [
   { href: '/dashboard', icon: Home, label: 'Dashboard', roles: ['admin'] },
   { href: '/leads', icon: Users, label: 'Leads', roles: ['admin', 'agent'] },
+  { href: '/whatsapp', icon: MessageSquare, label: 'WhatsApp', roles: ['admin', 'agent'] },
   { href: '/sales', icon: TrendingUp, label: 'Sales Pipeline', roles: ['admin'] },
   { href: '/tours', icon: Video, label: 'Virtual Tours', roles: ['admin'] },
   { href: '/analytics', icon: BrainCircuit, label: 'AI Analytics', roles: ['admin'] },
   { href: '/agents', icon: Users2, label: 'Manage Agents', roles: ['admin'] },
-  { href: '/whatsapp', icon: MessageSquare, label: 'WhatsApp', roles: ['admin', 'agent'] },
 ];
 
 const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string | null }) => {
