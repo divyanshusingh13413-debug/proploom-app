@@ -57,61 +57,6 @@ const StatsCard = ({ title, value, subtitle, color, icon: Icon, isLoading }: { t
     </Card>
 );
 
-const LeadJourney = ({ lead }: { lead: Lead | null }) => {
-    if (!lead) return null;
-
-    const handleWhatsAppRedirect = () => {
-      if (!lead) return;
-      const message = `Hi ${lead.name}, I am calling from Proploom. Are you still interested in the property?`;
-      const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://wa.me/${lead.phone.replace(/\D/g, '')}?text=${encodedMessage}`;
-      window.open(whatsappUrl, '_blank');
-    };
-
-    return (
-        <Card>
-            <CardHeader>
-                <div className="flex justify-between items-center">
-                    <CardTitle>Lead Journey & Activity</CardTitle>
-                    <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
-                </div>
-            </CardHeader>
-            <CardContent className="flex flex-col md:flex-row gap-6">
-                <div className="flex items-start gap-4">
-                    <Avatar className="w-12 h-12">
-                        <AvatarFallback>{lead.name.substring(0,2)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <p className="font-semibold">{lead.name}</p>
-                        <p className="text-sm text-muted-foreground">{lead.email}</p>
-                    </div>
-                </div>
-                <div className="flex-1 space-y-3">
-                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <Activity className="w-4 h-4 text-primary" />
-                        <span><span className="font-semibold text-foreground">2h ago:</span> Call reminder</span>
-                   </div>
-                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <FileText className="w-4 h-4 text-primary" />
-                        <span><span className="font-semibold text-foreground">Yesterday:</span> WhatsApp Brochure sent</span>
-                   </div>
-                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <MessageSquare className="w-4 h-4 text-primary" />
-                        <span><span className="font-semibold text-foreground">5 days:</span> Captured from WhatsApp</span>
-                   </div>
-                </div>
-                <div className="flex flex-col sm:flex-row md:flex-col gap-2 self-start">
-                    <Button variant="outline">Log Activity</Button>
-                    <Button onClick={handleWhatsAppRedirect} className="bg-secondary hover:bg-secondary/90">WhatsApp</Button>
-                </div>
-            </CardContent>
-             <div className="p-6 pt-0 text-right">
-                <Button onClick={handleWhatsAppRedirect} variant="link" className="text-primary">Share on WhatsApp <ChevronRight className="w-4 h-4 ml-1" /></Button>
-            </div>
-        </Card>
-    )
-}
-
 const LeadsTableSkeleton = () => (
     <Table>
       <TableHeader>
@@ -144,7 +89,6 @@ const LeadsTableSkeleton = () => (
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [agents, setAgents] = useState<User[]>([]);
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -177,9 +121,6 @@ export default function LeadsPage() {
       });
       setLeads(leadsData);
       setIsLoading(false);
-      if (leadsData.length > 0 && !selectedLead) {
-        setSelectedLead(leadsData[0]);
-      }
     }, (error) => {
         console.error("Error fetching leads:", error);
         setIsLoading(false);
@@ -202,7 +143,7 @@ export default function LeadsPage() {
       unsubscribeLeads();
       unsubscribeAgents();
     };
-  }, [selectedLead]);
+  }, []);
   
   const handleAssignAgent = async (leadId: string, agentId: string) => {
     const agent = agents.find(a => a.uid === agentId);
@@ -252,7 +193,7 @@ export default function LeadsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold tracking-tight font-headline">
+        <h1 className="text-2xl font-bold tracking-tight">
           Leads Management
         </h1>
         <Link href="/leads/new">
@@ -268,24 +209,13 @@ export default function LeadsPage() {
         <StatsCard title="PRIORITY HOT LEADS" value={leads.filter(l => l.status === 'Follow-up Due').length.toString()} subtitle="Requires immediate attention" color="from-secondary to-green-700" icon={UserPlus} isLoading={isLoading}/>
       </div>
       
-      <Tabs defaultValue="all">
         <Card>
             <CardHeader>
                 <div className="flex justify-between items-center">
                     <CardTitle>Lead List & Smart Filters</CardTitle>
-                     {userRole === 'admin' && (
-                        <div className="flex items-center gap-2">
-                            <TabsList>
-                                <TabsTrigger value="all">All Leads</TabsTrigger>
-                                <TabsTrigger value="my">My Leads</TabsTrigger>
-                            </TabsList>
-                            <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
-                        </div>
-                     )}
                 </div>
             </CardHeader>
             <CardContent>
-                <TabsContent value="all">
                   {isLoading ? (
                     <LeadsTableSkeleton />
                   ) : leads.length === 0 ? (
@@ -312,7 +242,7 @@ export default function LeadsPage() {
                         </TableHeader>
                         <TableBody>
                         {leads.map((lead) => (
-                            <TableRow key={lead.id} className="transition-colors hover:bg-muted/50 cursor-pointer" onClick={() => setSelectedLead(lead)}>
+                            <TableRow key={lead.id} className="transition-colors hover:bg-muted/50 cursor-pointer">
                                 <TableCell className="font-medium">{lead.name}</TableCell>
                                 <TableCell>{lead.source}</TableCell>
                                 <TableCell>
@@ -363,19 +293,8 @@ export default function LeadsPage() {
                         </TableBody>
                     </Table>
                   )}
-                </TabsContent>
-                <TabsContent value="my">
-                    <div className="text-center py-12 text-muted-foreground">My leads will be shown here.</div>
-                </TabsContent>
             </CardContent>
         </Card>
-      </Tabs>
-      
-      <LeadJourney lead={selectedLead} />
     </div>
   );
 }
-
-    
-
-    

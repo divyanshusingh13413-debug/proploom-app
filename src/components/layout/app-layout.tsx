@@ -145,8 +145,17 @@ export default function AppLayout({ children }: PropsWithChildren) {
             router.replace(role === 'admin' ? '/dashboard' : '/leads');
           }
         } else {
-          toast({ variant: 'destructive', title: "Configuration Error", description: "User profile not found. Logging out."})
-          handleLogout();
+           // Self-heal: If user is authenticated but has no DB record, create one.
+            console.warn(`User document not found for UID: ${user.uid}. Creating a new one.`);
+            const userDocRef = doc(db, 'users', user.uid);
+            await setDoc(userDocRef, {
+              displayName: user.displayName || user.email,
+              email: user.email,
+              role: 'agent', // Default to 'agent' for safety
+              isFirstLogin: true,
+              createdAt: serverTimestamp(),
+            });
+            router.replace('/auth/set-password');
         }
       } else {
         router.replace('/');
@@ -185,7 +194,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
     return name.substring(0, 2);
   }
   
-  const welcomeMessage = displayName ? `Welcome, ${displayName}` : 'Welcome';
+  const welcomeMessage = displayName ? `${displayName}` : 'Welcome';
 
   return (
     <div className="relative flex min-h-screen items-center justify-center p-4 bg-background">
