@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -16,7 +17,7 @@ body {
     --popover-foreground: 220 13% 10%;
     --primary: 45 95% 51%; /* Bright Yellow */
     --primary-foreground: 220 13% 10%;
-    --secondary: 33 100% 50%; /* Vibrant Orange */
+    --secondary: 45 96% 40%; /* Deeper Gold */
     --secondary-foreground: 220 13% 10%;
     --muted: 220 13% 96%;
     --muted-foreground: 220 13% 45%;
@@ -49,7 +50,7 @@ body {
     --popover-foreground: 210 17% 98%;
     --primary: 44 96% 51%; /* #FACC15 */
     --primary-foreground: 220 13% 10%;
-    --secondary: 26 95% 52%; /* #EA580C */
+    --secondary: 45 96% 40%; /* #CA8A04 - Deeper Gold */
     --secondary-foreground: 220 13% 10%;
     --muted: 220 13% 15%;
     --muted-foreground: 220 9% 64%; /* #9CA3AF */
@@ -80,6 +81,22 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Global Scrollbar Styles */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--border) / 0.1);
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--primary) / 0.5);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--primary) / 0.8);
   }
 }
 
@@ -116,24 +133,6 @@ body {
   position: relative;
   z-index: 1;
 }
-
-/* For WhatsApp Page Scrollbar */
-.gold-scrollbar::-webkit-scrollbar {
-  width: 8px;
-}
-.gold-scrollbar::-webkit-scrollbar-track {
-  background: hsl(var(--border) / 0.1);
-}
-.gold-scrollbar::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--primary) / 0.5);
-  border-radius: 10px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-.gold-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(var(--primary) / 0.8);
-}
-
 
 /* New Splash Screen Animations */
 .pattern-bg {

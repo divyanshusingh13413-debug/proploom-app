@@ -163,7 +163,7 @@ export default function ClientChatPage() {
           </div>
         </header>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4 gold-scrollbar">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4">
             {isLoading ? (
                 <div className="flex justify-center items-center h-full">
                     <Loader2 className="w-8 h-8 animate-spin text-amber-500"/>
@@ -186,7 +186,7 @@ export default function ClientChatPage() {
                                     'relative max-w-md lg:max-w-lg rounded-2xl px-4 py-3 shadow-md',
                                     isSender
                                     ? 'bg-zinc-800 text-amber-100 rounded-br-none'
-                                    : 'bg-gradient-to-r from-yellow-600 to-yellow-400 text-black rounded-bl-none'
+                                    : 'bg-gradient-to-r from-secondary to-primary text-primary-foreground rounded-bl-none'
                                 )}>
                                     <p className="text-base break-words">{message.text}</p>
                                 </div>
@@ -228,7 +228,7 @@ export default function ClientChatPage() {
                     type="submit"
                     disabled={!inputValue.trim()}
                     size="icon"
-                    className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 text-black shadow-lg transition-all duration-300 enabled:hover:shadow-amber-500/50 enabled:hover:scale-110"
+                    className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground shadow-lg transition-all duration-300 enabled:hover:shadow-amber-500/50 enabled:hover:scale-110"
                 >
                     <Send className="w-6 h-6"/>
                 </Button>

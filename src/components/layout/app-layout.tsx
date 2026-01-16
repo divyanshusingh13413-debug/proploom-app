@@ -277,7 +277,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
                     </div>
                   </header>
                   
-                  <div className="flex-1 overflow-y-auto gold-scrollbar pr-4 -mr-4">
+                  <div className="flex-1 overflow-y-auto pr-4 -mr-4">
                     {children}
                   </div>
                 </main>

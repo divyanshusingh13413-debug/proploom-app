@@ -66,7 +66,7 @@ const PipelineColumn = ({ title, deals }: { title: keyof typeof pipelineData, de
         </div>
         <Badge variant="secondary" className="bg-background text-foreground">{deals.length}</Badge>
       </div>
-      <div className="p-4 space-y-4 flex-1 overflow-y-auto gold-scrollbar">
+      <div className="p-4 space-y-4 flex-1 overflow-y-auto">
         {deals.map(deal => (
           <DealCard key={deal.id} deal={deal} />
         ))}

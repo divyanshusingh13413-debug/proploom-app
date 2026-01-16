@@ -103,7 +103,7 @@ export function NewChatDialog({ open, onOpenChange, onAddContact }: NewChatDialo
                             <Button 
                                 onClick={handleAddContact}
                                 disabled={!contactName || !contactPhone || !contactProperty}
-                                className="w-full h-12 text-base font-bold rounded-xl bg-gradient-to-br from-yellow-500 to-amber-600 text-black shadow-lg transition-all duration-300 enabled:hover:shadow-amber-500/50 enabled:hover:scale-105"
+                                className="w-full h-12 text-base font-bold rounded-xl bg-gradient-to-br from-primary to-secondary text-primary-foreground shadow-lg transition-all duration-300 enabled:hover:shadow-amber-500/50 enabled:hover:scale-105"
                             >
                                 Start Chat
                             </Button>
