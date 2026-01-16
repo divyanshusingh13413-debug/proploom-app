@@ -69,7 +69,7 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card>
+        <Card className="bg-card/60 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Active Leads</CardTitle>
             <Users className="w-4 h-4 text-muted-foreground" />
@@ -81,7 +81,7 @@ export default function AnalyticsPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-card/60 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Lead Conversion Rate</CardTitle>
             <TrendingUp className="w-4 h-4 text-muted-foreground" />
@@ -93,7 +93,7 @@ export default function AnalyticsPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-card/60 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Pending Follow-ups</CardTitle>
             <Bell className="w-4 h-4 text-muted-foreground" />
@@ -200,5 +200,3 @@ export default function AnalyticsPage() {
     </div>
   );
 }
-
-    
