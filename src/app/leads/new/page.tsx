@@ -24,7 +24,14 @@ export default function NewLeadPage() {
 
   const handleSaveLead = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !phone || !property) return;
+    if (!name || !phone || !property) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please fill out all fields to add a new lead.",
+      });
+      return;
+    }
     
     setIsSaving(true);
     

@@ -150,7 +150,7 @@ const DashboardPage = () => {
                   <p className="font-medium text-sm text-foreground">Follow-up with Client {i}</p>
                   <p className="text-xs text-muted-foreground">Call scheduled for 3:00 PM</p>
                 </div>
-                <button className="text-xs text-primary font-semibold hover:underline">Details</button>
+                <Button variant="link" size="sm" className="text-xs p-0 h-auto">Details</Button>
               </div>
             ))}
           </div>

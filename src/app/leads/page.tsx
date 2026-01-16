@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/select"
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, ChevronRight, UserPlus, FileText, Activity, MessageSquare, Plus, Loader2 } from 'lucide-react';
+import { MoreHorizontal, ChevronRight, UserPlus, FileText, Activity, MessageSquare, Plus, Loader2, Users2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Link from 'next/link';
@@ -222,13 +222,20 @@ export default function LeadsPage() {
                   {isLoading ? (
                     <LeadsTableSkeleton />
                   ) : leads.length === 0 ? (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <p>No leads found.</p>
-                       {userRole === 'agent' ?
-                         <p className="text-sm">Contact your admin to get leads assigned.</p>
-                       : <Link href="/leads/new" className='mt-4 inline-block'>
-                           <Button variant="outline">Add Your First Lead</Button>
-                         </Link>
+                    <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-full py-16 border-2 border-dashed rounded-lg">
+                        <Users2 className="h-12 w-12 mb-4 text-muted-foreground/50"/>
+                        <p className="font-medium">No Leads Found</p>
+                        {userRole === 'agent' ?
+                           <p className="text-sm mt-2">Contact your admin to get leads assigned.</p>
+                         :
+                         <>
+                            <p className="text-sm mt-2 mb-4">Add your first lead to get started.</p>
+                            <Link href="/leads/new">
+                                <Button variant="default">
+                                    <Plus className="mr-2 h-4 w-4" /> Add Lead
+                                </Button>
+                            </Link>
+                         </>
                        }
                     </div>
                   ) : (
