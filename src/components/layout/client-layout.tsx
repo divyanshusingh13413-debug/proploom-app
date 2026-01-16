@@ -11,8 +11,8 @@ export default function ClientLayout({ children }: PropsWithChildren) {
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
   
-  // Public pages that don't need the AppLayout
-  const isPublicPage = pathname === '/' || pathname.startsWith('/auth');
+  // Public or full-screen pages that don't need the AppLayout
+  const isPublicPage = pathname === '/' || pathname.startsWith('/auth') || pathname.startsWith('/chat') || pathname === '/whatsapp';
 
   useEffect(() => {
     setIsClient(true);

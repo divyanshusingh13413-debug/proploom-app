@@ -62,7 +62,7 @@ const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string
                     'flex items-center justify-start h-10 rounded-lg transition-all duration-300 group',
                     isActive
                       ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold shadow-lg border-l-4 border-primary'
-                      : 'bg-card/50 hover:bg-accent/30 text-card-foreground border-l-4 border-transparent',
+                      : 'bg-card/50 hover:bg-zinc-800/30 text-card-foreground border-l-4 border-transparent',
                     isCollapsed ? 'w-10 justify-center' : 'w-44 px-3 gap-4'
                   )}
                 >
@@ -263,7 +263,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
                   </div>
                 </motion.div>
 
-                <main className="flex-1 flex flex-col">
+                <main className="flex-1 flex flex-col min-w-0">
                    <header className="flex items-center justify-between font-bold text-lg text-foreground tracking-tighter mb-4">
                     <div className="flex items-center gap-2.5">
                        {/* Header can be used for breadcrumbs or page titles if needed */}
