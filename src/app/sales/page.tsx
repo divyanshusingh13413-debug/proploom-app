@@ -33,7 +33,7 @@ const columnStyles = {
 };
 
 const DealCard = ({ deal }: { deal: (typeof pipelineData)['New Lead'][0] }) => (
-  <Card className="bg-card-foreground/5 border-border/50 hover:border-primary/80 transition-all duration-300 cursor-grab active:cursor-grabbing hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1">
+  <Card className="bg-card-foreground/5 shadow-md hover:border-primary/80 transition-all duration-300 cursor-grab active:cursor-grabbing hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1">
     <CardHeader className="p-4">
       <CardTitle className="text-base font-semibold text-foreground">{deal.propertyName}</CardTitle>
       <p className="text-sm text-muted-foreground">{deal.clientName}</p>
