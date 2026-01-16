@@ -152,7 +152,13 @@ export default function ClientChatPage() {
               <h2 className="font-headline text-xl font-bold text-amber-400 tracking-wider">
                   PropCall 360 Agent
               </h2>
-              <p className="text-sm text-green-400">Online</p>
+               <div className="flex items-center gap-1.5">
+                  <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                  </span>
+                  <p className="text-sm text-green-400">Online</p>
+              </div>
             </div>
           </div>
         </header>
@@ -179,8 +185,8 @@ export default function ClientChatPage() {
                                 <div className={cn(
                                     'relative max-w-md lg:max-w-lg rounded-2xl px-4 py-3 shadow-md',
                                     isSender
-                                    ? 'bg-gradient-to-r from-yellow-600 to-yellow-400 text-black rounded-br-none'
-                                    : 'bg-zinc-800 text-amber-100 rounded-bl-none'
+                                    ? 'bg-zinc-800 text-amber-100 rounded-br-none'
+                                    : 'bg-gradient-to-r from-yellow-600 to-yellow-400 text-black rounded-bl-none'
                                 )}>
                                     <p className="text-base break-words">{message.text}</p>
                                 </div>

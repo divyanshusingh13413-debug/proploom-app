@@ -195,7 +195,13 @@ export function ChatWindow({ lead }: ChatWindowProps) {
               <h2 className="font-headline text-xl font-bold text-amber-400 tracking-wider">
                   {leadName}
               </h2>
-              <p className="text-sm text-green-400">{leadStatus}</p>
+              <div className="flex items-center gap-1.5">
+                  <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                  </span>
+                  <p className="text-sm text-green-400">{leadStatus}</p>
+              </div>
             </div>
           </div>
           {lead.id !== 'bot-assistant' && (
