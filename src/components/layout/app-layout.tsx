@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '../ui/use-toast';
 import { auth, db } from '@/firebase/config';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Switch } from '@/components/ui/switch';
@@ -61,12 +61,12 @@ const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string
                   className={cn(
                     'flex items-center justify-start h-10 rounded-lg transition-all duration-300 group',
                     isActive
-                      ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold shadow-lg'
-                      : 'bg-card/50 hover:bg-card text-card-foreground border border-transparent hover:border-border',
-                    isCollapsed ? 'w-10 justify-center' : 'w-44 px-3'
+                      ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold shadow-lg border-l-4 border-primary'
+                      : 'bg-card/50 hover:bg-accent/30 text-card-foreground border-l-4 border-transparent',
+                    isCollapsed ? 'w-10 justify-center' : 'w-44 px-3 gap-4'
                   )}
                 >
-                  <item.icon className={cn('h-5 w-5 shrink-0', !isCollapsed && 'mr-3')} />
+                  <item.icon className={cn('h-[18px] w-[18px] shrink-0')} />
                   {!isCollapsed && (
                       <motion.span
                         initial={{ opacity: 0, width: 0 }}
@@ -289,4 +289,3 @@ export default function AppLayout({ children }: PropsWithChildren) {
     </div>
   );
 }
-
