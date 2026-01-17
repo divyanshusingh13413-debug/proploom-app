@@ -15,6 +15,7 @@ import type { User } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { createUser } from '@/ai/flows/create-user';
+import { deleteUser } from '@/ai/flows/delete-user';
 
 function generateTemporaryPassword(length = 12) {
   const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
@@ -74,7 +75,7 @@ export default function ManageAgentsPage() {
       // They will be forced to change it on first login.
       const tempPassword = generateTemporaryPassword();
 
-      const result = await createUser({
+      await createUser({
         email: newAgentEmail,
         password: tempPassword,
         displayName: newAgentName,
@@ -82,9 +83,16 @@ export default function ManageAgentsPage() {
       });
 
       toast({
-        title: "Agent Added",
-        description: `${result.message}. The agent will need to set a new password on first login.`,
+        title: "Agent Added: " + newAgentName,
+        description: (
+          <div>
+            <p>The agent can now log in using this temporary password. They will be prompted to create a new one.</p>
+            <p className="font-mono bg-muted p-2 rounded-md mt-2 text-center">{tempPassword}</p>
+          </div>
+        ),
+        duration: 15000,
       });
+
       setNewAgentName('');
       setNewAgentEmail('');
 
@@ -105,19 +113,17 @@ export default function ManageAgentsPage() {
       return;
     }
     try {
-      // Note: This only deletes the Firestore record.
-      // For a full solution, you'd need a backend function to delete the Auth user too.
-      await deleteDoc(doc(db, 'users', agentId));
+      await deleteUser({ uid: agentId });
       toast({
         title: "Agent Deleted",
-        description: `${agentName} has been removed from the system.`,
+        description: `${agentName} has been permanently removed from the system.`,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting agent:", error);
       toast({
         variant: "destructive",
         title: "Deletion Failed",
-        description: `Could not delete ${agentName}. Please try again.`,
+        description: error.message || `Could not delete ${agentName}. Please try again.`,
       });
     }
   };
