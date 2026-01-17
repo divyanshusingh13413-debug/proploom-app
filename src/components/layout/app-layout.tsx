@@ -61,8 +61,8 @@ const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string
                   className={cn(
                     'flex items-center justify-start h-10 rounded-lg transition-all duration-200 group',
                     isActive
-                      ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold shadow-lg border-l-4 border-yellow-500'
-                      : 'bg-card/50 hover:bg-zinc-800/50 text-card-foreground border-l-4 border-transparent',
+                      ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold shadow-lg'
+                      : 'bg-card/50 hover:bg-zinc-800/50 text-card-foreground',
                     isCollapsed ? 'w-10 justify-center' : 'w-44 px-3 gap-4'
                   )}
                 >
@@ -207,7 +207,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center p-4 bg-background">
+    <div className="relative flex min-h-screen items-start justify-center p-4 bg-background">
         <div className="content-glow w-full h-[calc(100vh-2rem)]">
             <div className="relative z-10 h-full w-full rounded-2xl bg-card text-card-foreground p-4 flex gap-4">
                 
@@ -289,3 +289,5 @@ export default function AppLayout({ children }: PropsWithChildren) {
     </div>
   );
 }
+
+    
