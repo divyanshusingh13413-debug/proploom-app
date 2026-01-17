@@ -3,7 +3,7 @@
 
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth, db } from '@/firebase/config';
 import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
@@ -40,26 +40,32 @@ function LoginForm() {
       const userDoc = await getDoc(userDocRef);
 
       if (!userDoc.exists()) {
-        console.warn(`User document not found for UID: ${user.uid}. Creating a new one.`);
-        
-        // Create the user document on the fly to self-heal
-        await setDoc(userDocRef, {
-          displayName: user.displayName || user.email,
-          email: user.email,
-          role: 'agent', // Default to 'agent' for safety
-          isFirstLogin: true, // Force password reset
-          createdAt: serverTimestamp(),
+        console.error(`User document not found for authenticated user: ${user.uid}.`);
+        await signOut(auth); // Sign out the user for security
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: "User profile not found. Please contact support.",
         });
-        
-        toast({ title: 'Welcome!', description: 'Please set your new password to continue.' });
-        router.push('/auth/set-password');
         setIsLoading(false);
-        return; // Stop execution to redirect
+        return; // Stop execution
       }
 
       const userData = userDoc.data();
       const userRole = userData.role;
       const displayName = userData.displayName;
+
+      // NEW: Role validation against the intended portal
+      if (userRole !== intendedRole) {
+        await signOut(auth); // Immediately sign out the user
+        toast({
+          variant: 'destructive',
+          title: 'Access Denied',
+          description: `You do not have permission for the ${intendedRole} portal.`,
+        });
+        setIsLoading(false);
+        return; // Stop execution
+      }
 
       // Check if it's the user's first login
       if (userData.isFirstLogin) {
@@ -68,14 +74,14 @@ function LoginForm() {
           return; // Stop execution to redirect
       }
 
-      // 3. Session set karein
+      // 3. Set session storage
       sessionStorage.setItem('userRole', userRole);
       sessionStorage.setItem('userId', user.uid);
       sessionStorage.setItem('displayName', displayName);
       
       toast({ title: 'Login Successful', description: `Redirecting as ${userRole}...` });
 
-      // 4. Sabse important: Redirect logic
+      // 4. Redirect based on the verified role
       const redirectPath = userRole === 'admin' ? '/dashboard' : '/leads';
       router.push(redirectPath);
 
