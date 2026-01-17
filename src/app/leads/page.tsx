@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/firebase/config';
-import { collection, onSnapshot, query, where, Timestamp, doc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import type { Lead, User } from '@/lib/types';
 import {
   Table,
@@ -27,11 +27,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, ChevronRight, UserPlus, FileText, Activity, MessageSquare, Plus, Loader2, Users2 } from 'lucide-react';
+import { MoreHorizontal, UserPlus, MessageSquare, Plus, Loader2, Users2, Trash2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
@@ -66,7 +72,7 @@ const LeadsTableSkeleton = () => (
           <TableHead>Status</TableHead>
           <TableHead>Assigned To</TableHead>
           <TableHead>Date Added</TableHead>
-          <TableHead colSpan={2}>Actions</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -77,7 +83,6 @@ const LeadsTableSkeleton = () => (
             <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
             <TableCell><Skeleton className="h-5 w-20" /></TableCell>
             <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-            <TableCell className="text-right"><Skeleton className="h-8 w-8 rounded-md" /></TableCell>
             <TableCell className="text-right"><Skeleton className="h-8 w-8 rounded-md" /></TableCell>
           </TableRow>
         ))}
@@ -169,6 +174,26 @@ export default function LeadsPage() {
     }
   };
 
+  const handleDeleteLead = async (leadId: string, leadName: string) => {
+    if (!confirm(`Are you sure you want to delete the lead for ${leadName}? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      await deleteDoc(doc(db, 'leads', leadId));
+      toast({
+        title: "Lead Deleted",
+        description: `${leadName} has been removed from your leads.`,
+      });
+    } catch (error) {
+      console.error("Error deleting lead:", error);
+      toast({
+        variant: "destructive",
+        title: "Deletion Failed",
+        description: `Could not delete ${leadName}. Please try again.`,
+      });
+    }
+  };
+
   const getLeadsTodayCount = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -247,12 +272,12 @@ export default function LeadsPage() {
                             <TableHead>Status</TableHead>
                             <TableHead>Assigned To</TableHead>
                             <TableHead>Date Added</TableHead>
-                            <TableHead colSpan={2} className="text-right">Actions</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                         </TableHeader>
                         <TableBody>
                         {leads.map((lead) => (
-                            <TableRow key={lead.id} className="transition-colors hover:bg-muted/50 cursor-pointer">
+                            <TableRow key={lead.id} className="transition-colors hover:bg-muted/50">
                                 <TableCell className="font-medium">{lead.name}</TableCell>
                                 <TableCell>{lead.source}</TableCell>
                                 <TableCell>
@@ -283,20 +308,30 @@ export default function LeadsPage() {
                                     )}
                                 </TableCell>
                                 <TableCell>{lead.timestamp ? lead.timestamp.toDate().toLocaleDateString() : 'N/A'}</TableCell>
-                                <TableCell className="text-right">
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={(e) => handleWhatsAppChat(e, lead.phone, lead.name)}
-                                    className="text-green-500 hover:bg-green-500/10 hover:text-green-400 h-8 w-8"
-                                  >
-                                    <MessageSquare className="h-4 w-4" />
-                                  </Button>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                                    </Button>
+                                <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                                  <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                                              <span className="sr-only">Open menu</span>
+                                              <MoreHorizontal className="h-4 w-4" />
+                                          </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                          <DropdownMenuItem>View Details</DropdownMenuItem>
+                                          <DropdownMenuItem onClick={(e) => handleWhatsAppChat(e, lead.phone, lead.name)}>
+                                              <MessageSquare className="mr-2 h-4 w-4" />
+                                              WhatsApp
+                                          </DropdownMenuItem>
+                                          <DropdownMenuSeparator />
+                                          <DropdownMenuItem
+                                              onClick={() => handleDeleteLead(lead.id, lead.name)}
+                                              className="text-red-500 focus:text-red-500 focus:bg-red-500/10"
+                                          >
+                                              <Trash2 className="mr-2 h-4 w-4" />
+                                              Delete Lead
+                                          </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -308,3 +343,5 @@ export default function LeadsPage() {
     </div>
   );
 }
+
+    
