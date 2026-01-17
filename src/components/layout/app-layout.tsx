@@ -59,10 +59,10 @@ const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string
                 <Link
                   href={item.href}
                   className={cn(
-                    'flex items-center justify-start h-10 rounded-lg transition-all duration-300 group',
+                    'flex items-center justify-start h-10 rounded-lg transition-all duration-200 group',
                     isActive
-                      ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold shadow-lg border-l-4 border-primary'
-                      : 'bg-card/50 hover:bg-zinc-800/30 text-card-foreground border-l-4 border-transparent',
+                      ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold shadow-lg border-l-4 border-yellow-500'
+                      : 'bg-card/50 hover:bg-zinc-800/50 text-card-foreground border-l-4 border-transparent',
                     isCollapsed ? 'w-10 justify-center' : 'w-44 px-3 gap-4'
                   )}
                 >
