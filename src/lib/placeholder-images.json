@@ -53,6 +53,24 @@
       "description": "An isometric illustration of real estate analytics",
       "imageUrl": "https://images.unsplash.com/photo-1760802136542-0cefb143f1f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyZWFsJTIwZXN0YXRlJTIwYW5hbHl0aWNzJTIwaXNvbWV0cmljfGVufDB8fHx8MTc2NzkyNTg5NXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "real estate analytics isometric"
+    },
+    {
+      "id": "landing-dashboard",
+      "description": "A mockup of a dark-themed analytics dashboard with charts.",
+      "imageUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "dark dashboard analytics"
+    },
+    {
+      "id": "landing-leads-mobile",
+      "description": "A mockup of a lead list on a mobile device with a dark theme.",
+      "imageUrl": "https://images.unsplash.com/photo-1621791338517-5ab1caf13715?q=80&w=1964&auto=format&fit=crop",
+      "imageHint": "mobile ui dark"
+    },
+    {
+      "id": "landing-ai-predictions",
+      "description": "A mockup of an AI data prediction interface with a dark theme.",
+      "imageUrl": "https://images.unsplash.com/photo-1611095562057-2e70191e6179?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "dark ui data"
     }
   ]
 }
