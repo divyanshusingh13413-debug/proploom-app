@@ -1,4 +1,3 @@
-
 import { Timestamp } from 'firebase/firestore';
 
 export type Lead = {
@@ -7,8 +6,8 @@ export type Lead = {
   status: 'New' | 'Contacted' | 'Closed' | 'Follow-up Due' | 'Meeting Today';
   propertyName: string;
   source: string;
-  lastContact: string;
-  agentId: string; // original agent if needed
+  lastContact?: string;
+  agentId?: string;
   budget: number;
   email: string;
   phone: string;
@@ -59,5 +58,3 @@ export type User = {
   isFirstLogin: boolean;
   createdAt?: Timestamp;
 };
-
-    

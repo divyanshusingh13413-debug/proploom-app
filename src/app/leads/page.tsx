@@ -41,6 +41,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
+import { BulkImportLeads } from '@/components/BulkImport';
 
 const statusStyles: Record<string, string> = {
   New: 'bg-green-500/20 text-green-400 border-green-500/30 hover:bg-green-500/30',
@@ -224,11 +225,14 @@ export default function LeadsPage() {
         <h1 className="text-2xl font-bold tracking-tight">
           Leads Management
         </h1>
-        <Link href="/leads/new">
-            <Button>
-                <Plus className="mr-2 h-4 w-4" /> Add New Lead
-            </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+            <BulkImportLeads />
+            <Link href="/leads/new">
+                <Button>
+                    <Plus className="mr-2 h-4 w-4" /> Add New Lead
+                </Button>
+            </Link>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -343,5 +347,3 @@ export default function LeadsPage() {
     </div>
   );
 }
-
-    
