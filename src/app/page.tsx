@@ -2,14 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/firebase/config';
 import { motion } from 'framer-motion';
-import { Building2, ShieldCheck, UserCheck } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Building2, ShieldCheck, UserCheck, Loader2 } from 'lucide-react';
 import SplashScreen from '@/components/layout/splash-screen';
 
 const RoleSelectionPage = () => {
   const router = useRouter();
   const [showSplash, setShowSplash] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (sessionStorage.getItem('splashShown')) {
@@ -23,12 +26,53 @@ const RoleSelectionPage = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // User is logged in, fetch role and redirect
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const role = userData.role;
+            if (role === 'admin') {
+              router.replace('/dashboard');
+            } else { // Assume agent if not admin
+              router.replace('/leads');
+            }
+          } else {
+            // User exists in auth, but not DB. Log them out.
+            await auth.signOut();
+            setIsLoading(false);
+          }
+        } catch (error) {
+           console.error("Error fetching user data, signing out.", error);
+           await auth.signOut();
+           setIsLoading(false);
+        }
+      } else {
+        // User is not logged in, stop loading and show portal selection
+        setIsLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
+
   const handlePortalClick = (role: 'admin' | 'agent') => {
     router.push(`/auth/login?role=${role}`);
   };
 
   if (showSplash) {
     return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen w-full bg-[#0F1115]">
+        <Loader2 className="h-10 w-10 text-primary animate-spin"/>
+      </div>
+    );
   }
 
   const cardContainerVariants = {
@@ -68,7 +112,7 @@ const RoleSelectionPage = () => {
           <div className="flex items-center gap-4 font-bold text-4xl tracking-tighter">
             <Building2 className="text-primary h-10 w-10" />
             <span className="font-headline bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              PROPLOOM
+              PropCall 360
             </span>
           </div>
         </motion.div>
@@ -101,7 +145,7 @@ const RoleSelectionPage = () => {
             whileHover="hover"
             whileTap="tap"
             onClick={() => handlePortalClick('admin')}
-            className="p-1 rounded-2xl bg-gradient-to-br from-primary/50 to-secondary/30 cursor-pointer"
+            className="p-1 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/10 cursor-pointer"
           >
             <div className="bg-white/5 backdrop-blur-md rounded-xl p-8 h-full flex flex-col items-center justify-center">
               <ShieldCheck className="h-16 w-16 text-primary mb-4" />
@@ -116,7 +160,7 @@ const RoleSelectionPage = () => {
             whileHover="hover"
             whileTap="tap"
             onClick={() => handlePortalClick('agent')}
-            className="p-1 rounded-2xl bg-gradient-to-br from-primary/50 to-secondary/30 cursor-pointer"
+            className="p-1 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/10 cursor-pointer"
           >
             <div className="bg-white/5 backdrop-blur-md rounded-xl p-8 h-full flex flex-col items-center justify-center">
               <UserCheck className="h-16 w-16 text-primary mb-4" />
