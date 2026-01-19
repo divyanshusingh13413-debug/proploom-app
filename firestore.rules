@@ -23,36 +23,47 @@ service cloud.firestore {
 
     // USERS
     match /users/{userId} {
-      // Admins can create new users (agents)
+      // Admins can create new users (agents).
       allow create: if isAdmin();
       
-      // Users can read their own document, Admins can read any user document
+      // Users can read their own document. Admins can read any user document.
       allow get: if (isSignedIn() && isOwner(userId)) || isAdmin();
       
-      // Users can update their own document
-      // Admins can update any user document (e.g. to change roles - future)
+      // Users can update their own document (like isFirstLogin).
+      // Admins can update any user document (e.g. to change roles).
       allow update: if (isSignedIn() && isOwner(userId)) || isAdmin();
 
-      // Admins can delete users (agents)
+      // Admins can delete users (agents).
       allow delete: if isAdmin();
       
-      // Admins can list all users
+      // Admins can list all users.
       allow list: if isAdmin();
     }
 
     // CHATS
+    // The chat room ID is a combination of agentId and leadId.
     match /chats/{chatId}/{document=**} {
-      // For now, allow signed-in users to read/write to chats
-      // This should be secured further based on chat participants
-      allow read, write: if isSignedIn();
+      // Allow access if the user is an admin or their UID is part of the chat ID.
+      allow read, write: if isAdmin() || (isSignedIn() && request.auth.uid in chatId.split('_'));
     }
 
     // LEADS
     match /leads/{leadId} {
-      // Allow any signed-in user to create, read, update, or delete leads for now
-      allow read, write: if isSignedIn();
+      // Any signed-in user can create a lead.
+      allow create: if isSignedIn();
+
+      // Read access:
+      // Admins can read all leads.
+      // Agents can read leads assigned to them.
+      allow read: if isAdmin() || (isSignedIn() && resource.data.assignedAgentId == request.auth.uid);
+
+      // Update access:
+      // Admins can update any lead.
+      // Agents can only update leads assigned to them.
+      allow update: if isAdmin() || (isSignedIn() && resource.data.assignedAgentId == request.auth.uid);
+
+      // Only admins can delete leads.
+      allow delete: if isAdmin();
     }
   }
 }
-
-    
