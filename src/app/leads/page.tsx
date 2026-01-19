@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { db } from '@/firebase/config';
 import { collection, onSnapshot, query, where, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import type { Lead, User } from '@/lib/types';
+import * as XLSX from 'xlsx';
 import {
   Table,
   TableBody,
@@ -36,7 +37,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, UserPlus, MessageSquare, Plus, Loader2, Users2, Trash2 } from 'lucide-react';
+import { MoreHorizontal, UserPlus, MessageSquare, Plus, Loader2, Users2, Trash2, FileSpreadsheet } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -219,6 +220,38 @@ export default function LeadsPage() {
     window.open(whatsappUrl, '_blank');
   };
 
+  const handleExport = () => {
+    if (leads.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'No Leads to Export',
+        description: 'There is no data available to export.',
+      });
+      return;
+    }
+
+    toast({
+      title: 'Exporting Leads',
+      description: 'Your Excel file is being generated...',
+    });
+
+    const dataToExport = leads.map(lead => ({
+      'Name': lead.name,
+      'Phone': lead.phone,
+      'Email': lead.email || '',
+      'Property': lead.propertyName,
+      'Budget': lead.budget || 0,
+      'Lead Status': lead.status,
+      'Date Added': lead.timestamp ? lead.timestamp.toDate().toLocaleDateString() : 'N/A',
+      'Assigned To': lead.assignedAgentName || 'Unassigned',
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
+    XLSX.writeFile(workbook, 'PropCall_Leads_Export.xlsx');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -227,6 +260,14 @@ export default function LeadsPage() {
         </h1>
         <div className="flex items-center gap-2">
             <BulkImportLeads />
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              className="text-amber-500 border-amber-500/50 hover:bg-amber-500/10 hover:text-amber-400"
+            >
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              Export to Excel
+            </Button>
             <Link href="/leads/new">
                 <Button>
                     <Plus className="mr-2 h-4 w-4" /> Add New Lead
