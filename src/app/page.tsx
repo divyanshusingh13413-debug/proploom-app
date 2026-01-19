@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, type User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/firebase/config';
 import { motion } from 'framer-motion';
@@ -27,41 +27,51 @@ const RoleSelectionPage = () => {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
       if (user) {
-        // User is logged in, fetch role and redirect
+        // User is signed in. Fetch their document to check role.
         try {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            const role = userData.role;
-            if (role === 'admin') {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            // As requested, logging the role from Firestore.
+            // The data model uses a string for 'role' ('admin' or 'agent').
+            console.log('Current User Role:', userData.role);
+
+            // Based on the fetched role, redirect to the correct dashboard.
+            if (userData.role === 'admin') {
               router.replace('/dashboard');
-            } else { // Assume agent if not admin
+            } else if (userData.role === 'agent') {
               router.replace('/leads');
+            } else {
+              // If role is undefined, sign out for safety.
+              console.error("Unrecognized role, signing out:", userData.role);
+              await auth.signOut();
+              setIsLoading(false);
             }
           } else {
-            // User exists in auth, but not DB. Log them out.
+            // User exists in Auth, but not in Firestore DB. Sign them out.
+            console.warn(`User document for ${user.uid} not found. Signing out.`);
             await auth.signOut();
             setIsLoading(false);
           }
         } catch (error) {
-           console.error("Error fetching user data, signing out.", error);
-           await auth.signOut();
-           setIsLoading(false);
+          // This is where "Permission Denied" would be caught.
+          console.error("Error fetching user data (check Firestore rules):", error);
+          // Sign out the user as we can't verify their role.
+          await auth.signOut();
+          setIsLoading(false);
         }
       } else {
-        // User is not logged in, stop loading and show portal selection
+        // No user is signed in. Stop loading and show the portal selection.
         setIsLoading(false);
       }
     });
 
     return () => unsubscribe();
   }, [router]);
-
-  const handlePortalClick = (role: 'admin' | 'agent') => {
-    router.push(`/auth/login?role=${role}`);
-  };
 
   if (showSplash) {
     return <SplashScreen onFinish={() => setShowSplash(false)} />;
@@ -70,10 +80,15 @@ const RoleSelectionPage = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen w-full bg-[#0F1115]">
-        <Loader2 className="h-10 w-10 text-primary animate-spin"/>
+        <Loader2 className="h-10 w-10 text-primary animate-spin" />
+        <span className="sr-only">Loading...</span>
       </div>
     );
   }
+
+  const handlePortalClick = (role: 'admin' | 'agent') => {
+    router.push(`/auth/login?role=${role}`);
+  };
 
   const cardContainerVariants = {
     hidden: { opacity: 0 },
