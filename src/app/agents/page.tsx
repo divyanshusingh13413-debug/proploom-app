@@ -36,7 +36,7 @@ export default function ManageAgentsPage() {
   const [newAgentEmail, setNewAgentEmail] = useState('');
 
   useEffect(() => {
-    const q = query(collection(db, 'users'), where('role', '==', 'agent'));
+    const q = query(collection(db, 'users'), where('roles', 'array-contains', 'agent'));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const agentsData: User[] = [];
       querySnapshot.forEach((doc) => {
@@ -79,7 +79,7 @@ export default function ManageAgentsPage() {
         email: newAgentEmail,
         password: tempPassword,
         displayName: newAgentName,
-        role: 'agent',
+        roles: ['agent'],
       });
 
       toast({

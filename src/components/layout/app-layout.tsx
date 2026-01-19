@@ -99,7 +99,8 @@ export default function AppLayout({ children }: PropsWithChildren) {
   const { toast } = useToast();
   
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [actualRoles, setActualRoles] = useState<string[]>([]);
+  const [primaryRole, setPrimaryRole] = useState<string | null>(null);
   const [viewAsRole, setViewAsRole] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -109,7 +110,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
     const cachedRole = sessionStorage.getItem('userRole');
     const cachedName = sessionStorage.getItem('displayName');
     if (cachedRole && cachedName) {
-        setUserRole(cachedRole);
+        setPrimaryRole(cachedRole);
         setViewAsRole(cachedRole); // Initially, view as your own role
         setDisplayName(cachedName);
     }
@@ -122,14 +123,16 @@ export default function AppLayout({ children }: PropsWithChildren) {
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          const role = userData.role;
+          const userRoles: string[] = userData.roles || [];
           const name = userData.displayName || 'User';
+          const userPrimaryRole = userRoles.includes('admin') ? 'admin' : (userRoles.includes('agent') ? 'agent' : null);
           
-          // Update state and session storage with fresh data
-          setUserRole(role);
-          setViewAsRole(role); // On auth change, reset view to actual role
+          setActualRoles(userRoles);
+          setPrimaryRole(userPrimaryRole);
+          setViewAsRole(userPrimaryRole); // On auth change, reset view to actual role
           setDisplayName(name);
-          sessionStorage.setItem('userRole', role);
+
+          sessionStorage.setItem('userRole', userPrimaryRole || 'agent');
           sessionStorage.setItem('userId', user.uid);
           sessionStorage.setItem('displayName', name);
 
@@ -139,25 +142,26 @@ export default function AppLayout({ children }: PropsWithChildren) {
               return;
           }
 
-          // 3. Role-based route protection (using the *actual* role)
+          // 3. Role-based route protection
           const currentNav = navItems.find(item => pathname.startsWith(item.href));
-          if (currentNav && !currentNav.roles.includes(role)) {
-            toast({
-              variant: "destructive",
-              title: "Access Denied",
-              description: "You do not have permission to view this page.",
-            });
-            // Redirect to their respective default page
-            router.replace(role === 'admin' ? '/dashboard' : '/leads');
+          if (currentNav) {
+            const hasPermission = userRoles.some(r => currentNav.roles.includes(r));
+            if (!hasPermission) {
+              toast({
+                variant: "destructive",
+                title: "Access Denied",
+                description: "You do not have permission to view this page.",
+              });
+              router.replace(userPrimaryRole === 'admin' ? '/dashboard' : '/leads');
+            }
           }
         } else {
-           // Self-heal: If user is authenticated but has no DB record, create one.
+           // Self-heal: Create a default 'agent' user if one doesn't exist
             console.warn(`User document not found for UID: ${user.uid}. Creating a new one.`);
-            const userDocRef = doc(db, 'users', user.uid);
             await setDoc(userDocRef, {
               displayName: user.displayName || user.email,
               email: user.email,
-              role: 'agent', // Default to 'agent' for safety
+              roles: ['agent'], // Default to 'agent' for safety
               isFirstLogin: true,
               createdAt: serverTimestamp(),
             });
@@ -218,7 +222,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
                 >
                   <div>
                     <div className={cn("flex items-center justify-between mb-2", isSidebarCollapsed ? 'px-[1.1rem]' : 'px-4')}>
-                       <Link href={userRole === 'admin' ? '/dashboard' : '/leads'} className={cn(isSidebarCollapsed && 'hidden')}>
+                       <Link href={primaryRole === 'admin' ? '/dashboard' : '/leads'} className={cn(isSidebarCollapsed && 'hidden')}>
                           <Building2 className="h-7 w-7 text-primary" />
                        </Link>
                        <Button variant="ghost" size="icon" onClick={() => setSidebarCollapsed(!isSidebarCollapsed)} className="h-8 w-8">
@@ -227,13 +231,13 @@ export default function AppLayout({ children }: PropsWithChildren) {
                     </div>
                      <div className={cn("px-4 mb-4", isSidebarCollapsed ? 'hidden' : 'block')}>
                         <p className="text-sm font-semibold truncate text-foreground">{welcomeMessage}</p>
-                        <p className="text-xs text-muted-foreground capitalize">{userRole} Portal</p>
+                        <p className="text-xs text-muted-foreground capitalize">{primaryRole} Portal</p>
                     </div>
                     <Nav isCollapsed={isSidebarCollapsed} userRole={viewAsRole} />
                   </div>
                   
                   <div className="flex flex-col gap-2">
-                    {userRole === 'admin' && !isSidebarCollapsed && (
+                    {actualRoles.includes('admin') && !isSidebarCollapsed && (
                          <div className="border-t pt-4 mx-2 px-2 flex items-center justify-between">
                             <Label htmlFor="view-switch" className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <Eye className="h-4 w-4"/>
@@ -289,5 +293,3 @@ export default function AppLayout({ children }: PropsWithChildren) {
     </div>
   );
 }
-
-    

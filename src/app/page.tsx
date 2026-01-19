@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -36,18 +37,17 @@ const RoleSelectionPage = () => {
 
           if (userDocSnap.exists()) {
             const userData = userDocSnap.data();
-            // As requested, logging the role from Firestore.
-            // The data model uses a string for 'role' ('admin' or 'agent').
-            console.log('Current User Role:', userData.role);
+            const userRoles = userData.roles || []; // Expecting an array
+            console.log('Current User Roles:', userRoles);
 
-            // Based on the fetched role, redirect to the correct dashboard.
-            if (userData.role === 'admin') {
+            // Redirect based on the roles array. Admin role has priority.
+            if (userRoles.includes('admin')) {
               router.replace('/dashboard');
-            } else if (userData.role === 'agent') {
+            } else if (userRoles.includes('agent')) {
               router.replace('/leads');
             } else {
-              // If role is undefined, sign out for safety.
-              console.error("Unrecognized role, signing out:", userData.role);
+              // If role is undefined or empty, sign out for safety.
+              console.error("Unrecognized role, signing out:", userRoles);
               await auth.signOut();
               setIsLoading(false);
             }

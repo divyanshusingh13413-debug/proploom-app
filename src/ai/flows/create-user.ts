@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Creates a user in Firebase Authentication and a corresponding document in Firestore.
@@ -36,7 +37,7 @@ const CreateUserInputSchema = z.object({
   email: z.string().email().describe('The email for the new user.'),
   password: z.string().min(6).describe('The password for the new user.'),
   displayName: z.string().describe('The display name for the new user.'),
-  role: z.enum(['agent', 'admin']).describe('The role of the new user.'),
+  roles: z.array(z.enum(['agent', 'admin'])).describe('The roles of the new user.'),
 });
 export type CreateUserInput = z.infer<typeof CreateUserInputSchema>;
 
@@ -70,7 +71,7 @@ const createUserFlow = ai.defineFlow(
       const userDoc = {
         displayName: input.displayName,
         email: input.email,
-        role: input.role,
+        roles: input.roles,
         isFirstLogin: true, // New users should set their password
         createdAt: new Date(),
       };

@@ -55,14 +55,15 @@ export default function SetPasswordPage() {
             // Step 3: Redirect to the appropriate dashboard
             const userDocSnap = await getDoc(userDocRef);
             const userData = userDocSnap.data();
-            const role = userData?.role || 'agent'; // Default to agent
+            const userRoles = userData?.roles || ['agent'];
+            const primaryRole = userRoles.includes('admin') ? 'admin' : 'agent';
             const displayName = userData?.displayName || 'User';
 
             // Also update session storage
-            sessionStorage.setItem('userRole', role);
+            sessionStorage.setItem('userRole', primaryRole);
             sessionStorage.setItem('displayName', displayName);
 
-            router.replace(role === 'admin' ? '/dashboard' : '/leads');
+            router.replace(primaryRole === 'admin' ? '/dashboard' : '/leads');
 
         } catch (error: any) {
             console.error("Error setting new password:", error);

@@ -19,10 +19,13 @@
           "type": "string",
           "description": "The user's display name."
         },
-        "role": {
-          "type": "string",
-          "description": "The user's role, e.g., 'admin' or 'agent'.",
-          "enum": ["admin", "agent"]
+        "roles": {
+          "type": "array",
+          "description": "The user's roles, e.g., ['admin'] or ['agent'].",
+          "items": {
+            "type": "string",
+            "enum": ["admin", "agent"]
+          }
         },
         "isFirstLogin": {
           "type": "boolean",
@@ -34,7 +37,7 @@
             "description": "The timestamp when the user account was created."
         }
       },
-      "required": ["uid", "email", "displayName", "role", "isFirstLogin", "createdAt"]
+      "required": ["uid", "email", "displayName", "roles", "isFirstLogin", "createdAt"]
     }
   },
   "auth": {

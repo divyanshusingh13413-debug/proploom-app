@@ -1,3 +1,4 @@
+
 import { Timestamp } from 'firebase/firestore';
 
 export type Lead = {
@@ -54,7 +55,7 @@ export type User = {
   uid: string;
   email: string | null;
   displayName: string | null;
-  role: 'admin' | 'agent';
+  roles: ('admin' | 'agent')[];
   isFirstLogin: boolean;
   createdAt?: Timestamp;
 };

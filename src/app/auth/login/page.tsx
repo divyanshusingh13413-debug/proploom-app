@@ -52,11 +52,11 @@ function LoginForm() {
       }
 
       const userData = userDoc.data();
-      const userRole = userData.role;
+      const userRoles = userData.roles || [];
       const displayName = userData.displayName;
 
-      // NEW: Role validation against the intended portal
-      if (userRole !== intendedRole) {
+      // Role validation against the intended portal
+      if (!userRoles.includes(intendedRole)) {
         await signOut(auth); // Immediately sign out the user
         router.push('/access-denied');
         return; // Stop execution
@@ -68,16 +68,18 @@ function LoginForm() {
           router.push('/auth/set-password');
           return; // Stop execution to redirect
       }
+      
+      const primaryRole = userRoles.includes('admin') ? 'admin' : 'agent';
 
       // 3. Set session storage
-      sessionStorage.setItem('userRole', userRole);
+      sessionStorage.setItem('userRole', primaryRole);
       sessionStorage.setItem('userId', user.uid);
       sessionStorage.setItem('displayName', displayName);
       
-      toast({ title: 'Login Successful', description: `Redirecting as ${userRole}...` });
+      toast({ title: 'Login Successful', description: `Redirecting as ${primaryRole}...` });
 
       // 4. Redirect based on the verified role
-      const redirectPath = userRole === 'admin' ? '/dashboard' : '/leads';
+      const redirectPath = primaryRole === 'admin' ? '/dashboard' : '/leads';
       router.push(redirectPath);
 
     } catch (error: any) {
