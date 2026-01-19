@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { Lead } from '@/lib/types';
 import { db } from '@/firebase/config';
-import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, limit, where } from 'firebase/firestore';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -27,19 +27,35 @@ const DashboardPage = () => {
   const [leadsLoading, setLeadsLoading] = useState(true);
   
   useEffect(() => {
-    const q = query(collection(db, "leads"), orderBy("timestamp", "desc"), limit(5));
-    const unsubscribeLeads = onSnapshot(q, (querySnapshot) => {
+    const role = sessionStorage.getItem('userRole');
+    const uid = sessionStorage.getItem('userId');
+
+    if (!role || !uid) {
+      setLeadsLoading(false);
+      return;
+    }
+
+    let leadsQuery;
+    if (role === 'admin') {
+      leadsQuery = query(collection(db, "leads"), orderBy("timestamp", "desc"), limit(5));
+    } else {
+      // Agent's view: only their own leads. This might require a composite index in Firestore.
+      leadsQuery = query(collection(db, "leads"), where("assignedAgentId", "==", uid), orderBy("timestamp", "desc"), limit(5));
+    }
+
+    const unsubscribeLeads = onSnapshot(leadsQuery, (querySnapshot) => {
       const leadsData: Lead[] = [];
       querySnapshot.forEach((doc) => {
         leadsData.push({ id: doc.id, ...doc.data() } as Lead);
       });
       setRecentLeads(leadsData);
       setLeadsLoading(false);
+    }, (error) => {
+      console.error("Dashboard: Error fetching leads:", error);
+      setLeadsLoading(false);
     });
 
-    return () => {
-      unsubscribeLeads();
-    };
+    return () => unsubscribeLeads();
   }, []);
   
   const stats = [

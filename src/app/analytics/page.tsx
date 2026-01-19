@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { db } from '@/firebase/config';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, where } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -18,8 +18,22 @@ export default function AnalyticsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, "leads"), orderBy("timestamp", "desc"));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const role = sessionStorage.getItem('userRole');
+    const uid = sessionStorage.getItem('userId');
+    
+    if (!role || !uid) {
+      setIsLoading(false);
+      return;
+    }
+
+    let leadsQuery;
+    if (role === 'admin') {
+      leadsQuery = query(collection(db, "leads"), orderBy("timestamp", "desc"));
+    } else { // Agent
+      leadsQuery = query(collection(db, "leads"), where("assignedAgentId", "==", uid), orderBy("timestamp", "desc"));
+    }
+
+    const unsubscribe = onSnapshot(leadsQuery, (querySnapshot) => {
       const leadsData: Lead[] = [];
       querySnapshot.forEach((doc) => {
         leadsData.push({ id: doc.id, ...doc.data() } as Lead);
@@ -27,7 +41,7 @@ export default function AnalyticsPage() {
       setLeads(leadsData);
       setIsLoading(false);
     }, (error) => {
-      console.error("Error fetching leads:", error);
+      console.error("Error fetching leads for analytics:", error);
       setIsLoading(false);
     });
 
