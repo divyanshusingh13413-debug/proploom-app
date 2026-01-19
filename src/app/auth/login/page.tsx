@@ -58,12 +58,7 @@ function LoginForm() {
       // NEW: Role validation against the intended portal
       if (userRole !== intendedRole) {
         await signOut(auth); // Immediately sign out the user
-        toast({
-          variant: 'destructive',
-          title: 'Access Denied',
-          description: `You do not have permission for the ${intendedRole} portal.`,
-        });
-        setIsLoading(false);
+        router.push('/access-denied');
         return; // Stop execution
       }
 
