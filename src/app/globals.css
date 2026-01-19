@@ -165,3 +165,28 @@ body {
 .text-glow {
   text-shadow: 0 0 8px hsl(var(--primary) / 0.5), 0 0 20px hsl(var(--primary) / 0.3);
 }
+
+/* Dubai Gold & Obsidian Theme */
+.portal-card {
+  padding: 40px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(212, 175, 55, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+/* Jab role access ho (Active state) */
+.active-gold:hover {
+  border-color: #D4AF37;
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+  transform: translateY(-10px);
+  background: rgba(212, 175, 55, 0.05);
+}
+
+/* Jab access na ho (Locked state) */
+.locked {
+  opacity: 0.3;
+  filter: grayscale(1);
+  cursor: not-allowed;
+}

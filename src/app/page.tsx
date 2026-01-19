@@ -93,11 +93,6 @@ const RoleSelectionPage = () => {
       opacity: 1,
       transition: { duration: 0.7, ease: [0.6, 0.05, 0.01, 0.9] },
     },
-    hover: {
-      scale: 1.05,
-      boxShadow: '0px 0px 20px rgba(234, 179, 8, 0.3)',
-    },
-    tap: { scale: 0.95 },
   };
 
   return (
@@ -142,33 +137,25 @@ const RoleSelectionPage = () => {
         >
           <motion.div
             variants={cardVariants}
-            whileHover="hover"
-            whileTap="tap"
             onClick={() => handlePortalClick('admin')}
-            className="p-1 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/10 cursor-pointer"
+            className="portal-card active-gold flex flex-col items-center justify-center"
           >
-            <div className="bg-white/5 backdrop-blur-md rounded-xl p-8 h-full flex flex-col items-center justify-center">
-              <ShieldCheck className="h-16 w-16 text-primary mb-4" />
-              <h2 className="text-3xl font-bold">Admin Portal</h2>
-              <p className="text-muted-foreground mt-2">
-                Full access to analytics and settings.
-              </p>
-            </div>
+            <ShieldCheck className="h-16 w-16 text-primary mb-4" />
+            <h2 className="text-3xl font-bold">Admin Portal</h2>
+            <p className="text-muted-foreground mt-2">
+              Full access to analytics and settings.
+            </p>
           </motion.div>
           <motion.div
             variants={cardVariants}
-            whileHover="hover"
-            whileTap="tap"
             onClick={() => handlePortalClick('agent')}
-            className="p-1 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/10 cursor-pointer"
+            className="portal-card active-gold flex flex-col items-center justify-center"
           >
-            <div className="bg-white/5 backdrop-blur-md rounded-xl p-8 h-full flex flex-col items-center justify-center">
-              <UserCheck className="h-16 w-16 text-primary mb-4" />
-              <h2 className="text-3xl font-bold">Agent Portal</h2>
-              <p className="text-muted-foreground mt-2">
-                Manage and track your assigned leads.
-              </p>
-            </div>
+            <UserCheck className="h-16 w-16 text-primary mb-4" />
+            <h2 className="text-3xl font-bold">Agent Portal</h2>
+            <p className="text-muted-foreground mt-2">
+              Manage and track your assigned leads.
+            </p>
           </motion.div>
         </motion.div>
       </div>
