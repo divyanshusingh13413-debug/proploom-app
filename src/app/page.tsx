@@ -111,15 +111,6 @@ const RoleSelectionPage = () => {
     return <SplashScreen onFinish={() => setShowSplash(false)} />;
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen w-full bg-[#0F1115]">
-        <Loader2 className="h-10 w-10 text-primary animate-spin" />
-        <span className="sr-only">Loading...</span>
-      </div>
-    );
-  }
-
   const isAdminAllowed = user ? userRoles.includes('admin') : true;
   const isAgentAllowed = user ? userRoles.includes('agent') : true;
 
@@ -192,36 +183,43 @@ const RoleSelectionPage = () => {
         >
           {user ? `Welcome back, ${user.displayName || 'User'}!` : 'Please select your portal to continue.'}
         </motion.p>
+        
+        {isLoading ? (
+            <div className="flex justify-center items-center min-h-[178px]">
+              <Loader2 className="h-12 w-12 text-primary animate-spin" />
+            </div>
+          ) : (
+            <motion.div
+              variants={cardContainerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 md:grid-cols-2 gap-8"
+            >
+              <motion.div
+                variants={cardVariants}
+                onClick={handleAdminClick}
+                className={`portal-card ${isAdminAllowed ? 'active-gold' : 'locked'}`}
+              >
+                <ShieldCheck className="h-16 w-16 text-primary mb-4" />
+                <h2 className="text-3xl font-bold">Admin Portal</h2>
+                <p className="text-muted-foreground mt-2">
+                  Full access to analytics and settings.
+                </p>
+              </motion.div>
+              <motion.div
+                variants={cardVariants}
+                onClick={handleAgentClick}
+                className={`portal-card ${isAgentAllowed ? 'active-gold' : 'locked'}`}
+              >
+                <UserCheck className="h-16 w-16 text-primary mb-4" />
+                <h2 className="text-3xl font-bold">Agent Portal</h2>
+                <p className="text-muted-foreground mt-2">
+                  Manage and track your assigned leads.
+                </p>
+              </motion.div>
+            </motion.div>
+        )}
 
-        <motion.div
-          variants={cardContainerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 md:grid-cols-2 gap-8"
-        >
-          <motion.div
-            variants={cardVariants}
-            onClick={handleAdminClick}
-            className={`portal-card ${isAdminAllowed ? 'active-gold' : 'locked'}`}
-          >
-            <ShieldCheck className="h-16 w-16 text-primary mb-4" />
-            <h2 className="text-3xl font-bold">Admin Portal</h2>
-            <p className="text-muted-foreground mt-2">
-              Full access to analytics and settings.
-            </p>
-          </motion.div>
-          <motion.div
-            variants={cardVariants}
-            onClick={handleAgentClick}
-            className={`portal-card ${isAgentAllowed ? 'active-gold' : 'locked'}`}
-          >
-            <UserCheck className="h-16 w-16 text-primary mb-4" />
-            <h2 className="text-3xl font-bold">Agent Portal</h2>
-            <p className="text-muted-foreground mt-2">
-              Manage and track your assigned leads.
-            </p>
-          </motion.div>
-        </motion.div>
       </div>
        <div className="absolute bottom-4 right-4">
         <Button variant="ghost" onClick={debugPermissions} className="text-muted-foreground hover:text-foreground">
