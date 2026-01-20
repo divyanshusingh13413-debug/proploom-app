@@ -12,22 +12,27 @@ import { Users, TrendingUp, Bell, Loader2, Users2, DollarSign } from 'lucide-rea
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import type { Lead } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRole } from '@/context/RoleContext';
 
 export default function AnalyticsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { viewAsRole } = useRole();
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const role = sessionStorage.getItem('userRole');
     const uid = sessionStorage.getItem('userId');
+    setUserId(uid);
     
-    if (!role || !uid) {
+    if (!viewAsRole || !uid) {
       setIsLoading(false);
       return;
     }
+    
+    setIsLoading(true);
 
     let leadsQuery;
-    if (role === 'admin') {
+    if (viewAsRole === 'admin') {
       leadsQuery = query(collection(db, "leads"), orderBy("timestamp", "desc"));
     } else { // Agent
       leadsQuery = query(collection(db, "leads"), where("assignedAgentId", "==", uid), orderBy("timestamp", "desc"));
@@ -46,7 +51,7 @@ export default function AnalyticsPage() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [viewAsRole, userId]);
 
   const {
     totalLeads,
@@ -70,7 +75,7 @@ export default function AnalyticsPage() {
     }
 
     leads.forEach(lead => {
-        if (lead.timestamp && lead.status === 'Closed') {
+        if (lead.timestamp && lead.status === 'Closed' && lead.budget) {
             const date = lead.timestamp.toDate();
             const monthName = monthNames[date.getMonth()];
             const monthIndex = last6Months.findIndex(m => m.month === monthName);
@@ -80,7 +85,7 @@ export default function AnalyticsPage() {
         }
     });
 
-    return { totalLeads, hotLeads, conversionRate, pendingFollowUps, recentLeads, monthlySalesData: last6Months };
+    return { totalLeads, hotLeads, conversionRate, pendingFollowUps, recentLeads, monthlySalesData };
   }, [leads]);
 
 
@@ -200,42 +205,44 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Monthly Sales Performance</CardTitle>
-            <CardDescription>Based on closed deals from the last 6 months.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-                <div className="flex items-center justify-center h-[300px]">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        {viewAsRole === 'admin' && (
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Monthly Sales Performance</CardTitle>
+              <CardDescription>Based on closed deals from the last 6 months.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                  <div className="flex items-center justify-center h-[300px]">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+              ) : monthlySalesData.reduce((acc, curr) => acc + curr.sales, 0) > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={monthlySalesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
+                      <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value/1000}k`}/>
+                      <Tooltip
+                        cursor={{ fill: 'hsl(var(--accent))', opacity: 0.5 }}
+                        contentStyle={{
+                          background: 'hsl(var(--background))',
+                          borderColor: 'hsl(var(--border))',
+                          borderRadius: 'var(--radius)',
+                        }}
+                      />
+                      <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-[300px] border-2 border-dashed rounded-lg p-4">
+                    <DollarSign className="h-12 w-12 mb-4 text-muted-foreground/50"/>
+                    <p className="font-medium">No Sales Data</p>
+                    <p className="text-sm">Close deals to see sales performance here.</p>
                 </div>
-            ) : monthlySalesData.reduce((acc, curr) => acc + curr.sales, 0) > 0 ? (
-                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={monthlySalesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
-                    <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value/1000}k`}/>
-                    <Tooltip
-                      cursor={{ fill: 'hsl(var(--accent))', opacity: 0.5 }}
-                      contentStyle={{
-                        background: 'hsl(var(--background))',
-                        borderColor: 'hsl(var(--border))',
-                        borderRadius: 'var(--radius)',
-                      }}
-                    />
-                    <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-            ) : (
-              <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-[300px] border-2 border-dashed rounded-lg p-4">
-                  <DollarSign className="h-12 w-12 mb-4 text-muted-foreground/50"/>
-                  <p className="font-medium">No Sales Data</p>
-                  <p className="text-sm">Close deals to see sales performance here.</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

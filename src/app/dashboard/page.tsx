@@ -3,43 +3,43 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, 
   TrendingUp, 
   Video, 
   Plus,
   MessageSquare,
-  Loader2,
   Home,
   Users2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import type { Lead } from '@/lib/types';
 import { db } from '@/firebase/config';
 import { collection, onSnapshot, query, orderBy, limit, where } from 'firebase/firestore';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRole } from '@/context/RoleContext';
 
 const DashboardPage = () => {
   const [recentLeads, setRecentLeads] = useState<Lead[]>([]);
   const [leadsLoading, setLeadsLoading] = useState(true);
+  const { viewAsRole } = useRole();
+  const [userId, setUserId] = useState<string|null>(null);
   
   useEffect(() => {
-    const role = sessionStorage.getItem('userRole');
     const uid = sessionStorage.getItem('userId');
+    setUserId(uid);
 
-    if (!role || !uid) {
+    if (!viewAsRole || !uid) {
       setLeadsLoading(false);
       return;
     }
 
+    setLeadsLoading(true);
     let leadsQuery;
-    if (role === 'admin') {
+    if (viewAsRole === 'admin') {
       leadsQuery = query(collection(db, "leads"), orderBy("timestamp", "desc"), limit(5));
     } else {
-      // Agent's view: only their own leads. This might require a composite index in Firestore.
       leadsQuery = query(collection(db, "leads"), where("assignedAgentId", "==", uid), orderBy("timestamp", "desc"), limit(5));
     }
 
@@ -56,7 +56,7 @@ const DashboardPage = () => {
     });
 
     return () => unsubscribeLeads();
-  }, []);
+  }, [viewAsRole, userId]);
   
   const stats = [
     { label: 'Active Leads', value: '128', growth: '+12%', icon: Users },
@@ -81,24 +81,26 @@ const DashboardPage = () => {
           Dashboard Overview
         </h1>
         <p className="text-muted-foreground">
-          Here's a snapshot of your real estate activities.
+          {viewAsRole === 'admin' ? "Here's a snapshot of your entire agency's activities." : "Here's a snapshot of your personal real estate activities."}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {stats.map((stat) => (
-          <div key={stat.label} className="bg-background p-6 rounded-2xl border border-border/50 transition-all hover:border-primary/50 shadow-lg">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-muted-foreground text-sm">{stat.label}</p>
-                <h3 className="text-2xl font-bold mt-1 text-foreground">{stat.value}</h3>
-                <span className="text-green-400 text-xs font-medium">{stat.growth} from last month</span>
+      {viewAsRole === 'admin' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {stats.map((stat) => (
+            <div key={stat.label} className="bg-background p-6 rounded-2xl border border-border/50 transition-all hover:border-primary/50 shadow-lg">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-muted-foreground text-sm">{stat.label}</p>
+                  <h3 className="text-2xl font-bold mt-1 text-foreground">{stat.value}</h3>
+                  <span className="text-green-400 text-xs font-medium">{stat.growth} from last month</span>
+                </div>
+                <stat.icon className="text-primary" size={24} />
               </div>
-              <stat.icon className="text-primary" size={24} />
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-background p-6 rounded-2xl border border-border/50">

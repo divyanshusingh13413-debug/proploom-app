@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Plus, Users, DollarSign, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useRole } from '@/context/RoleContext';
 
 const pipelineData = {
   'New Lead': [
@@ -32,27 +33,32 @@ const columnStyles = {
   'Closing': { icon: DollarSign, color: 'text-green-400', bg: 'bg-green-900/20' },
 };
 
-const DealCard = ({ deal }: { deal: (typeof pipelineData)['New Lead'][0] }) => (
-  <Card className="bg-card-foreground/5 shadow-md hover:border-primary/80 transition-all duration-300 cursor-grab active:cursor-grabbing hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1">
-    <CardHeader className="p-4">
-      <CardTitle className="text-base font-semibold text-foreground">{deal.propertyName}</CardTitle>
-      <p className="text-sm text-muted-foreground">{deal.clientName}</p>
-    </CardHeader>
-    <CardContent className="p-4 pt-0">
-      <Badge variant="secondary" className="text-sm font-bold bg-primary/10 text-primary border-primary/20">
-        {deal.budget}
-      </Badge>
-    </CardContent>
-    <CardFooter className="p-4 pt-0 flex justify-end">
-       <div className="flex items-center gap-2">
-            <Avatar className="h-6 w-6">
-                <AvatarFallback className="text-xs bg-muted text-muted-foreground">{deal.agent.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <span className="text-xs text-muted-foreground">{deal.agent}</span>
-       </div>
-    </CardFooter>
-  </Card>
-);
+const DealCard = ({ deal }: { deal: (typeof pipelineData)['New Lead'][0] }) => {
+  const { viewAsRole } = useRole();
+  return (
+    <Card className="bg-card-foreground/5 shadow-md hover:border-primary/80 transition-all duration-300 cursor-grab active:cursor-grabbing hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1">
+      <CardHeader className="p-4">
+        <CardTitle className="text-base font-semibold text-foreground">{deal.propertyName}</CardTitle>
+        <p className="text-sm text-muted-foreground">{deal.clientName}</p>
+      </CardHeader>
+      <CardContent className="p-4 pt-0">
+        {viewAsRole === 'admin' && (
+          <Badge variant="secondary" className="text-sm font-bold bg-primary/10 text-primary border-primary/20">
+            {deal.budget}
+          </Badge>
+        )}
+      </CardContent>
+      <CardFooter className="p-4 pt-0 flex justify-end">
+        <div className="flex items-center gap-2">
+              <Avatar className="h-6 w-6">
+                  <AvatarFallback className="text-xs bg-muted text-muted-foreground">{deal.agent.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <span className="text-xs text-muted-foreground">{deal.agent}</span>
+        </div>
+      </CardFooter>
+    </Card>
+  );
+};
 
 const PipelineColumn = ({ title, deals }: { title: keyof typeof pipelineData, deals: (typeof pipelineData)['New Lead'] }) => {
   const { icon: Icon, color, bg } = columnStyles[title];

@@ -43,6 +43,7 @@ import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { BulkImportLeads } from '@/components/BulkImport';
+import { useRole } from '@/context/RoleContext';
 
 const statusStyles: Record<string, string> = {
   New: 'bg-green-500/20 text-green-400 border-green-500/30 hover:bg-green-500/30',
@@ -97,23 +98,32 @@ export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [agents, setAgents] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const { viewAsRole } = useRole();
   const [userId, setUserId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const role = sessionStorage.getItem('userRole');
     const uid = sessionStorage.getItem('userId');
-    setUserRole(role);
     setUserId(uid);
+  }, []);
 
+  useEffect(() => {
+    if (!viewAsRole) {
+      setIsLoading(false);
+      return;
+    }
+    
     setIsLoading(true);
 
     let leadsQuery;
-    if (role === 'agent' && uid) {
-      leadsQuery = query(collection(db, 'leads'), where('assignedAgentId', '==', uid));
-    } else {
+    if (viewAsRole === 'agent' && userId) {
+      leadsQuery = query(collection(db, 'leads'), where('assignedAgentId', '==', userId));
+    } else if (viewAsRole === 'admin') {
       leadsQuery = query(collection(db, 'leads'));
+    } else {
+        setLeads([]);
+        setIsLoading(false);
+        return;
     }
 
     const unsubscribeLeads = onSnapshot(leadsQuery, (querySnapshot) => {
@@ -133,10 +143,9 @@ export default function LeadsPage() {
         setIsLoading(false);
     });
 
-    // Fetch agents only if user is admin
     let unsubscribeAgents = () => {};
-    if (role === 'admin') {
-      const agentsQuery = query(collection(db, 'users'), where('role', '==', 'agent'));
+    if (viewAsRole === 'admin') {
+      const agentsQuery = query(collection(db, 'users'), where('roles', 'array-contains', 'agent'));
       unsubscribeAgents = onSnapshot(agentsQuery, (querySnapshot) => {
         const agentsData: User[] = [];
         querySnapshot.forEach((doc) => {
@@ -150,7 +159,7 @@ export default function LeadsPage() {
       unsubscribeLeads();
       unsubscribeAgents();
     };
-  }, []);
+  }, [viewAsRole, userId]);
   
   const handleAssignAgent = async (leadId: string, agentId: string) => {
     const agent = agents.find(a => a.uid === agentId);
@@ -210,7 +219,7 @@ export default function LeadsPage() {
   };
 
   const handleWhatsAppChat = (e: React.MouseEvent, phone: string, name?: string) => {
-    e.stopPropagation(); // Prevent row click
+    e.stopPropagation(); 
     const message = name
       ? `Hi ${name}, this is from Proploom regarding your interest in our properties. When would be a good time to connect?`
       : 'Hello, I am interested in your property listing.';
@@ -275,10 +284,10 @@ export default function LeadsPage() {
             </Link>
         </div>
       </div>
-
+      
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatsCard title="NEW LEADS TODAY" value={getLeadsTodayCount().toString()} subtitle="from all channels" color="from-primary to-blue-700" icon={UserPlus} isLoading={isLoading} />
-        <StatsCard title={userRole === 'admin' ? "TOTAL ACTIVE LEADS" : "MY ACTIVE LEADS"} value={leads.length.toString()} subtitle="Follow-ups pending" color="from-accent to-yellow-600" icon={UserPlus} isLoading={isLoading} />
+        <StatsCard title={viewAsRole === 'admin' ? "TOTAL ACTIVE LEADS" : "MY ACTIVE LEADS"} value={leads.length.toString()} subtitle="Follow-ups pending" color="from-accent to-yellow-600" icon={UserPlus} isLoading={isLoading} />
         <StatsCard title="PRIORITY HOT LEADS" value={leads.filter(l => l.status === 'Follow-up Due').length.toString()} subtitle="Requires immediate attention" color="from-secondary to-green-700" icon={UserPlus} isLoading={isLoading}/>
       </div>
       
@@ -295,7 +304,7 @@ export default function LeadsPage() {
                     <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-full py-16 border-2 border-dashed rounded-lg">
                         <Users2 className="h-12 w-12 mb-4 text-muted-foreground/50"/>
                         <p className="font-medium">No Leads Found</p>
-                        {userRole === 'agent' ?
+                        {viewAsRole === 'agent' ?
                            <p className="text-sm mt-2">Contact your admin to get leads assigned.</p>
                          :
                          <>
@@ -331,7 +340,7 @@ export default function LeadsPage() {
                                     </Badge>
                                 </TableCell>
                                 <TableCell onClick={(e) => e.stopPropagation()}>
-                                    {userRole === 'admin' ? (
+                                    {viewAsRole === 'admin' ? (
                                         <Select
                                             value={lead.assignedAgentId || ''}
                                             onValueChange={(agentId) => handleAssignAgent(lead.id, agentId)}
@@ -367,14 +376,18 @@ export default function LeadsPage() {
                                               <MessageSquare className="mr-2 h-4 w-4" />
                                               WhatsApp
                                           </DropdownMenuItem>
-                                          <DropdownMenuSeparator />
-                                          <DropdownMenuItem
-                                              onClick={() => handleDeleteLead(lead.id, lead.name)}
-                                              className="text-red-500 focus:text-red-500 focus:bg-red-500/10"
-                                          >
-                                              <Trash2 className="mr-2 h-4 w-4" />
-                                              Delete Lead
-                                          </DropdownMenuItem>
+                                          {viewAsRole === 'admin' && (
+                                              <>
+                                                  <DropdownMenuSeparator />
+                                                  <DropdownMenuItem
+                                                      onClick={() => handleDeleteLead(lead.id, lead.name)}
+                                                      className="text-red-500 focus:text-red-500 focus:bg-red-500/10"
+                                                  >
+                                                      <Trash2 className="mr-2 h-4 w-4" />
+                                                      Delete Lead
+                                                  </DropdownMenuItem>
+                                              </>
+                                          )}
                                       </DropdownMenuContent>
                                   </DropdownMenu>
                                 </TableCell>
