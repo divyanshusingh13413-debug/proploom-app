@@ -7,8 +7,50 @@ import { onAuthStateChanged, type User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/firebase/config';
 import { motion } from 'framer-motion';
-import { Building2, ShieldCheck, UserCheck, Loader2 } from 'lucide-react';
+import { Building2, ShieldCheck, UserCheck, Loader2, Bug } from 'lucide-react';
 import SplashScreen from '@/components/layout/splash-screen';
+import { Button } from '@/components/ui/button';
+
+const debugPermissions = async () => {
+  const user = auth.currentUser;
+
+  if (!user) {
+    console.log("❌ Error: No user is logged in!");
+    alert("No user is logged in. Please log in first.");
+    return;
+  }
+
+  const uid = user.uid;
+  console.log("🆔 Your Login UID:", uid);
+
+  try {
+    const docRef = doc(db, "users", uid);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      console.log("✅ Firestore Document Found!");
+      console.log("📂 Full Data:", data);
+      console.log("🔑 Roles Array:", data.roles);
+      
+      if (data.roles && data.roles.includes('admin')) {
+        console.log("🚀 Admin Access: GRANTED");
+      } else {
+        console.log("⚠️ Admin Access: DENIED ('admin' not in roles array)");
+      }
+      alert("Debug info logged to console. Press F12 to view.");
+
+    } else {
+      console.log("❌ Error: No document found in Firestore for UID:", uid);
+      console.log("💡 Tip: Make sure your Document ID in Firebase Console's 'users' collection matches the UID above exactly!");
+      alert("User document not found in Firestore. Check the console (F12) for details.");
+    }
+  } catch (error: any) {
+    console.error("🔥 Firebase Error:", error.message);
+    alert(`A Firebase error occurred: ${error.message}. Check console (F12) for more details.`);
+  }
+};
+
 
 const RoleSelectionPage = () => {
   const router = useRouter();
@@ -173,6 +215,12 @@ const RoleSelectionPage = () => {
             </p>
           </motion.div>
         </motion.div>
+      </div>
+       <div className="absolute bottom-4 right-4">
+        <Button variant="ghost" onClick={debugPermissions} className="text-muted-foreground hover:text-foreground">
+          <Bug className="mr-2 h-4 w-4" />
+          Debug Permissions
+        </Button>
       </div>
     </div>
   );
