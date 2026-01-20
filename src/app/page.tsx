@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthStateChanged, type User } from 'firebase/auth';
+import { onAuthStateChanged, type User as FirebaseAuthUser } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/firebase/config';
 import { motion } from 'framer-motion';
@@ -56,6 +56,8 @@ const RoleSelectionPage = () => {
   const router = useRouter();
   const [showSplash, setShowSplash] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<FirebaseAuthUser | null>(null);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
 
   useEffect(() => {
     if (sessionStorage.getItem('splashShown')) {
@@ -70,50 +72,40 @@ const RoleSelectionPage = () => {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
-      if (user) {
-        // User is signed in. Fetch their document to check role.
+    setIsLoading(true);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
         try {
-          const userDocRef = doc(db, 'users', user.uid);
+          const userDocRef = doc(db, 'users', currentUser.uid);
           const userDocSnap = await getDoc(userDocRef);
-
           if (userDocSnap.exists()) {
             const userData = userDocSnap.data();
-            const userRoles = userData.roles || []; // Expecting an array
-            console.log('Current User Roles:', userRoles);
-
-            // Redirect based on the roles array. Admin role has priority.
-            if (userRoles.includes('admin')) {
-              router.replace('/dashboard');
-            } else if (userRoles.includes('agent')) {
-              router.replace('/leads');
-            } else {
-              // If role is undefined or empty, sign out for safety.
-              console.error("Unrecognized role, signing out:", userRoles);
-              await auth.signOut();
-              setIsLoading(false);
-            }
+            const roles: string[] = userData.roles || [];
+            console.log('Current User Roles:', roles);
+            setUserRoles(roles);
           } else {
-            // User exists in Auth, but not in Firestore DB. Sign them out.
-            console.warn(`User document for ${user.uid} not found. Signing out.`);
+            console.warn(`User document for ${currentUser.uid} not found. Signing out.`);
             await auth.signOut();
-            setIsLoading(false);
+            setUser(null);
+            setUserRoles([]);
           }
         } catch (error) {
-          // This is where "Permission Denied" would be caught.
           console.error("Error fetching user data (check Firestore rules):", error);
-          // Sign out the user as we can't verify their role.
           await auth.signOut();
-          setIsLoading(false);
+          setUser(null);
+          setUserRoles([]);
         }
       } else {
-        // No user is signed in. Stop loading and show the portal selection.
-        setIsLoading(false);
+        // No user is signed in.
+        setUser(null);
+        setUserRoles([]);
       }
+      setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, []);
 
   if (showSplash) {
     return <SplashScreen onFinish={() => setShowSplash(false)} />;
@@ -128,8 +120,23 @@ const RoleSelectionPage = () => {
     );
   }
 
-  const handlePortalClick = (role: 'admin' | 'agent') => {
-    router.push(`/auth/login?role=${role}`);
+  const isAdminAllowed = user ? userRoles.includes('admin') : true;
+  const isAgentAllowed = user ? userRoles.includes('agent') : true;
+
+  const handleAdminClick = () => {
+    if (user) {
+      if (isAdminAllowed) router.push('/dashboard');
+    } else {
+      router.push('/auth/login?role=admin');
+    }
+  };
+
+  const handleAgentClick = () => {
+    if (user) {
+      if (isAgentAllowed) router.push('/leads');
+    } else {
+      router.push('/auth/login?role=agent');
+    }
   };
 
   const cardContainerVariants = {
@@ -183,7 +190,7 @@ const RoleSelectionPage = () => {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="text-muted-foreground text-lg mb-12"
         >
-          Please select your portal to continue.
+          {user ? `Welcome back, ${user.displayName || 'User'}!` : 'Please select your portal to continue.'}
         </motion.p>
 
         <motion.div
@@ -194,8 +201,8 @@ const RoleSelectionPage = () => {
         >
           <motion.div
             variants={cardVariants}
-            onClick={() => handlePortalClick('admin')}
-            className="portal-card active-gold flex flex-col items-center justify-center"
+            onClick={handleAdminClick}
+            className={`portal-card ${isAdminAllowed ? 'active-gold' : 'locked'}`}
           >
             <ShieldCheck className="h-16 w-16 text-primary mb-4" />
             <h2 className="text-3xl font-bold">Admin Portal</h2>
@@ -205,8 +212,8 @@ const RoleSelectionPage = () => {
           </motion.div>
           <motion.div
             variants={cardVariants}
-            onClick={() => handlePortalClick('agent')}
-            className="portal-card active-gold flex flex-col items-center justify-center"
+            onClick={handleAgentClick}
+            className={`portal-card ${isAgentAllowed ? 'active-gold' : 'locked'}`}
           >
             <UserCheck className="h-16 w-16 text-primary mb-4" />
             <h2 className="text-3xl font-bold">Agent Portal</h2>
