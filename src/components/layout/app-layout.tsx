@@ -128,6 +128,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
           setActualRoles(userRoles);
           setPrimaryRole(userPrimaryRole);
           
+          // Only set viewAsRole from primaryRole if it hasn't been set by the user (switcher)
           if (!viewAsRole || primaryRole !== userPrimaryRole) {
             setViewAsRole(userPrimaryRole);
           }
@@ -211,88 +212,86 @@ export default function AppLayout({ children }: PropsWithChildren) {
 
   return (
     <RoleProvider value={{ viewAsRole, primaryRole, actualRoles }}>
-        {isLoading ? (
-            <div className="flex items-center justify-center min-h-screen w-full bg-card">
-                <Loader2 className="h-10 w-10 text-primary animate-spin"/>
-            </div>
-        ) : (
-            <div className="relative flex min-h-screen items-start justify-center p-4 bg-background">
-                <div className="content-glow w-full h-[calc(100vh-2rem)]">
-                    <div className="relative z-10 h-full w-full rounded-2xl bg-card text-card-foreground p-4 flex gap-4">
-                        
-                        <motion.div
-                          layout
-                          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                          className={cn("flex flex-col justify-between py-4 bg-background rounded-xl border", isSidebarCollapsed ? 'w-[68px]' : 'w-56')}
-                        >
-                          <div>
-                            <div className={cn("flex items-center justify-between mb-2", isSidebarCollapsed ? 'px-[1.1rem]' : 'px-4')}>
-                              <Link href={primaryRole === 'admin' ? '/dashboard' : '/leads'} className={cn(isSidebarCollapsed && 'hidden')}>
-                                  <Building2 className="h-7 w-7 text-primary" />
-                              </Link>
-                              <Button variant="ghost" size="icon" onClick={() => setSidebarCollapsed(!isSidebarCollapsed)} className="h-8 w-8">
-                                <PanelLeft className="h-5 w-5" />
-                              </Button>
-                            </div>
-                            <div className={cn("px-4 mb-4", isSidebarCollapsed ? 'hidden' : 'block')}>
-                                <p className="text-sm font-semibold truncate text-foreground">{welcomeMessage}</p>
-                                <p className="text-xs text-muted-foreground capitalize">{primaryRole} Portal</p>
-                            </div>
-                            <Nav isCollapsed={isSidebarCollapsed} userRole={viewAsRole} />
-                          </div>
-                          
-                          <div className="flex flex-col gap-2">
-                            <div className={cn("border-t pt-4 mx-2", isSidebarCollapsed ? "px-0" : "px-2")}>
-                                <TooltipProvider delayDuration={0}>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button variant="ghost" onClick={handleLogout} className={cn('w-full flex justify-start h-10', isSidebarCollapsed && 'justify-center')}>
-                                          <LogOut className={cn('h-5 w-5 shrink-0', !isSidebarCollapsed && 'mr-3')}/>
-                                          {!isSidebarCollapsed && 'Logout'}
-                                      </Button>
-                                    </TooltipTrigger>
-                                    {isSidebarCollapsed && <TooltipContent side="right">Logout</TooltipContent>}
-                                  </Tooltip>
-                                </TooltipProvider>
-                            </div>
-                          </div>
-                        </motion.div>
+        <div className="relative flex min-h-screen items-start justify-center p-4 bg-background">
+            <div className="content-glow w-full h-[calc(100vh-2rem)]">
+                <div className="relative z-10 h-full w-full rounded-2xl bg-card text-card-foreground p-4 flex gap-4">
+                    
+                    <motion.div
+                      layout
+                      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                      className={cn("flex flex-col justify-between py-4 bg-background rounded-xl border", isSidebarCollapsed ? 'w-[68px]' : 'w-56')}
+                    >
+                      <div>
+                        <div className={cn("flex items-center justify-between mb-2", isSidebarCollapsed ? 'px-[1.1rem]' : 'px-4')}>
+                          <Link href={primaryRole === 'admin' ? '/dashboard' : '/leads'} className={cn(isSidebarCollapsed && 'hidden')}>
+                              <Building2 className="h-7 w-7 text-primary" />
+                          </Link>
+                          <Button variant="ghost" size="icon" onClick={() => setSidebarCollapsed(!isSidebarCollapsed)} className="h-8 w-8">
+                            <PanelLeft className="h-5 w-5" />
+                          </Button>
+                        </div>
+                        <div className={cn("px-4 mb-4", isSidebarCollapsed ? 'hidden' : 'block')}>
+                            <p className="text-sm font-semibold truncate text-foreground">{welcomeMessage}</p>
+                            <p className="text-xs text-muted-foreground capitalize">{primaryRole || '...'}</p>
+                        </div>
+                        <Nav isCollapsed={isSidebarCollapsed} userRole={viewAsRole} />
+                      </div>
+                      
+                      <div className="flex flex-col gap-2">
+                        <div className={cn("border-t pt-4 mx-2", isSidebarCollapsed ? "px-0" : "px-2")}>
+                            <TooltipProvider delayDuration={0}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button variant="ghost" onClick={handleLogout} className={cn('w-full flex justify-start h-10', isSidebarCollapsed && 'justify-center')}>
+                                      <LogOut className={cn('h-5 w-5 shrink-0', !isSidebarCollapsed && 'mr-3')}/>
+                                      {!isSidebarCollapsed && 'Logout'}
+                                  </Button>
+                                </TooltipTrigger>
+                                {isSidebarCollapsed && <TooltipContent side="right">Logout</TooltipContent>}
+                              </Tooltip>
+                            </TooltipProvider>
+                        </div>
+                      </div>
+                    </motion.div>
 
-                        <main className="flex-1 flex flex-col min-w-0">
-                          <header className="flex items-center justify-between font-bold text-lg text-foreground tracking-tighter mb-4">
-                            <div className="flex items-center gap-2.5">
-                               {/* Empty div for spacing, keeps avatar to the right */}
+                    <main className="flex-1 flex flex-col min-w-0">
+                      <header className="flex items-center justify-between font-bold text-lg text-foreground tracking-tighter mb-4">
+                        <div className="flex items-center gap-2.5">
+                           {/* Empty div for spacing, keeps avatar to the right */}
+                        </div>
+                        <div className="flex items-center gap-4">
+                          {actualRoles.includes('admin') && actualRoles.includes('agent') && (
+                            <Button
+                                onClick={handlePortalSwitch}
+                                variant="outline"
+                                className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary shadow-md shadow-primary/10 hover:shadow-primary/20"
+                            >
+                                <Shuffle className="mr-2 h-4 w-4" />
+                                Switch to {viewAsRole === 'admin' ? 'Agent' : 'Admin'} View
+                            </Button>
+                          )}
+                          <Avatar className="h-10 w-10 border-2 border-primary/50">
+                            <AvatarFallback className="bg-primary/20 text-primary font-bold">
+                              {getInitials(displayName)}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                      </header>
+                      
+                      <div className="flex-1 overflow-y-auto pr-4 -mr-4">
+                        {isLoading ? (
+                            <div className="flex items-center justify-center h-full">
+                                <Loader2 className="h-10 w-10 text-primary animate-spin"/>
                             </div>
-                            <div className="flex items-center gap-4">
-                              {actualRoles.includes('admin') && actualRoles.includes('agent') && (
-                                <Button
-                                    onClick={handlePortalSwitch}
-                                    variant="outline"
-                                    className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary shadow-md shadow-primary/10 hover:shadow-primary/20"
-                                >
-                                    <Shuffle className="mr-2 h-4 w-4" />
-                                    Switch to {viewAsRole === 'admin' ? 'Agent' : 'Admin'} View
-                                </Button>
-                              )}
-                              <Avatar className="h-10 w-10 border-2 border-primary/50">
-                                <AvatarFallback className="bg-primary/20 text-primary font-bold">
-                                  {getInitials(displayName)}
-                                </AvatarFallback>
-                              </Avatar>
-                            </div>
-                          </header>
-                          
-                          <div className="flex-1 overflow-y-auto pr-4 -mr-4">
-                            {children}
-                          </div>
-                        </main>
-                    </div>
-                </div>
-                <div className="absolute bottom-6 right-6 text-primary/50">
-                    <Sparkles className="h-8 w-8" />
+                        ) : children}
+                      </div>
+                    </main>
                 </div>
             </div>
-        )}
+            <div className="absolute bottom-6 right-6 text-primary/50">
+                <Sparkles className="h-8 w-8" />
+            </div>
+        </div>
     </RoleProvider>
   );
 }
