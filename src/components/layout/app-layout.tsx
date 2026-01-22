@@ -98,9 +98,8 @@ function AppLayoutContent({ children }: PropsWithChildren) {
   const { toast } = useToast();
   
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
   const { viewAsRole, primaryRole, actualRoles, setViewAsRole, setPrimaryRole, setActualRoles, setDisplayName, displayName } = useRole();
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
 
   useEffect(() => {
@@ -114,65 +113,70 @@ function AppLayoutContent({ children }: PropsWithChildren) {
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
+        try {
+            const userDocRef = doc(db, 'users', user.uid);
+            const userDoc = await getDoc(userDocRef);
 
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          const userRoles: string[] = userData.roles || [];
-          const name = userData.displayName || 'User';
-          const userPrimaryRole = userRoles.includes('admin') ? 'admin' : (userRoles.includes('agent') ? 'agent' : null);
-          
-          setActualRoles(userRoles);
-          setPrimaryRole(userPrimaryRole);
-          
-          if (!viewAsRole || primaryRole !== userPrimaryRole) {
-            setViewAsRole(userPrimaryRole);
-          }
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                const userRoles: string[] = userData.roles || [];
+                const name = userData.displayName || 'User';
+                const userPrimaryRole = userRoles.includes('admin') ? 'admin' : (userRoles.includes('agent') ? 'agent' : null);
+                
+                setActualRoles(userRoles);
+                setPrimaryRole(userPrimaryRole);
+                
+                if (!viewAsRole) { // Set viewAsRole only if it's not already set
+                    setViewAsRole(userPrimaryRole);
+                }
 
-          setDisplayName(name);
+                setDisplayName(name);
 
-          sessionStorage.setItem('userRole', userPrimaryRole || 'agent');
-          sessionStorage.setItem('userId', user.uid);
-          sessionStorage.setItem('displayName', name);
-
-          if (userData.isFirstLogin) {
-              router.replace('/auth/set-password');
-              setIsLoading(false);
-              return;
-          }
-          
-          const currentNav = navItems.find(item => pathname.startsWith(item.href));
-          if (currentNav) {
-            const hasPermission = userRoles.some(r => currentNav.roles.includes(r));
-            if (!hasPermission) {
-              toast({
-                variant: "destructive",
-                title: "Access Denied",
-                description: "You do not have permission to view this page.",
-              });
-              router.replace(userPrimaryRole === 'admin' ? '/dashboard' : '/leads');
+                sessionStorage.setItem('userRole', userPrimaryRole || 'agent');
+                sessionStorage.setItem('userId', user.uid);
+                sessionStorage.setItem('displayName', name);
+                
+                if (userData.isFirstLogin) {
+                    router.replace('/auth/set-password');
+                    setIsAuthLoading(false);
+                    return;
+                }
+                
+                const currentNav = navItems.find(item => pathname.startsWith(item.href));
+                if (currentNav) {
+                    const hasPermission = userRoles.some(r => currentNav.roles.includes(r));
+                    if (!hasPermission) {
+                        toast({
+                            variant: "destructive",
+                            title: "Access Denied",
+                            description: "You do not have permission to view this page.",
+                        });
+                        router.replace(userPrimaryRole === 'admin' ? '/dashboard' : '/leads');
+                    }
+                }
+            } else {
+                console.warn(`User document not found for UID: ${user.uid}. Creating a new one.`);
+                await setDoc(userDocRef, {
+                    displayName: user.displayName || user.email,
+                    email: user.email,
+                    roles: ['agent'],
+                    isFirstLogin: true,
+                    createdAt: serverTimestamp(),
+                });
+                router.replace('/auth/set-password');
             }
-          }
-        } else {
-            console.warn(`User document not found for UID: ${user.uid}. Creating a new one.`);
-            await setDoc(userDocRef, {
-              displayName: user.displayName || user.email,
-              email: user.email,
-              roles: ['agent'],
-              isFirstLogin: true,
-              createdAt: serverTimestamp(),
-            });
-            router.replace('/auth/set-password');
+        } catch(e) {
+            console.error("Auth Error:", e);
+            router.replace('/');
         }
       } else {
         router.replace('/');
       }
-      setIsLoading(false);
+      setIsAuthLoading(false);
     });
 
     return () => unsubscribe();
-  }, [pathname, router, toast]);
+  }, []);
 
   const handleLogout = () => {
     signOut(auth).then(() => {
@@ -275,7 +279,7 @@ function AppLayoutContent({ children }: PropsWithChildren) {
                   </header>
                   
                   <div className="flex-1 overflow-y-auto pr-4 -mr-4">
-                    {isLoading ? (
+                    {isAuthLoading ? (
                         <div className="flex items-center justify-center h-full">
                             <Loader2 className="h-10 w-10 text-primary animate-spin"/>
                         </div>
