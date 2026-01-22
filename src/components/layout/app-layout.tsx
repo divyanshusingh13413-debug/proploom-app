@@ -2,7 +2,7 @@
 'use client';
 import type { PropsWithChildren } from 'react';
 import React, { useState, useEffect } from 'react';
-import {
+import { 
   Sparkles,
   Users, 
   TrendingUp, 
@@ -14,7 +14,8 @@ import {
   PanelLeft,
   LogOut,
   BrainCircuit,
-  Eye
+  Eye,
+  Shuffle
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -28,8 +29,6 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '../ui/avatar';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { RoleProvider } from '@/context/RoleContext';
 
 const navItems = [
@@ -207,14 +206,14 @@ export default function AppLayout({ children }: PropsWithChildren) {
   
   const welcomeMessage = displayName ? `${displayName}` : 'Welcome';
   
-  const handleViewToggle = (isAgentView: boolean) => {
-      const newViewRole = isAgentView ? 'agent' : 'admin';
+  const handlePortalSwitch = () => {
+      const newViewRole = viewAsRole === 'admin' ? 'agent' : 'admin';
       setViewAsRole(newViewRole);
       const targetPath = newViewRole === 'admin' ? '/dashboard' : '/leads';
       router.push(targetPath);
       toast({
-        title: `View Changed`,
-        description: `Now viewing as ${newViewRole}.`,
+        title: `Switched View`,
+        description: `Now viewing as a ${newViewRole}.`,
       });
   };
 
@@ -246,20 +245,6 @@ export default function AppLayout({ children }: PropsWithChildren) {
                       </div>
                       
                       <div className="flex flex-col gap-2">
-                        {actualRoles.includes('admin') && !isSidebarCollapsed && (
-                            <div className="border-t pt-4 mx-2 px-2 flex items-center justify-between">
-                                <Label htmlFor="view-switch" className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <Eye className="h-4 w-4"/>
-                                    <span>View as Agent</span>
-                                </Label>
-                                <Switch 
-                                    id="view-switch" 
-                                    checked={viewAsRole === 'agent'}
-                                    onCheckedChange={handleViewToggle}
-                                />
-                            </div>
-                        )}
-
                         <div className={cn("border-t pt-4 mx-2", isSidebarCollapsed ? "px-0" : "px-2")}>
                             <TooltipProvider delayDuration={0}>
                               <Tooltip>
@@ -279,9 +264,19 @@ export default function AppLayout({ children }: PropsWithChildren) {
                     <main className="flex-1 flex flex-col min-w-0">
                       <header className="flex items-center justify-between font-bold text-lg text-foreground tracking-tighter mb-4">
                         <div className="flex items-center gap-2.5">
-                          {/* Header can be used for breadcrumbs or page titles if needed */}
+                           {/* Empty div for spacing, keeps avatar to the right */}
                         </div>
                         <div className="flex items-center gap-4">
+                          {actualRoles.includes('admin') && actualRoles.includes('agent') && (
+                            <Button
+                                onClick={handlePortalSwitch}
+                                variant="outline"
+                                className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary shadow-md shadow-primary/10 hover:shadow-primary/20"
+                            >
+                                <Shuffle className="mr-2 h-4 w-4" />
+                                Switch to {viewAsRole === 'admin' ? 'Agent' : 'Admin'} View
+                            </Button>
+                          )}
                           <Avatar className="h-10 w-10 border-2 border-primary/50">
                             <AvatarFallback className="bg-primary/20 text-primary font-bold">
                               {getInitials(displayName)}
