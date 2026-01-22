@@ -1,12 +1,17 @@
 
 'use client';
 
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, type ReactNode, type Dispatch, type SetStateAction } from 'react';
 
 type RoleContextType = {
   viewAsRole: 'admin' | 'agent' | null;
   primaryRole: 'admin' | 'agent' | null;
   actualRoles: string[];
+  displayName: string | null;
+  setViewAsRole: Dispatch<SetStateAction<'admin' | 'agent' | null>>;
+  setPrimaryRole: Dispatch<SetStateAction<'admin' | 'agent' | null>>;
+  setActualRoles: Dispatch<SetStateAction<string[]>>;
+  setDisplayName: Dispatch<SetStateAction<string | null>>;
 };
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
