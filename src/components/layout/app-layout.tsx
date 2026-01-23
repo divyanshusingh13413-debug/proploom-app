@@ -1,4 +1,3 @@
-
 'use client';
 import type { PropsWithChildren } from 'react';
 import React, { useState, useEffect } from 'react';
@@ -29,7 +28,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '../ui/avatar';
-import { RoleProvider, useRole } from '@/context/RoleContext';
+import { useRole } from '@/context/RoleContext';
 
 const navItems = [
   { href: '/dashboard', icon: Home, label: 'Dashboard', roles: ['admin', 'agent'] },
@@ -92,7 +91,7 @@ const Nav = ({ isCollapsed, userRole }: { isCollapsed: boolean, userRole: string
   );
 };
 
-function AppLayoutContent({ children }: PropsWithChildren) {
+export default function AppLayout({ children }: PropsWithChildren) {
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
@@ -107,7 +106,9 @@ function AppLayoutContent({ children }: PropsWithChildren) {
     const cachedName = sessionStorage.getItem('displayName');
     if (cachedRole && cachedName) {
         setPrimaryRole(cachedRole);
-        setViewAsRole(cachedRole);
+        if (!viewAsRole) { // Only set if not already set (e.g. by switching)
+             setViewAsRole(cachedRole);
+        }
         setDisplayName(cachedName);
     }
 
@@ -126,7 +127,7 @@ function AppLayoutContent({ children }: PropsWithChildren) {
                 setActualRoles(userRoles);
                 setPrimaryRole(userPrimaryRole);
                 
-                if (!viewAsRole) { // Set viewAsRole only if it's not already set
+                if (!viewAsRole) {
                     setViewAsRole(userPrimaryRole);
                 }
 
@@ -176,7 +177,7 @@ function AppLayoutContent({ children }: PropsWithChildren) {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [setActualRoles, setDisplayName, setPrimaryRole, setViewAsRole, router, toast, viewAsRole, pathname]);
 
   const handleLogout = () => {
     signOut(auth).then(() => {
@@ -185,6 +186,8 @@ function AppLayoutContent({ children }: PropsWithChildren) {
         title: 'Logged Out',
         description: `You have been successfully logged out.`,
       });
+      setViewAsRole(null); // Reset view role on logout
+      setPrimaryRole(null);
       router.replace('/');
     });
   }
@@ -293,20 +296,4 @@ function AppLayoutContent({ children }: PropsWithChildren) {
         </div>
     </div>
   );
-}
-
-
-export default function AppLayout({ children }: PropsWithChildren) {
-  const [viewAsRole, setViewAsRole] = useState<'admin' | 'agent' | null>(null);
-  const [primaryRole, setPrimaryRole] = useState<'admin' | 'agent' | null>(null);
-  const [actualRoles, setActualRoles] = useState<string[]>([]);
-  const [displayName, setDisplayName] = useState<string | null>(null);
-  
-  return (
-      <RoleProvider value={{ viewAsRole, primaryRole, actualRoles, setViewAsRole, setPrimaryRole, setActualRoles, setDisplayName, displayName }}>
-          <AppLayoutContent>
-            {children}
-          </AppLayoutContent>
-      </RoleProvider>
-  )
 }
