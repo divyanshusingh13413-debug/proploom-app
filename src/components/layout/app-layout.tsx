@@ -1,3 +1,4 @@
+
 'use client';
 import type { PropsWithChildren } from 'react';
 import React, { useState, useEffect } from 'react';
@@ -263,7 +264,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
                        {/* Empty div for spacing, keeps avatar to the right */}
                     </div>
                     <div className="flex items-center gap-4">
-                      {actualRoles.includes('admin') && actualRoles.includes('agent') && (
+                      {actualRoles.includes('admin') && (
                         <Button
                             onClick={handlePortalSwitch}
                             variant="outline"
