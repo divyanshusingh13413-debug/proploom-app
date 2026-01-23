@@ -105,7 +105,7 @@ const AppLayoutContent = ({ children }: PropsWithChildren) => {
         title: 'Logged Out',
         description: `You have been successfully logged out.`,
       });
-      setViewAsRole(null); // Reset view role on logout
+      setViewAsRole(null);
       setPrimaryRole(null);
       router.replace('/');
     });
@@ -125,6 +125,7 @@ const AppLayoutContent = ({ children }: PropsWithChildren) => {
   const handlePortalSwitch = () => {
       const newViewRole = viewAsRole === 'admin' ? 'agent' : 'admin';
       setViewAsRole(newViewRole);
+      sessionStorage.setItem('viewAsRole', newViewRole);
       const targetPath = newViewRole === 'admin' ? '/dashboard' : '/leads';
       router.push(targetPath);
       toast({
@@ -152,7 +153,7 @@ const AppLayoutContent = ({ children }: PropsWithChildren) => {
             </div>
             <div className={cn("px-4 mb-4", isSidebarCollapsed ? 'hidden' : 'block')}>
                 <p className="text-sm font-semibold truncate text-foreground">{welcomeMessage}</p>
-                <p className="text-xs text-muted-foreground capitalize">{primaryRole || '...'}</p>
+                <p className="text-xs text-muted-foreground capitalize">{viewAsRole || '...'}</p>
             </div>
             <Nav isCollapsed={isSidebarCollapsed} userRole={viewAsRole} />
           </div>
@@ -180,14 +181,14 @@ const AppLayoutContent = ({ children }: PropsWithChildren) => {
                {/* Empty div for spacing, keeps avatar to the right */}
             </div>
             <div className="flex items-center gap-4">
-               {actualRoles.includes('admin') && viewAsRole === 'admin' && (
+               {actualRoles.includes('admin') && (
                 <Button
                     onClick={handlePortalSwitch}
                     variant="outline"
                     className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary shadow-md shadow-primary/10 hover:shadow-primary/20"
                 >
                     <Shuffle className="mr-2 h-4 w-4" />
-                    Switch to Agent View
+                    {viewAsRole === 'admin' ? 'Switch to Agent View' : 'Return to Admin Portal'}
                 </Button>
               )}
               <Avatar className="h-10 w-10 border-2 border-primary/50">
@@ -211,18 +212,10 @@ export default function AppLayout({ children }: PropsWithChildren) {
   const pathname = usePathname();
   const router = useRouter();
   
-  const { setViewAsRole, setPrimaryRole, setActualRoles, setDisplayName } = useRole();
+  const { primaryRole, setViewAsRole, setPrimaryRole, setActualRoles, setDisplayName } = useRole();
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
-    const cachedRole = sessionStorage.getItem('userRole') as 'admin' | 'agent' | null;
-    const cachedName = sessionStorage.getItem('displayName');
-    if (cachedRole && cachedName) {
-        setPrimaryRole(cachedRole);
-        setViewAsRole(cachedRole);
-        setDisplayName(cachedName);
-    }
-
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
@@ -235,10 +228,12 @@ export default function AppLayout({ children }: PropsWithChildren) {
                 const name = userData.displayName || 'User';
                 const userPrimaryRole = userRoles.includes('admin') ? 'admin' : (userRoles.includes('agent') ? 'agent' : null);
                 
+                const savedViewRole = sessionStorage.getItem('viewAsRole') as 'admin' | 'agent' | null;
+
                 setActualRoles(userRoles);
-                if (userPrimaryRole) {
+                if (userPrimaryRole && !primaryRole) {
                   setPrimaryRole(userPrimaryRole);
-                  setViewAsRole(userPrimaryRole); // Set initial view to primary role
+                  setViewAsRole(savedViewRole || userPrimaryRole);
                 }
                 setDisplayName(name);
 
@@ -280,7 +275,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
     });
 
     return () => unsubscribe();
-  }, []); // Removed dependencies to run only once
+  }, [pathname, primaryRole, router, setActualRoles, setDisplayName, setPrimaryRole, setViewAsRole]);
 
   return (
     <div className="relative flex min-h-screen items-start justify-center p-4 bg-background">
