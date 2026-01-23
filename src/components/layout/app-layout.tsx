@@ -267,7 +267,7 @@ function AppLayoutContent({ children }: PropsWithChildren) {
                             className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary shadow-md shadow-primary/10 hover:shadow-primary/20"
                         >
                             <Shuffle className="mr-2 h-4 w-4" />
-                            Switch to {viewAsRole === 'admin' ? 'Agent' : 'Admin'} View
+                            {viewAsRole === 'admin' ? 'Switch to Agent View' : 'Return to Admin Portal'}
                         </Button>
                       )}
                       <Avatar className="h-10 w-10 border-2 border-primary/50">
