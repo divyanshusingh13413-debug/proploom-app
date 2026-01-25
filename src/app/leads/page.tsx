@@ -224,20 +224,17 @@ export default function LeadsPage() {
     const agentName = displayName || 'Espace Real Estate';
     const propertyRef = propertyName || 'your property inquiry';
 
-    let cleanNumber = phone.replace(/\D/g, ''); // Remove all non-numeric chars
+    let cleaned = phone.replace(/\D/g, ''); // Sirf numbers rakho
 
-    // Dubai Smart Country Code Logic
-    if (cleanNumber.length === 10 && cleanNumber.startsWith('0')) {
-      // Handles numbers like 05...
-      cleanNumber = '971' + cleanNumber.substring(1);
-    } else if (cleanNumber.length === 9 && cleanNumber.startsWith('5')) {
-      // Handles numbers like 5...
-      cleanNumber = '971' + cleanNumber;
+    // Smart Dubai Formatting
+    if (cleaned.startsWith('0')) {
+        cleaned = '971' + cleaned.substring(1);
+    } else if (cleaned.length === 9 && !cleaned.startsWith('971')) {
+        cleaned = '971' + cleaned;
     }
-    // Assumes numbers already starting with 971 are correct
-
+    
     const message = encodeURIComponent(`Hi ${name}, this is ${agentName} from Espace Real Estate. I saw your inquiry about ${propertyRef}. How can I help?`);
-    window.open(`https://wa.me/${cleanNumber}?text=${message}`, '_blank');
+    window.open(`https://wa.me/${cleaned}?text=${message}`, '_blank');
   };
 
   const handleExport = () => {
@@ -424,3 +421,5 @@ export default function LeadsPage() {
     </div>
   );
 }
+
+    
