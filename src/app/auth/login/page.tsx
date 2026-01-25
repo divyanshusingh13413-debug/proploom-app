@@ -37,21 +37,43 @@ function LoginForm() {
 
       // 2. Database check
       const userDocRef = doc(db, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
+      let userDoc = await getDoc(userDocRef);
+      let userData;
 
       if (!userDoc.exists()) {
-        console.error(`User document not found for authenticated user: ${user.uid}.`);
-        await signOut(auth); // Sign out the user for security
+        console.log(`User document not found for UID: ${user.uid}. Creating a new document.`);
         toast({
-          variant: "destructive",
-          title: "Login Failed",
-          description: "User profile not found. Please contact support.",
+          title: "Setting up your account...",
+          description: "This is your first login, please wait.",
         });
-        setIsLoading(false);
-        return; // Stop execution
+
+        const newUserPayload = {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName || user.email?.split('@')[0] || 'New User',
+            roles: ['agent'], // Safest assumption for auto-created accounts
+            isFirstLogin: true,
+            createdAt: serverTimestamp()
+        };
+        
+        await setDoc(userDocRef, newUserPayload);
+
+        // Re-fetch the document to proceed
+        userDoc = await getDoc(userDocRef);
+        userData = userDoc.data();
+
+        if (!userData) {
+           // This should not happen, but as a safeguard
+           console.error("Failed to create and fetch user document.");
+           await signOut(auth);
+           toast({ variant: "destructive", title: "Login Failed", description: "Could not initialize your user profile." });
+           setIsLoading(false);
+           return;
+        }
+      } else {
+        userData = userDoc.data();
       }
 
-      const userData = userDoc.data();
       const userRoles = userData.roles || [];
       const displayName = userData.displayName;
 
