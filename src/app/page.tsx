@@ -195,28 +195,30 @@ const RoleSelectionPage = () => {
               animate="visible"
               className="grid grid-cols-1 md:grid-cols-2 gap-8"
             >
-              <motion.div
+              <motion.button
                 variants={cardVariants}
-                onClick={isAdminAllowed ? handleAdminClick : undefined}
-                className={`portal-card ${isAdminAllowed ? 'active-gold' : 'locked'}`}
+                onClick={handleAdminClick}
+                disabled={!isAdminAllowed}
+                className={`portal-card text-left ${isAdminAllowed ? 'active-gold' : 'locked'}`}
               >
                 <ShieldCheck className="h-16 w-16 text-primary mb-4" />
                 <h2 className="text-3xl font-bold">Admin Portal</h2>
                 <p className="text-muted-foreground mt-2">
                   Full access to analytics and settings.
                 </p>
-              </motion.div>
-              <motion.div
+              </motion.button>
+              <motion.button
                 variants={cardVariants}
-                onClick={isAgentAllowed ? handleAgentClick : undefined}
-                className={`portal-card ${isAgentAllowed ? 'active-gold' : 'locked'}`}
+                onClick={handleAgentClick}
+                disabled={!isAgentAllowed}
+                className={`portal-card text-left ${isAgentAllowed ? 'active-gold' : 'locked'}`}
               >
                 <UserCheck className="h-16 w-16 text-primary mb-4" />
                 <h2 className="text-3xl font-bold">Agent Portal</h2>
                 <p className="text-muted-foreground mt-2">
                   Manage and track your assigned leads.
                 </p>
-              </motion.div>
+              </motion.button>
             </motion.div>
         )}
 
