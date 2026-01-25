@@ -1,6 +1,13 @@
 
 import { Timestamp } from 'firebase/firestore';
 
+export type ActivityLog = {
+  action: string;
+  timestamp: Timestamp;
+  agentId: string;
+  agentName: string;
+};
+
 export type Lead = {
   id: string;
   name: string;
@@ -16,6 +23,7 @@ export type Lead = {
   timestamp?: Timestamp;
   assignedAgentId?: string;
   assignedAgentName?: string;
+  activityLog?: ActivityLog[];
 };
 
 export type Agent = {
@@ -59,3 +67,5 @@ export type User = {
   isFirstLogin: boolean;
   createdAt?: Timestamp;
 };
+
+    
