@@ -218,15 +218,11 @@ export default function LeadsPage() {
     }).length;
   };
 
-  const handleWhatsAppChat = (e: React.MouseEvent, phone: string, name?: string) => {
-    e.stopPropagation(); 
-    const message = name
-      ? `Hi ${name}, this is from Proploom regarding your interest in our properties. When would be a good time to connect?`
-      : 'Hello, I am interested in your property listing.';
-    const encodedMessage = encodeURIComponent(message);
-    const cleanedPhone = phone.replace(/[\s+-]/g, '');
-    const whatsappUrl = `https://wa.me/${cleanedPhone}?text=${encodedMessage}`;
-    window.open(whatsappUrl, '_blank');
+  const openWhatsApp = (e: React.MouseEvent, phone: string, name?: string) => {
+    e.stopPropagation();
+    const cleanNumber = phone.replace(/\D/g, ''); 
+    const message = encodeURIComponent(`Hi ${name}, I'm reaching out from Espace Real Estate regarding your inquiry.`);
+    window.open(`https://wa.me/${cleanNumber}?text=${message}`, '_blank');
   };
 
   const handleExport = () => {
@@ -363,33 +359,45 @@ export default function LeadsPage() {
                                 </TableCell>
                                 <TableCell>{lead.timestamp ? lead.timestamp.toDate().toLocaleDateString() : 'N/A'}</TableCell>
                                 <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                                  <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                                              <span className="sr-only">Open menu</span>
-                                              <MoreHorizontal className="h-4 w-4" />
-                                          </Button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end">
-                                          <DropdownMenuItem>View Details</DropdownMenuItem>
-                                          <DropdownMenuItem onClick={(e) => handleWhatsAppChat(e, lead.phone, lead.name)}>
-                                              <MessageSquare className="mr-2 h-4 w-4" />
-                                              WhatsApp
-                                          </DropdownMenuItem>
-                                          {viewAsRole === 'admin' && (
-                                              <>
-                                                  <DropdownMenuSeparator />
-                                                  <DropdownMenuItem
-                                                      onClick={() => handleDeleteLead(lead.id, lead.name)}
-                                                      className="text-red-500 focus:text-red-500 focus:bg-red-500/10"
-                                                  >
-                                                      <Trash2 className="mr-2 h-4 w-4" />
-                                                      Delete Lead
-                                                  </DropdownMenuItem>
-                                              </>
-                                          )}
-                                      </DropdownMenuContent>
-                                  </DropdownMenu>
+                                  <div className="flex items-center justify-end gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={(e) => openWhatsApp(e, lead.phone, lead.name)}
+                                      className="text-green-500 hover:bg-green-500/10 hover:text-green-400 h-8 w-8"
+                                      title="Chat on WhatsApp"
+                                    >
+                                      <MessageSquare className="h-4 w-4" />
+                                      <span className="sr-only">Chat on WhatsApp</span>
+                                    </Button>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                <span className="sr-only">Open menu</span>
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem>View Details</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={(e) => openWhatsApp(e, lead.phone, lead.name)}>
+                                                <MessageSquare className="mr-2 h-4 w-4" />
+                                                WhatsApp
+                                            </DropdownMenuItem>
+                                            {viewAsRole === 'admin' && (
+                                                <>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        onClick={() => handleDeleteLead(lead.id, lead.name)}
+                                                        className="text-red-500 focus:text-red-500 focus:bg-red-500/10"
+                                                    >
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        Delete Lead
+                                                    </DropdownMenuItem>
+                                                </>
+                                            )}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </div>
                                 </TableCell>
                             </TableRow>
                         ))}
