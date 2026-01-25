@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -220,57 +219,58 @@ export default function LeadsPage() {
 
   const openWhatsApp = async (e: React.MouseEvent, lead: Lead) => {
     e.stopPropagation();
-
+  
     const { phone, name, propertyName, id: leadId } = lead;
-
+  
     const agentName = displayName || 'Espace Real Estate';
     const propertyRef = propertyName || 'your property inquiry';
-
-    let cleaned = phone.replace(/\D/g, '');
-
+  
+    // Smart Dubai Formatting
+    let cleaned = phone.replace(/\D/g, ''); // Sirf numbers rakho
     if (cleaned.startsWith('0')) {
-        cleaned = '971' + cleaned.substring(1);
+      cleaned = '971' + cleaned.substring(1);
     } else if (cleaned.length === 9 && !cleaned.startsWith('971')) {
-        cleaned = '971' + cleaned;
+      // Handles numbers like 501234567 by adding country code
+      cleaned = '971' + cleaned;
     }
-    
+  
     const message = encodeURIComponent(`Hi ${name}, this is ${agentName} from Espace Real Estate. I saw your inquiry about ${propertyRef}. How can I help?`);
     window.open(`https://wa.me/${cleaned}?text=${message}`, '_blank');
-
+  
     if (!userId) {
-        toast({
-            variant: "destructive",
-            title: "Logging Failed",
-            description: "Could not log activity. User ID not found.",
-        });
-        return;
+      toast({
+        variant: "destructive",
+        title: "Logging Failed",
+        description: "Could not log activity. User ID not found.",
+      });
+      return;
     }
-
+  
     try {
-        const leadRef = doc(db, 'leads', leadId);
-        const logEntry = {
-            action: 'WhatsApp Message Sent',
-            timestamp: new Date(),
-            agentId: userId,
-            agentName: displayName || 'Unknown Agent'
-        };
-
-        await updateDoc(leadRef, {
-            activityLog: arrayUnion(logEntry)
-        });
-
-        toast({
-            title: 'Success',
-            description: 'WhatsApp activity logged successfully.',
-        });
-
+      const leadRef = doc(db, 'leads', leadId);
+      const logEntry = {
+        action: 'WhatsApp Message Sent',
+        timestamp: new Date(),
+        agentId: userId,
+        agentName: displayName || 'Unknown Agent'
+      };
+  
+      await updateDoc(leadRef, {
+        activityLog: arrayUnion(logEntry)
+      });
+  
+      toast({
+        title: 'Success',
+        description: 'WhatsApp activity logged successfully.',
+      });
+  
     } catch (error) {
-        console.error("Error logging WhatsApp activity:", error);
-        toast({
-            variant: "destructive",
-            title: "Logging Failed",
-            description: "Could not save the activity to the database.",
-        });
+      console.error("Error logging WhatsApp activity:", error);
+      toast({
+        variant: "destructive",
+        title: "Logging Failed",
+        description: "Could not save the activity to the database.",
+      });
     }
   };
 
@@ -458,5 +458,3 @@ export default function LeadsPage() {
     </div>
   );
 }
-
-    
