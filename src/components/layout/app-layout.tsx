@@ -15,7 +15,8 @@ import {
   LogOut,
   BrainCircuit,
   Eye,
-  Shuffle
+  Shuffle,
+  History
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -38,6 +39,7 @@ const navItems = [
   { href: '/sales', icon: TrendingUp, label: 'Sales Pipeline', roles: ['admin', 'agent'] },
   { href: '/tours', icon: Video, label: 'Virtual Tours', roles: ['admin'] },
   { href: '/analytics', icon: BrainCircuit, label: 'AI Analytics', roles: ['admin'] },
+  { href: '/activity', icon: History, label: 'Activity Log', roles: ['admin'] },
   { href: '/agents', icon: Users2, label: 'Manage Agents', roles: ['admin'] },
 ];
 
@@ -233,8 +235,8 @@ export default function AppLayout({ children }: PropsWithChildren) {
                 setActualRoles(userRoles);
                 if (userPrimaryRole && !primaryRole) {
                   setPrimaryRole(userPrimaryRole);
-                  setViewAsRole(savedViewRole || userPrimaryRole);
                 }
+                setViewAsRole(savedViewRole || userPrimaryRole);
                 setDisplayName(name);
 
                 sessionStorage.setItem('userRole', userPrimaryRole || 'agent');
@@ -247,7 +249,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
                     return;
                 }
                 
-                const currentNav = navItems.find(item => pathname.startsWith(item.href));
+                const currentNav = navItems.find(item => item.href !== '/' && pathname.startsWith(item.href));
                 if (currentNav) {
                     const hasPermission = userRoles.some(r => currentNav.roles.includes(r));
                     if (!hasPermission) {
