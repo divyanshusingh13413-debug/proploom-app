@@ -7,21 +7,33 @@ import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import type { Lead, User, ActivityLog } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MessageSquare, History } from 'lucide-react';
+import { MessageSquare, History, Download } from 'lucide-react';
 import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 type EnrichedActivityLog = ActivityLog & {
   leadName: string;
   leadId: string;
 };
 
+// Extend jsPDF with autoTable, since types might not be available
+declare module 'jspdf' {
+    interface jsPDF {
+        autoTable: (options: any) => jsPDF;
+    }
+}
+
+
 export default function ActivityPage() {
   const [activities, setActivities] = useState<EnrichedActivityLog[]>([]);
   const [agents, setAgents] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedAgentId, setSelectedAgentId] = useState<string>('all');
+  const { toast } = useToast();
 
   useEffect(() => {
     // Fetch all leads
@@ -68,11 +80,58 @@ export default function ActivityPage() {
     }
     return activities.filter(activity => activity.agentId === selectedAgentId);
   }, [activities, selectedAgentId]);
-  
-  const getAgentInitials = (agentName: string) => {
-     return agentName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-  }
 
+  const handleDownloadReport = () => {
+    if (filteredActivities.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No Data",
+        description: "There is no activity to report for the selected filter.",
+      });
+      return;
+    }
+
+    const doc = new jsPDF();
+    const today = format(new Date(), "MMMM d, yyyy");
+
+    // Title
+    doc.setFontSize(20);
+    doc.text("Espace Real Estate", 14, 22);
+    doc.setFontSize(12);
+    doc.text("Today's Activity Report", 14, 30);
+    doc.setFontSize(10);
+    doc.text(today, 14, 36);
+
+    const tableColumn = ["#", "Agent Name", "Lead Name", "Activity", "Timestamp"];
+    const tableRows: any[][] = [];
+
+    filteredActivities.forEach((activity, index) => {
+      const activityData = [
+        index + 1,
+        activity.agentName || 'N/A',
+        activity.leadName,
+        activity.action,
+        format(activity.timestamp.toDate(), "MMMM d, yyyy, h:mm a"),
+      ];
+      tableRows.push(activityData);
+    });
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 50,
+      theme: 'grid',
+      headStyles: { fillColor: [250, 204, 21], textColor: [37, 37, 37] },
+    });
+    
+    doc.save(`Activity_Report_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+
+    toast({
+      title: "Report Downloaded",
+      description: "The activity report PDF has been generated successfully.",
+    });
+  };
+  
   return (
     <div className="w-full space-y-8">
       <div className="flex justify-between items-center">
@@ -84,20 +143,26 @@ export default function ActivityPage() {
             A real-time log of all agent interactions.
             </p>
         </div>
-        <div className="w-full max-w-sm">
-            <Select onValueChange={setSelectedAgentId} defaultValue="all">
-                <SelectTrigger>
-                    <SelectValue placeholder="Filter by agent..." />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">All Agents</SelectItem>
-                    {agents.map(agent => (
-                        <SelectItem key={agent.uid} value={agent.uid}>
-                            {agent.displayName}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
+        <div className="flex items-center gap-4">
+            <div className="w-full max-w-sm">
+                <Select onValueChange={setSelectedAgentId} defaultValue="all">
+                    <SelectTrigger>
+                        <SelectValue placeholder="Filter by agent..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Agents</SelectItem>
+                        {agents.map(agent => (
+                            <SelectItem key={agent.uid} value={agent.uid}>
+                                {agent.displayName}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+            <Button onClick={handleDownloadReport}>
+                <Download className="mr-2 h-4 w-4" />
+                Download Report
+            </Button>
         </div>
       </div>
 
@@ -127,7 +192,7 @@ export default function ActivityPage() {
                     <div className="flex-grow pt-2">
                        <p className="font-medium text-foreground">
                           <span className="font-bold text-primary">{activity.agentName || 'Unknown Agent'}</span>
-                          {' '}sent a WhatsApp to{' '}
+                          {' '}{activity.action.toLowerCase()}{' '}
                           <span className="font-bold">{activity.leadName}</span>
                        </p>
                        <p className="text-sm text-muted-foreground mt-1">
