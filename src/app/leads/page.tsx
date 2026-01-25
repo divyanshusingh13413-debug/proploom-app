@@ -98,7 +98,7 @@ export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [agents, setAgents] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { viewAsRole } = useRole();
+  const { viewAsRole, displayName } = useRole();
   const [userId, setUserId] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -218,10 +218,25 @@ export default function LeadsPage() {
     }).length;
   };
 
-  const openWhatsApp = (e: React.MouseEvent, phone: string, name?: string) => {
+  const openWhatsApp = (e: React.MouseEvent, phone: string, name: string | undefined, propertyName: string | undefined) => {
     e.stopPropagation();
-    const cleanNumber = phone.replace(/\D/g, ''); 
-    const message = encodeURIComponent(`Hi ${name}, I'm reaching out from Espace Real Estate regarding your inquiry.`);
+
+    const agentName = displayName || 'Espace Real Estate';
+    const propertyRef = propertyName || 'your property inquiry';
+
+    let cleanNumber = phone.replace(/\D/g, ''); // Remove all non-numeric chars
+
+    // Dubai Smart Country Code Logic
+    if (cleanNumber.length === 10 && cleanNumber.startsWith('0')) {
+      // Handles numbers like 05...
+      cleanNumber = '971' + cleanNumber.substring(1);
+    } else if (cleanNumber.length === 9 && cleanNumber.startsWith('5')) {
+      // Handles numbers like 5...
+      cleanNumber = '971' + cleanNumber;
+    }
+    // Assumes numbers already starting with 971 are correct
+
+    const message = encodeURIComponent(`Hi ${name}, this is ${agentName} from Espace Real Estate. I saw your inquiry about ${propertyRef}. How can I help?`);
     window.open(`https://wa.me/${cleanNumber}?text=${message}`, '_blank');
   };
 
@@ -363,7 +378,7 @@ export default function LeadsPage() {
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      onClick={(e) => openWhatsApp(e, lead.phone, lead.name)}
+                                      onClick={(e) => openWhatsApp(e, lead.phone, lead.name, lead.propertyName)}
                                       className="text-green-500 hover:bg-green-500/10 hover:text-green-400 h-8 w-8"
                                       title="Chat on WhatsApp"
                                     >
@@ -379,7 +394,7 @@ export default function LeadsPage() {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuItem>View Details</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={(e) => openWhatsApp(e, lead.phone, lead.name)}>
+                                            <DropdownMenuItem onClick={(e) => openWhatsApp(e, lead.phone, lead.name, lead.propertyName)}>
                                                 <MessageSquare className="mr-2 h-4 w-4" />
                                                 WhatsApp
                                             </DropdownMenuItem>
