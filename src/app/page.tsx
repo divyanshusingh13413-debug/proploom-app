@@ -106,17 +106,13 @@ const RoleSelectionPage = () => {
 
     return () => unsubscribe();
   }, []);
-
-  if (showSplash) {
-    return <SplashScreen onFinish={() => setShowSplash(false)} />;
-  }
-
+  
   const isAdminAllowed = user ? userRoles.includes('admin') : true;
   const isAgentAllowed = user ? userRoles.includes('agent') : true;
 
   const handleAdminClick = () => {
     if (user) {
-      if (isAdminAllowed) router.push('/dashboard');
+      router.push('/dashboard');
     } else {
       router.push('/auth/login?role=admin');
     }
@@ -124,11 +120,15 @@ const RoleSelectionPage = () => {
 
   const handleAgentClick = () => {
     if (user) {
-      if (isAgentAllowed) router.push('/leads');
+      router.push('/leads');
     } else {
       router.push('/auth/login?role=agent');
     }
   };
+
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  }
 
   const cardContainerVariants = {
     hidden: { opacity: 0 },
@@ -197,7 +197,7 @@ const RoleSelectionPage = () => {
             >
               <motion.div
                 variants={cardVariants}
-                onClick={handleAdminClick}
+                onClick={isAdminAllowed ? handleAdminClick : undefined}
                 className={`portal-card ${isAdminAllowed ? 'active-gold' : 'locked'}`}
               >
                 <ShieldCheck className="h-16 w-16 text-primary mb-4" />
@@ -208,7 +208,7 @@ const RoleSelectionPage = () => {
               </motion.div>
               <motion.div
                 variants={cardVariants}
-                onClick={handleAgentClick}
+                onClick={isAgentAllowed ? handleAgentClick : undefined}
                 className={`portal-card ${isAgentAllowed ? 'active-gold' : 'locked'}`}
               >
                 <UserCheck className="h-16 w-16 text-primary mb-4" />
